@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Chuỗi Xanh Việt | Landing Page",
   description:
-    "Landing page cho Chuỗi Xanh Việt, nền tảng truy xuất nguồn gốc nông sản kết hợp AI, nhật ký số, blockchain và gian hàng số.",
+    "WebDev Adventure 2026 - Nhóm Meow Meow. Nền tảng truy xuất nguồn gốc nông sản kết hợp AI, nhật ký số, blockchain và gian hàng số, kết nối nông dân, hợp tác xã và người tiêu dùng.",
 };
 
 export default function RootLayout({
