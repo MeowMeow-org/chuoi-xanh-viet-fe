@@ -1,26 +1,172 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: hsl(120, 20%, 98%);
+  --foreground: hsl(150, 10%, 15%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(150, 10%, 15%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(150, 10%, 15%);
+  --primary: hsl(142, 71%, 45%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(142, 30%, 93%);
+  --secondary-foreground: hsl(142, 50%, 25%);
+  --muted: hsl(120, 10%, 95%);
+  --muted-foreground: hsl(150, 5%, 45%);
+  --accent: hsl(142, 40%, 90%);
+  --accent-foreground: hsl(142, 50%, 20%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(142, 15%, 88%);
+  --input: hsl(142, 15%, 88%);
+  --ring: hsl(142, 71%, 45%);
+  --radius: 0.75rem;
+
+  --chart-1: hsl(142, 71%, 45%);
+  --chart-2: hsl(142, 50%, 45%);
+  --chart-3: hsl(142, 40%, 45%);
+  --chart-4: hsl(142, 30%, 45%);
+  --chart-5: hsl(142, 20%, 45%);
+  
+  --sidebar: hsl(142, 25%, 97%);
+  --sidebar-foreground: hsl(150, 10%, 25%);
+  --sidebar-primary: hsl(142, 71%, 45%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(142, 20%, 92%);
+  --sidebar-accent-foreground: hsl(142, 71%, 35%);
+  --sidebar-border: hsl(142, 15%, 88%);
+  --sidebar-ring: hsl(142, 71%, 45%);
+}
+
+.dark {
+  --background: hsl(150, 10%, 15%);
+  --foreground: hsl(120, 20%, 98%);
+  --card: hsl(150, 10%, 20%);
+  --card-foreground: hsl(120, 20%, 98%);
+  --popover: hsl(150, 10%, 20%);
+  --popover-foreground: hsl(120, 20%, 98%);
+  --primary: hsl(142, 71%, 45%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(150, 10%, 25%);
+  --secondary-foreground: hsl(120, 20%, 98%);
+  --muted: hsl(150, 10%, 25%);
+  --muted-foreground: hsl(150, 5%, 65%);
+  --accent: hsl(150, 10%, 25%);
+  --accent-foreground: hsl(120, 20%, 98%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(150, 10%, 25%);
+  --input: hsl(150, 10%, 25%);
+  --ring: hsl(142, 71%, 45%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-be-vietnam-pro);
   --font-mono: var(--font-geist-mono);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans), sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(120, 190, 90, 0.24);
+}
+
+.text-gradient-green {
+  background: linear-gradient(135deg, hsl(142, 71%, 45%), hsl(160, 60%, 40%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-hero {
+  background: linear-gradient(180deg, hsl(142, 30%, 96%) 0%, hsl(0, 0%, 100%) 100%);
+}
+
+.dashboard-card {
+  background: hsl(0, 0%, 100%);
+}
+
+.feature-card {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.auth-modal {
+  animation: modal-in 0.28s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
