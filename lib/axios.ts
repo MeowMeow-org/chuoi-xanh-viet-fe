@@ -1,7 +1,8 @@
 import axios from "axios";
+import { clearAuthSession, getAccessToken } from "@/lib/auth/storage";
 
-// Cấu hình URL cơ bản của backend
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_SWAGGER_API_ENDPOINT;
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -10,13 +11,14 @@ const axiosInstance = axios.create({
   },
 });
 
-// Thêm interceptors nếu cần (ví dụ để gắn token vào request)
 axiosInstance.interceptors.request.use(
   (config) => {
-    // const token = localStorage.getItem("token");
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const accessToken = getAccessToken();
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
     return config;
   },
   (error) => {
@@ -27,7 +29,10 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    // Xử lý lỗi chung (chẳng hạn 401 thì xóa auth state)
+    if (error?.response?.status === 401) {
+      clearAuthSession();
+    }
+
     return Promise.reject(error);
   }
 );
