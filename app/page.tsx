@@ -1,9 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Leaf } from "lucide-react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { Leaf, LogOut, UserRound } from "lucide-react";
 
-type AuthView = "login" | "register";
+import AuthModal, { type AuthView, type LoginCredentials } from "@/components/auth/auth-modal";
+import { loginWithEmail } from "@/lib/auth/api";
+import {
+  clearAuthSession,
+  getAuthSession,
+  getAuthSessionSnapshot,
+  saveAuthSession,
+  subscribeAuthSession,
+} from "@/lib/auth/storage";
+import type { AuthSession } from "@/lib/auth/types";
+
+const roleRouteMap: Record<AuthSession["user"]["role"], string> = {
+  consumer: "/consumer",
+  admin: "/admin",
+  farmer: "/farmer",
+};
 
 const features = [
   [
@@ -45,154 +61,16 @@ const users = [
   "Người tiêu dùng cần nhìn thấy hồ sơ nguồn gốc chân thực, bằng chứng rõ ràng trước khi mua.",
 ] as const;
 
-function AuthModal({
-  open,
-  view,
-  onClose,
-  onChange,
-}: {
-  open: boolean;
-  view: AuthView;
-  onClose: () => void;
-  onChange: (view: AuthView) => void;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-      <div className="auth-modal w-full max-w-3xl overflow-hidden rounded-2xl border border-[hsl(142,15%,88%)] bg-white shadow-xl">
-        <div className="grid lg:grid-cols-[1fr_1fr]">
-          <div className="relative overflow-hidden bg-[#0d2a1c] p-8 text-white sm:p-10">
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute right-4 top-4 h-9 w-9 rounded-full bg-white/10 text-lg leading-none hover:bg-white/20 transition-colors"
-            >
-              ×
-            </button>
-            <div className="inline-flex items-center justify-center gap-2 rounded-xl bg-[hsl(142,71%,45%)]/20 px-3 py-1.5 text-[hsl(142,71%,45%)]">
-              <Leaf className="h-4 w-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">
-                Chuỗi Xanh Việt
-              </span>
-            </div>
-            <h2 className="mt-5 text-2xl font-bold leading-snug">
-              {view === "login"
-                ? "Quay lại để tiếp tục mùa vụ và gian hàng của bạn."
-                : "Tạo tài khoản để bắt đầu hành trình truy xuất minh bạch."}
-            </h2>
-            <div className="mt-8 space-y-3 text-sm text-[hsl(120,10%,95%)]">
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]">✓</span>
-                <span>Đăng nhập bằng email hoặc số điện thoại</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]">✓</span>
-                <span>Quản lý nhật ký, truy xuất và đơn hàng</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/20 text-[hsl(142,71%,45%)]">✓</span>
-                <span>Luồng dùng đơn giản cho chuyển đổi số</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 sm:p-8 lg:p-10">
-            <div className="inline-flex rounded-full bg-[hsl(120,10%,95%)] p-1 text-sm font-medium text-[hsl(150,5%,45%)]">
-              <button
-                type="button"
-                onClick={() => onChange("login")}
-                className={`inline-flex h-9 items-center justify-center whitespace-nowrap rounded-full px-5 text-sm font-bold transition-all duration-300 ${
-                  view === "login"
-                    ? "bg-[hsl(142,71%,45%)] text-white shadow-md"
-                    : "hover:text-[hsl(150,10%,15%)]"
-                }`}
-              >
-                Đăng nhập
-              </button>
-              <button
-                type="button"
-                onClick={() => onChange("register")}
-                className={`inline-flex h-9 items-center justify-center whitespace-nowrap rounded-full px-5 text-sm font-bold transition-all duration-300 ${
-                  view === "register"
-                    ? "bg-[hsl(142,71%,45%)] text-white shadow-md"
-                    : "hover:text-[hsl(150,10%,15%)]"
-                }`}
-              >
-                Đăng ký
-              </button>
-            </div>
-
-            <div className="mt-6 space-y-2">
-              <h3 className="text-xl font-bold text-[hsl(150,10%,15%)]">
-                {view === "login" ? "Đăng nhập vào nền tảng" : "Tạo tài khoản mới"}
-              </h3>
-              <p className="text-sm leading-relaxed text-[hsl(150,5%,45%)]">
-                {view === "login"
-                  ? "Theo dõi mùa vụ, truy xuất và đơn hàng chỉ trong vài bước."
-                  : "Bắt đầu số hóa bằng thao tác tối ưu cho mọi người dùng."}
-              </p>
-            </div>
-
-            <form className="mt-6 space-y-4">
-              {view === "register" && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <input
-                    type="text"
-                    placeholder="Họ và tên"
-                    className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-                  />
-                  <select className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white text-[hsl(150,10%,15%)]">
-                    <option>Nông dân</option>
-                    <option>Hợp tác xã</option>
-                    <option>Người tiêu dùng</option>
-                  </select>
-                </div>
-              )}
-              <input
-                type={view === "login" ? "text" : "email"}
-                placeholder={view === "login" ? "Email hoặc số điện thoại" : "Email"}
-                className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-              />
-              {view === "register" && (
-                <input
-                  type="tel"
-                  placeholder="Số điện thoại"
-                  className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-                />
-              )}
-              <input
-                type="password"
-                placeholder="Mật khẩu"
-                className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-              />
-              {view === "register" && (
-                <input
-                  type="text"
-                  placeholder="Tên nông trại hoặc gian hàng"
-                  className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-                />
-              )}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full rounded-xl bg-[hsl(142,71%,45%)] px-5 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
-                >
-                  {view === "login" ? "Đăng nhập" : "Tạo tài khoản và bắt đầu"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<AuthView>("register");
+  const authSession = useSyncExternalStore<AuthSession | null>(
+    subscribeAuthSession,
+    getAuthSessionSnapshot,
+    () => null
+  );
 
   useEffect(() => {
     document.body.style.overflow = authOpen ? "hidden" : "";
@@ -208,6 +86,23 @@ export default function Home() {
     setAuthView(view);
     setAuthOpen(true);
     setMenuOpen(false);
+  };
+
+  const handleLogin = async ({ identifier, password }: LoginCredentials) => {
+    const session = await loginWithEmail({
+      email: identifier.trim(),
+      password,
+    });
+
+    saveAuthSession(session);
+    setAuthOpen(false);
+
+    router.push(roleRouteMap[session.user.role]);
+  };
+
+  const handleLogout = () => {
+    clearAuthSession();
+    setAuthOpen(false);
   };
 
   return (
@@ -236,20 +131,48 @@ export default function Home() {
             </nav>
 
             <div className="hidden items-center gap-2 lg:flex">
-              <button
-                type="button"
-                onClick={() => openAuth("login")}
-                className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2 text-sm font-semibold text-[hsl(150,10%,15%)]"
-              >
-                Đăng nhập
-              </button>
-              <button
-                type="button"
-                onClick={() => openAuth("register")}
-                className="rounded-lg bg-[hsl(142,71%,45%)] px-4 py-2 text-sm font-semibold text-white"
-              >
-                Tạo tài khoản
-              </button>
+              {authSession ? (
+                <>
+                  <div className="flex items-center gap-3 rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/10 text-[hsl(142,71%,45%)]">
+                      <UserRound className="h-4 w-4" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-[hsl(150,10%,15%)]">
+                        {authSession.user.fullName}
+                      </p>
+                      <p className="text-xs text-[hsl(150,5%,45%)] capitalize">
+                        {authSession.user.role}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2 text-sm font-semibold text-[hsl(150,10%,15%)]"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Đăng xuất
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => openAuth("login")}
+                    className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2 text-sm font-semibold text-[hsl(150,10%,15%)]"
+                  >
+                    Đăng nhập
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openAuth("register")}
+                    className="rounded-lg bg-[hsl(142,71%,45%)] px-4 py-2 text-sm font-semibold text-white"
+                  >
+                    Tạo tài khoản
+                  </button>
+                </>
+              )}
             </div>
 
             <button
@@ -286,13 +209,23 @@ export default function Home() {
                   Đối tượng
                 </a>
                 <div className="grid gap-2 pt-2 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => openAuth("login")}
-                    className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(150,10%,15%)]"
-                  >
-                    Đăng nhập
-                  </button>
+                  {authSession ? (
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(150,10%,15%)]"
+                    >
+                      Đăng xuất
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => openAuth("login")}
+                      className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(150,10%,15%)]"
+                    >
+                      Đăng nhập
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => openAuth("register")}
@@ -400,17 +333,16 @@ export default function Home() {
             <div className="mx-auto max-w-7xl">
               <h2 className="text-2xl font-bold text-center mb-8 text-[hsl(150,10%,15%)]">Lợi ích thiết thực</h2>
               <div className="relative mx-auto max-w-4xl px-4 md:px-0">
-                <div className="absolute bottom-6 left-[38px] top-6 w-0.5 bg-[hsl(142,15%,88%)] md:left-1/2 md:-ml-px" />
+                <div className="absolute bottom-6 left-9.5 top-6 w-0.5 bg-[hsl(142,15%,88%)] md:left-1/2 md:-ml-px" />
 
                 <div className="space-y-8">
                   {flow.map((step, index) => (
                     <div
                       key={index}
-                      className={`relative flex flex-col md:flex-row md:items-center ${
-                        index % 2 === 0
-                          ? "md:justify-start"
-                          : "md:justify-end"
-                      }`}
+                      className={`relative flex flex-col md:flex-row md:items-center ${index % 2 === 0
+                        ? "md:justify-start"
+                        : "md:justify-end"
+                        }`}
                     >
                       <div
                         className={`absolute left-0 top-1/2 -mt-6 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-4 border-[hsl(120,10%,95%)] bg-[hsl(142,71%,45%)] text-base font-bold text-white shadow-sm md:left-1/2 md:-ml-6`}
@@ -419,9 +351,8 @@ export default function Home() {
                       </div>
 
                       <div
-                        className={`ml-16 w-full md:w-[45%] md:ml-0 ${
-                          index % 2 === 0 ? "md:pr-10 text-left md:text-right" : "md:pl-10 text-left"
-                        }`}
+                        className={`ml-16 w-full md:w-[45%] md:ml-0 ${index % 2 === 0 ? "md:pr-10 text-left md:text-right" : "md:pl-10 text-left"
+                          }`}
                       >
                         <div className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-6 shadow-sm transition-colors hover:border-[hsl(142,71%,45%)]">
                           <p className="text-sm font-medium leading-relaxed text-[hsl(150,10%,15%)]">
@@ -462,6 +393,7 @@ export default function Home() {
         view={authView}
         onClose={() => setAuthOpen(false)}
         onChange={setAuthView}
+        onLogin={handleLogin}
       />
     </>
   );
