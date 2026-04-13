@@ -8,7 +8,6 @@ import AuthModal, { type AuthView, type LoginCredentials } from "@/components/au
 import { loginWithEmail } from "@/lib/auth/api";
 import {
   clearAuthSession,
-  getAuthSession,
   getAuthSessionSnapshot,
   saveAuthSession,
   subscribeAuthSession,
