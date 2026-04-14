@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { AUTH_ACCESS_TOKEN_COOKIE } from "@/lib/auth/constants";
-import type { AuthRole, MyProfileApiResponse } from "@/lib/auth/types";
+import { AUTH_ACCESS_TOKEN_COOKIE, AUTH_ROLE_COOKIE } from "@/services/auth/constants";
+import { normalizeAuthRole, type AuthRole, type MyProfileApiResponse } from "@/services/auth/types";
 
 const roleRouteMap: Record<AuthRole, string> = {
     admin: "/admin",
@@ -48,7 +48,7 @@ async function getRoleFromMe(accessToken: string): Promise<AuthRole | null> {
             return null;
         }
 
-        return payload.data.role;
+        return normalizeAuthRole(payload.data.role);
     } catch {
         return null;
     }
@@ -63,6 +63,15 @@ export async function middleware(request: NextRequest) {
     const accessToken = request.cookies.get(AUTH_ACCESS_TOKEN_COOKIE)?.value;
     if (!accessToken) {
         return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    const cookieRole = normalizeAuthRole(request.cookies.get(AUTH_ROLE_COOKIE)?.value);
+    if (cookieRole) {
+        if (cookieRole !== requiredRole) {
+            return NextResponse.redirect(new URL(roleRouteMap[cookieRole], request.url));
+        }
+
+        return NextResponse.next();
     }
 
     const role = await getRoleFromMe(accessToken);

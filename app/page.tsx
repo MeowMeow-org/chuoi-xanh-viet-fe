@@ -4,15 +4,19 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Leaf, LogOut, UserRound } from "lucide-react";
 
-import AuthModal, { type AuthView, type LoginCredentials } from "@/components/auth/auth-modal";
-import { loginWithEmail } from "@/lib/auth/api";
+import AuthModal, {
+  type AuthView,
+  type LoginCredentials,
+  type RegisterCredentials,
+} from "@/components/auth/auth-modal";
+import { loginWithEmail, registerWithEmail } from "@/services/auth/api";
 import {
   clearAuthSession,
   getAuthSessionSnapshot,
   saveAuthSession,
   subscribeAuthSession,
-} from "@/lib/auth/storage";
-import type { AuthSession } from "@/lib/auth/types";
+} from "@/services/auth/storage";
+import type { AuthSession } from "@/services/auth/types";
 
 const roleRouteMap: Record<AuthSession["user"]["role"], string> = {
   consumer: "/consumer",
@@ -96,12 +100,33 @@ export default function Home() {
     saveAuthSession(session);
     setAuthOpen(false);
 
-    router.push(roleRouteMap[session.user.role]);
+    router.push(roleRouteMap[session.user.role] ?? "/");
   };
 
   const handleLogout = () => {
     clearAuthSession();
     setAuthOpen(false);
+  };
+
+  const handleRegister = async ({
+    fullName,
+    email,
+    phone,
+    password,
+    confirmPassword,
+  }: RegisterCredentials) => {
+    const session = await registerWithEmail({
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      password,
+      confirmPassword,
+    });
+
+    saveAuthSession(session);
+    setAuthOpen(false);
+
+    router.push(roleRouteMap[session.user.role] ?? "/");
   };
 
   return (
@@ -393,6 +418,7 @@ export default function Home() {
         onClose={() => setAuthOpen(false)}
         onChange={setAuthView}
         onLogin={handleLogin}
+        onRegister={handleRegister}
       />
     </>
   );
