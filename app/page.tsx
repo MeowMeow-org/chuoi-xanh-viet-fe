@@ -9,6 +9,7 @@ import AuthModal, {
   type LoginCredentials,
   type RegisterCredentials,
 } from "@/components/auth/auth-modal";
+import { showAppToast } from "@/components/ui/toast";
 import { loginWithEmail, registerWithEmail } from "@/services/auth/api";
 import {
   clearAuthSession,
@@ -99,6 +100,11 @@ export default function Home() {
 
     saveAuthSession(session);
     setAuthOpen(false);
+    showAppToast({
+      type: "success",
+      duration: 3000,
+      message: `Đăng nhập thành công. Xin chào ${session.user.fullName}!`,
+    });
 
     router.push(roleRouteMap[session.user.role] ?? "/");
   };
@@ -106,6 +112,11 @@ export default function Home() {
   const handleLogout = () => {
     clearAuthSession();
     setAuthOpen(false);
+    showAppToast({
+      type: "success",
+      duration: 3000,
+      message: "Đăng xuất thành công.",
+    });
   };
 
   const handleRegister = async ({
@@ -125,6 +136,11 @@ export default function Home() {
 
     saveAuthSession(session);
     setAuthOpen(false);
+    showAppToast({
+      type: "success",
+      duration: 3000,
+      message: `Đăng ký thành công. Chào mừng ${session.user.fullName}!`,
+    });
 
     router.push(roleRouteMap[session.user.role] ?? "/");
   };

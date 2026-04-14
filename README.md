@@ -2,7 +2,7 @@
 	<img align="right" src="https://api.netlify.com/api/v1/badges/4cadb46d-8e99-4e6c-9231-c74d61974bf2/deploy-status" alt="Netlify Status" />
 </a>
 
-<h1>Chuỗi xanh việt</h1>
+<h1>Chuỗi xanh việt UI</h1>
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
