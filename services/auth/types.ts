@@ -61,4 +61,20 @@ export type MyProfileApiResponse = {
   data: AuthUser;
 };
 
+export type RefreshTokenPayload = {
+  refreshToken: string;
+};
+
+export type RefreshTokenData = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+export type RefreshTokenApiResponse = {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: RefreshTokenData;
+};
+
 export type AuthSession = LoginResponseData;

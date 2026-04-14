@@ -69,9 +69,13 @@ export function getAccessToken() {
   return getAuthSession()?.accessToken ?? null;
 }
 
+export function getRefreshToken() {
+  return getAuthSession()?.refreshToken ?? null;
+}
+
 export function subscribeAuthSession(listener: () => void) {
   if (!isBrowser()) {
-    return () => {};
+    return () => { };
   }
 
   const handleChange = () => listener();

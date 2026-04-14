@@ -7,6 +7,9 @@ import {
   type MyProfileApiResponse,
   type RegisterApiResponse,
   type RegisterPayload,
+  type RefreshTokenApiResponse,
+  type RefreshTokenData,
+  type RefreshTokenPayload,
 } from "@/services/auth/types";
 
 type LoginPayload = {
@@ -115,5 +118,24 @@ export async function getMyProfile(): Promise<AuthUser> {
     };
   } catch (error) {
     throw new Error(getErrorMessage(error, "Không thể lấy thông tin tài khoản."));
+  }
+}
+
+export async function refreshToken(payload: RefreshTokenPayload): Promise<RefreshTokenData> {
+  try {
+    const response = await axiosInstance.post<RefreshTokenApiResponse, RefreshTokenApiResponse>(
+      "/v1/api/auth/refresh-token",
+      {
+        refreshToken: payload.refreshToken,
+      }
+    );
+
+    if (!response.success || !response.data?.accessToken) {
+      throw new Error(response.message || "Làm mới token thất bại.");
+    }
+
+    return response.data;
+  } catch (error) {
+    throw new Error(getErrorMessage(error, "Làm mới token thất bại. Vui lòng đăng nhập lại."));
   }
 }
