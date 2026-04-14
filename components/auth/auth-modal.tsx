@@ -10,26 +10,49 @@ export type LoginCredentials = {
     password: string;
 };
 
+export type RegisterCredentials = {
+    fullName: string;
+    email: string;
+    phone: string;
+    password: string;
+    confirmPassword: string;
+};
+
 type AuthModalProps = {
     open: boolean;
     view: AuthView;
     onClose: () => void;
     onChange: (view: AuthView) => void;
     onLogin: (credentials: LoginCredentials) => Promise<void>;
+    onRegister: (credentials: RegisterCredentials) => Promise<void>;
 };
 
-export default function AuthModal({ open, view, onClose, onChange, onLogin }: AuthModalProps) {
+export default function AuthModal({ open, view, onClose, onChange, onLogin, onRegister }: AuthModalProps) {
     const [loginCredentials, setLoginCredentials] = useState<LoginCredentials>({
         identifier: "",
         password: "",
     });
+    const [registerCredentials, setRegisterCredentials] = useState<RegisterCredentials>({
+        fullName: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+    });
     const [loginError, setLoginError] = useState("");
+    const [registerError, setRegisterError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+    const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
 
     useEffect(() => {
         if (open && view === "login") {
             setLoginError("");
+        }
+
+        if (open && view === "register") {
+            setRegisterError("");
         }
     }, [open, view]);
 
@@ -43,6 +66,48 @@ export default function AuthModal({ open, view, onClose, onChange, onLogin }: Au
         } catch (error) {
             setLoginError(
                 error instanceof Error ? error.message : "Đăng nhập thất bại. Vui lòng thử lại."
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleRegisterSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setRegisterError("");
+
+        if (!registerCredentials.fullName.trim()) {
+            setRegisterError("Vui lòng nhập họ và tên.");
+            return;
+        }
+
+        if (!registerCredentials.email.trim()) {
+            setRegisterError("Vui lòng nhập email.");
+            return;
+        }
+
+        if (!registerCredentials.phone.trim()) {
+            setRegisterError("Vui lòng nhập số điện thoại.");
+            return;
+        }
+
+        if (registerCredentials.password.length < 6) {
+            setRegisterError("Mật khẩu phải có ít nhất 6 ký tự.");
+            return;
+        }
+
+        if (registerCredentials.password !== registerCredentials.confirmPassword) {
+            setRegisterError("Mật khẩu xác nhận không khớp.");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            await onRegister(registerCredentials);
+        } catch (error) {
+            setRegisterError(
+                error instanceof Error ? error.message : "Đăng ký thất bại. Vui lòng thử lại."
             );
         } finally {
             setIsSubmitting(false);
@@ -189,45 +254,108 @@ export default function AuthModal({ open, view, onClose, onChange, onLogin }: Au
                                 </div>
                             </form>
                         ) : (
-                            <form className="mt-6 space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Họ và tên"
-                                        className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-                                    />
-                                    <select className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white text-[hsl(150,10%,15%)]">
-                                        <option>Nông dân</option>
-                                        <option>Hợp tác xã</option>
-                                        <option>Người tiêu dùng</option>
-                                    </select>
-                                </div>
+                            <form className="mt-6 space-y-4" onSubmit={handleRegisterSubmit}>
+                                <input
+                                    type="text"
+                                    value={registerCredentials.fullName}
+                                    onChange={(event) =>
+                                        setRegisterCredentials((current) => ({
+                                            ...current,
+                                            fullName: event.target.value,
+                                        }))
+                                    }
+                                    placeholder="Họ và tên"
+                                    autoComplete="name"
+                                    className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
+                                />
                                 <input
                                     type="email"
+                                    value={registerCredentials.email}
+                                    onChange={(event) =>
+                                        setRegisterCredentials((current) => ({
+                                            ...current,
+                                            email: event.target.value,
+                                        }))
+                                    }
                                     placeholder="Email"
+                                    autoComplete="email"
                                     className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
                                 />
                                 <input
                                     type="tel"
+                                    value={registerCredentials.phone}
+                                    onChange={(event) =>
+                                        setRegisterCredentials((current) => ({
+                                            ...current,
+                                            phone: event.target.value,
+                                        }))
+                                    }
                                     placeholder="Số điện thoại"
+                                    autoComplete="tel"
                                     className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
                                 />
-                                <input
-                                    type="password"
-                                    placeholder="Mật khẩu"
-                                    className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Tên nông trại hoặc gian hàng"
-                                    className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-                                />
-                                <div className="pt-2">
+                                <div className="relative">
+                                    <input
+                                        type={showRegisterPassword ? "text" : "password"}
+                                        value={registerCredentials.password}
+                                        onChange={(event) =>
+                                            setRegisterCredentials((current) => ({
+                                                ...current,
+                                                password: event.target.value,
+                                            }))
+                                        }
+                                        placeholder="Mật khẩu"
+                                        autoComplete="new-password"
+                                        className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 pr-11 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
+                                    />
                                     <button
                                         type="button"
-                                        className="w-full rounded-xl bg-[hsl(142,71%,45%)] px-5 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                                        onClick={() => setShowRegisterPassword((current) => !current)}
+                                        aria-label={showRegisterPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,5%,45%)] hover:text-[hsl(150,10%,20%)]"
                                     >
-                                        Tạo tài khoản và bắt đầu
+                                        {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type={showRegisterConfirmPassword ? "text" : "password"}
+                                        value={registerCredentials.confirmPassword}
+                                        onChange={(event) =>
+                                            setRegisterCredentials((current) => ({
+                                                ...current,
+                                                confirmPassword: event.target.value,
+                                            }))
+                                        }
+                                        placeholder="Xác nhận mật khẩu"
+                                        autoComplete="new-password"
+                                        className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 pr-11 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowRegisterConfirmPassword((current) => !current)}
+                                        aria-label={showRegisterConfirmPassword ? "Ẩn xác nhận mật khẩu" : "Hiện xác nhận mật khẩu"}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,5%,45%)] hover:text-[hsl(150,10%,20%)]"
+                                    >
+                                        {showRegisterConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+
+                                {registerError && (
+                                    <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                        <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                                        <span>{registerError}</span>
+                                    </div>
+                                )}
+
+                                <div className="pt-2">
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[hsl(142,71%,45%)] px-5 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+                                    >
+                                        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                                        {isSubmitting ? "Đang tạo tài khoản..." : "Tạo tài khoản và bắt đầu"}
                                     </button>
                                 </div>
                             </form>
