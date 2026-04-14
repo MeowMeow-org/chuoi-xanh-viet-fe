@@ -149,6 +149,80 @@ textarea {
   animation: modal-in 0.28s ease-out;
 }
 
+.ui-toast {
+  width: min(360px, calc(100vw - 2rem));
+  border: 1px solid hsl(142, 15%, 88%);
+  border-radius: 12px;
+  background: hsl(0, 0%, 100%);
+  box-shadow: 0 16px 30px rgba(13, 42, 28, 0.14);
+  overflow: hidden;
+}
+
+.ui-toast-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px 10px;
+}
+
+.ui-toast-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ui-toast-icon-text {
+  line-height: 1;
+}
+
+.ui-toast-message {
+  font-size: 14px;
+  line-height: 1.45;
+  color: hsl(150, 10%, 15%);
+}
+
+.ui-toast-icon--success {
+  background: hsl(142, 71%, 45%);
+  color: hsl(0, 0%, 100%);
+}
+
+.ui-toast-icon--error {
+  background: hsl(0, 84%, 60%);
+  color: hsl(0, 0%, 100%);
+}
+
+.ui-toast-icon--info {
+  background: hsl(217, 91%, 60%);
+  color: hsl(0, 0%, 100%);
+}
+
+.ui-toast-progress {
+  height: 4px;
+  background: hsl(120, 10%, 95%);
+}
+
+.ui-toast-progress-bar {
+  height: 100%;
+  transition: width 50ms linear;
+}
+
+.ui-toast-progress-bar--success {
+  background: hsl(142, 71%, 45%);
+}
+
+.ui-toast-progress-bar--error {
+  background: hsl(0, 84%, 60%);
+}
+
+.ui-toast-progress-bar--info {
+  background: hsl(217, 91%, 60%);
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

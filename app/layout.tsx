@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "../providers/query";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { ToastViewport } from "@/components/ui/toast";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <QueryProvider>
           <Toaster position="top-right" richColors />
+          <ToastViewport />
           {children}
         </QueryProvider>
       </body>
