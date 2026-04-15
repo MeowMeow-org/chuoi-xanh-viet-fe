@@ -16,6 +16,8 @@ export default function LoginForm() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
@@ -25,42 +27,33 @@ export default function LoginForm() {
   const onSubmit = (data: LoginFormData) => login(data);
 
   return (
-    <div className="w-full rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-6 shadow-sm sm:p-8">
+    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-[hsl(150,10%,15%)]">
-          Đăng nhập
-        </h2>
-        <p className="text-sm leading-relaxed text-[hsl(150,5%,45%)]">
-          Theo dõi mùa vụ, truy xuất và đơn hàng chỉ trong vài bước.
-        </p>
-      </div>
+        <input
+          type="email"
+          placeholder="Email"
+          autoComplete="username"
+          className="w-full rounded-xl border border-[hsl(142,20%,80%)] bg-white px-4 py-3 text-sm text-[hsl(150,16%,12%)] placeholder:text-[hsl(150,6%,55%)] outline-none focus:border-[hsl(142,71%,45%)] focus:ring-2 focus:ring-[hsl(142,71%,45%)]/20"
+          {...register("email")}
+        />
+        {errors.email && (
+          <p className="text-sm text-red-700">{errors.email.message}</p>
+        )}
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-2">
-          <input
-            type="email"
-            placeholder="Email"
-            autoComplete="username"
-            className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
-            {...register("email")}
-          />
-          {errors.email && (
-            <p className="text-sm text-red-700">{errors.email.message}</p>
-          )}
-
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Mật khẩu"
               autoComplete="current-password"
-              className="w-full rounded-xl border border-[hsl(142,15%,88%)] bg-[hsl(120,20%,98%)] px-4 py-3 pr-11 text-sm outline-none focus:border-[hsl(142,71%,45%)] focus:bg-white"
+              className="w-full rounded-xl border border-[hsl(142,20%,80%)] bg-white px-4 py-3 pr-11 text-sm text-[hsl(150,16%,12%)] placeholder:text-[hsl(150,6%,55%)] outline-none focus:border-[hsl(142,71%,45%)] focus:ring-2 focus:ring-[hsl(142,71%,45%)]/20"
               {...register("password")}
             />
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,5%,45%)] hover:text-[hsl(150,10%,20%)]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,8%,40%)] hover:text-[hsl(150,14%,20%)]"
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -77,12 +70,12 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[hsl(142,71%,45%)] px-5 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[hsl(142,71%,45%)] px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-[hsl(142,71%,40%)] disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           {isPending ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }
