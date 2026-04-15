@@ -21,10 +21,18 @@
   --accent-foreground: hsl(142, 50%, 20%);
   --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
+  --success: hsl(142, 71%, 45%);
+  --success-foreground: hsl(0, 0%, 100%);
+  --warning: hsl(38, 92%, 50%);
+  --warning-foreground: hsl(0, 0%, 100%);
+  --info: hsl(210, 80%, 55%);
+  --info-foreground: hsl(0, 0%, 100%);
   --border: hsl(142, 15%, 88%);
   --input: hsl(142, 15%, 88%);
   --ring: hsl(142, 71%, 45%);
   --radius: 0.75rem;
+  --gradient-green: linear-gradient(135deg, hsl(142, 71%, 45%), hsl(160, 60%, 40%));
+  --gradient-hero: linear-gradient(180deg, hsl(142, 30%, 96%) 0%, hsl(0, 0%, 100%) 100%);
 
   --chart-1: hsl(142, 71%, 45%);
   --chart-2: hsl(142, 50%, 45%);
@@ -77,6 +85,12 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -127,14 +141,18 @@ textarea {
 }
 
 .text-gradient-green {
-  background: linear-gradient(135deg, hsl(142, 71%, 45%), hsl(160, 60%, 40%));
+  background: var(--gradient-green);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
+.gradient-green {
+  background: var(--gradient-green);
+}
+
 .gradient-hero {
-  background: linear-gradient(180deg, hsl(142, 30%, 96%) 0%, hsl(0, 0%, 100%) 100%);
+  background: var(--gradient-hero);
 }
 
 .dashboard-card {
