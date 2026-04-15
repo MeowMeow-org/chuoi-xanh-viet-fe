@@ -1,6 +1,7 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios";
 import { toast } from "sonner";
+import { clearAuthCookies, saveAuthCookies } from "@/services/auth/storage";
 
 export const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -73,6 +74,10 @@ axiosInstance.interceptors.response.use(
           refreshToken: newRefreshToken,
           user: useAuthStore.getState().user,
         });
+        saveAuthCookies({
+          accessToken: newAccessToken,
+          role: useAuthStore.getState().user?.role,
+        });
 
         processQueue(null, newAccessToken);
 
@@ -81,6 +86,7 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         useAuthStore.getState().clearAuth();
+        clearAuthCookies();
         toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         window.location.href = "/login";
         return Promise.reject(refreshError);

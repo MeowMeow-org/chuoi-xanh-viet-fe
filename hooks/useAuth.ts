@@ -1,9 +1,6 @@
-import {
-  AuthResponse,
-  LoginPayload,
-  RegisterPayload,
-  authService,
-} from "@/services/authService";
+import { AuthResponse, LoginPayload, RegisterPayload } from "@/services/auth";
+import { authService } from "@/services/auth/authService";
+import { clearAuthCookies, saveAuthCookies } from "@/services/auth/storage";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -35,6 +32,7 @@ export const useRegisterMutation = () => {
         refreshToken: res.refreshToken,
         user: res.user,
       });
+      saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
       toast.success("Register successfully");
       const roleRoute = resolveRoleRoute(res.user.role);
       nav(roleRoute ?? "/", { replace: true });
@@ -62,6 +60,7 @@ export const useLoginMutation = () => {
         refreshToken: res.refreshToken,
         user: res.user,
       });
+      saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
       toast.success("Login successfully");
       const roleRoute = resolveRoleRoute(res.user.role);
       nav(roleRoute ?? from, { replace: true });
@@ -82,11 +81,13 @@ export const useLogoutMutation = () => {
     mutationFn: () => authService.logout(),
     onSuccess: () => {
       clearAuth();
+      clearAuthCookies();
       queryClient.removeQueries();
       nav("/login", { replace: true });
       toast.success("Logout successfully");
     },
     onError: (error) => {
+      clearAuthCookies();
       toast.error(error.message);
     },
   });

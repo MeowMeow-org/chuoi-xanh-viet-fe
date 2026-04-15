@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 
-import { User } from "@/services/authService";
+import { User } from "@/services/auth/authService";
 
 type AuthState = {
   accessToken: string | null;

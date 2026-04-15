@@ -1,32 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
-}
-
-export interface User {
-  id: string;
-  email: string;
-  fullName: string;
-  phone: string;
-  role: string;
-  status: string;
-}
-
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  full_name: string;
-  phone: string;
-  confirm_password: string;
-}
+import { LoginPayload, AuthResponse, RegisterPayload, User } from "./index";
 
 export const authService = {
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
