@@ -15,7 +15,8 @@ function toCreateFarmBody(payload: CreateFarmPayload): Record<string, unknown> {
   if (payload.address !== undefined) body.address = payload.address;
   if (payload.latitude !== undefined) body.latitude = payload.latitude;
   if (payload.longitude !== undefined) body.longitude = payload.longitude;
-  if (payload.inCooperative !== undefined) body.in_cooperative = payload.inCooperative;
+  if (payload.inCooperative !== undefined)
+    body.in_cooperative = payload.inCooperative;
   return body;
 }
 

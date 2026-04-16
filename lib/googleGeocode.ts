@@ -20,7 +20,11 @@ export function buildGeocodeQuery(parts: AddressParts): string {
   return `${bits.join(", ")}, Việt Nam`;
 }
 
-export type GeocodeResult = { lat: number; lng: number; formattedAddress?: string };
+export type GeocodeResult = {
+  lat: number;
+  lng: number;
+  formattedAddress?: string;
+};
 
 export async function geocodeVietnamAddress(
   query: string,
@@ -63,7 +67,11 @@ export async function geocodeVietnamAddress(
   }
 
   const loc = data.results[0].geometry?.location;
-  if (loc == null || typeof loc.lat !== "number" || typeof loc.lng !== "number") {
+  if (
+    loc == null ||
+    typeof loc.lat !== "number" ||
+    typeof loc.lng !== "number"
+  ) {
     return null;
   }
 
