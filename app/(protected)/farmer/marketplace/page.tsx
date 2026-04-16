@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { AlertTriangle, ShieldCheck, ShoppingCart } from "lucide-react";
 
-import FarmerLayout from "@/components/layout/FarmerLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,8 +20,7 @@ export default function FarmerMarketplacePage() {
     });
 
     return (
-        <FarmerLayout>
-            <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-bold">Gian hàng</h1>
                     <div className="flex items-center gap-2">
@@ -92,7 +90,6 @@ export default function FarmerMarketplacePage() {
                         </Link>
                     ))}
                 </div>
-            </div>
-        </FarmerLayout>
+        </div>
     );
 }

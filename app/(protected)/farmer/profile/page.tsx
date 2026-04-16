@@ -2,7 +2,6 @@
 
 import { BookOpen, MapPin, Phone, ShieldCheck, Sprout, Star } from "lucide-react";
 
-import FarmerLayout from "@/components/layout/FarmerLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { currentFarmer, diaryEntries, seasons } from "@/data/mockData";
@@ -13,8 +12,7 @@ export default function FarmerProfilePage() {
     const firstSeason = seasons[0];
 
     return (
-        <FarmerLayout>
-            <div className="mx-auto max-w-6xl space-y-6 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-6 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
                 <h1 className="text-xl font-bold">Hồ sơ nông trại</h1>
 
                 <Card className="overflow-hidden">
@@ -124,7 +122,6 @@ export default function FarmerProfilePage() {
                         </Card>
                     ))}
                 </div>
-            </div>
-        </FarmerLayout>
+        </div>
     );
 }

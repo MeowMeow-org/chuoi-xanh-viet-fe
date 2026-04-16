@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import FarmerShell from "@/components/layout/FarmerLayout";
 import { AUTH_ROLE_COOKIE } from "@/services/auth/constants";
 import { normalizeAuthRole } from "@/services/auth";
 
@@ -20,5 +21,5 @@ export default async function FarmerLayout({
     redirect(`/${role}`);
   }
 
-  return <>{children}</>;
+  return <FarmerShell>{children}</FarmerShell>;
 }

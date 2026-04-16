@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import { useRegisterMutation } from "@/hooks/useAuth";
 import { registerSchema, type RegisterFormData } from "@/schemas/authSchema";
 
 export default function RegisterForm() {
+  const searchParams = useSearchParams();
   const { mutate: registerUser, isPending } = useRegisterMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -30,6 +33,16 @@ export default function RegisterForm() {
   });
 
   const onSubmit = (data: RegisterFormData) => registerUser(data);
+
+  useEffect(() => {
+    const intent = searchParams.get("intent");
+    if (intent === "farmer-applicant") {
+      window.sessionStorage.setItem("register_intent", "farmer-applicant");
+      return;
+    }
+
+    window.sessionStorage.removeItem("register_intent");
+  }, [searchParams]);
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Calendar, ChevronRight, MapPin, Ruler } from "lucide-react";
 
-import { diaryEntries, seasons } from "@/data/mockData";
+import { diaryEntries, seasons, type Season } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -18,22 +18,32 @@ function statusColor(status: string) {
     }
 }
 
-export default function SeasonList() {
+interface SeasonListProps {
+    items?: Season[];
+    detailBasePath?: string;
+    title?: string;
+}
+
+export default function SeasonList({
+    items = seasons,
+    detailBasePath = "/farmer/farms/seasons",
+    title = "Quản lý mùa vụ",
+}: SeasonListProps) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Quản lý mùa vụ</h2>
+                <h2 className="text-lg font-bold">{title}</h2>
                 <Badge className="bg-secondary text-secondary-foreground hover:bg-secondary">
-                    {seasons.length} vụ
+                    {items.length} vụ
                 </Badge>
             </div>
 
             <div className="grid gap-3">
-                {seasons.map((season) => {
+                {items.map((season) => {
                     const entryCount = diaryEntries.filter((entry) => entry.seasonId === season.id).length;
 
                     return (
-                        <Link key={season.id} href={`/farmer/seasons/${season.id}`}>
+                        <Link key={season.id} href={`${detailBasePath}/${season.id}`}>
                             <Card className="cursor-pointer transition-colors hover:border-primary/40">
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between gap-3">

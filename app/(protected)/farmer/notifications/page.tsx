@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { Info, MessageCircle, ShoppingBag, Star } from "lucide-react";
 
-import FarmerLayout from "@/components/layout/FarmerLayout";
 import { notifications as mockNotifications } from "@/data/marketplaceData";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,8 +26,7 @@ export default function FarmerNotificationsPage() {
     const [notifs] = useState(mockNotifications);
 
     return (
-        <FarmerLayout>
-            <div className="mx-auto max-w-2xl space-y-4 px-4 py-4 pb-20 sm:px-6 md:pb-8">
+        <div className="mx-auto max-w-2xl space-y-4 px-4 py-4 pb-20 sm:px-6 md:pb-8">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-bold">Thông báo</h1>
                     <Badge className="bg-[hsl(120,20%,95%)] text-[hsl(150,10%,22%)]">
@@ -82,7 +80,6 @@ export default function FarmerNotificationsPage() {
                         return <div key={noti.id}>{content}</div>;
                     })}
                 </div>
-            </div>
-        </FarmerLayout>
+        </div>
     );
 }

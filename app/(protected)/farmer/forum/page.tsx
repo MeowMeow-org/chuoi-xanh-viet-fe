@@ -13,7 +13,6 @@ import {
     ThumbsUp,
 } from "lucide-react";
 
-import FarmerLayout from "@/components/layout/FarmerLayout";
 import { forumPosts, type ForumPost } from "@/data/forumData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -108,8 +107,7 @@ export default function FarmerForumPage() {
     };
 
     return (
-        <FarmerLayout>
-            <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6">
+        <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-bold">Diễn đàn kỹ thuật</h1>
 
@@ -293,7 +291,6 @@ export default function FarmerForumPage() {
                         );
                     })}
                 </div>
-            </div>
-        </FarmerLayout>
+        </div>
     );
 }
