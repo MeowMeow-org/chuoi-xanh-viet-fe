@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Sprout } from "lucide-react";
+import { ChevronRight, Plus, Sprout } from "lucide-react";
 
 import { useMyFarmsQuery } from "@/hooks/useFarm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +13,7 @@ export default function FarmerFarmsPage() {
   const [page, setPage] = useState(1);
   const { farms, pagination, isLoading, error } = useMyFarmsQuery({
     page,
-    limit: 6,
+    limit: 5,
   });
 
   const normalizedFarms = useMemo(
@@ -122,6 +122,24 @@ export default function FarmerFarmsPage() {
             />
           )}
         </>
+      )}
+
+      {!isLoading && !error && (
+        <Link href="/farmer/farms/create" className="block">
+          <Card className="cursor-pointer border-2 border-dashed border-[hsl(142,20%,80%)] bg-[hsl(120,20%,97%)] transition-colors hover:border-[hsl(142,50%,60%)]">
+            <CardContent className="flex items-center justify-center gap-2 p-6 text-[hsl(150,8%,34%)]">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/10">
+                <Plus className="h-5 w-5 text-[hsl(142,71%,45%)]" />
+              </span>
+              <div className="text-sm">
+                <p className="font-semibold">Thêm nông trại mới</p>
+                <p className="text-xs text-muted-foreground">
+                  Nhấn để mở trang tạo nông trại
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       )}
     </div>
   );

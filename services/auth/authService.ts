@@ -1,5 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import { LoginPayload, AuthResponse, RegisterPayload, User } from "./index";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export const authService = {
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
@@ -19,7 +20,10 @@ export const authService = {
   },
 
   logout: async (): Promise<void> => {
-    await axiosInstance.post("/auth/logout");
+    const { refreshToken } = useAuthStore.getState();
+    await axiosInstance.post<void, void>("/auth/logout", {
+      refreshToken,
+    });
   },
 
   getMe: async (): Promise<User> => {

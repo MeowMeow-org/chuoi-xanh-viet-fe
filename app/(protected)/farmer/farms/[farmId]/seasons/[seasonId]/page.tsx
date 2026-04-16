@@ -70,7 +70,7 @@ export default function SeasonDetailPage() {
         </TabsList>
 
         <TabsContent value="timeline">
-          <DiaryTimeline seasonId={season?.id ?? ""} />
+          <DiaryTimeline seasonId={season?.id} />
         </TabsContent>
 
         <TabsContent value="add">

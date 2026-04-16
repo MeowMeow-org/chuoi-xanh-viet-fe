@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { farmService } from "@/services/farm/farmService";
-import type { Farm, GetMyFarmsQuery } from "@/services/farm";
+import type { CreateFarmPayload, Farm, GetMyFarmsQuery } from "@/services/farm";
 import type { PaginationMeta } from "@/types";
 
 export const farmQueryKeys = {
@@ -23,4 +24,15 @@ export const useMyFarmsQuery = (query?: GetMyFarmsQuery) => {
     farms: (queryResult.data?.items ?? []) as Farm[],
     pagination: queryResult.data?.meta as PaginationMeta | undefined,
   };
+};
+
+export const useCreateFarmMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Farm, Error, CreateFarmPayload>({
+    mutationFn: (payload) => farmService.createFarm(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: farmQueryKeys.all });
+    },
+  });
 };

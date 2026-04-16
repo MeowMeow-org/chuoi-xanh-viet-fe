@@ -8,6 +8,7 @@ import {
   Home,
   Menu,
   Leaf,
+  LogOut,
   MessageCircle,
   Package,
   QrCode,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useLogoutMutation } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/farmer", label: "Trang chủ", icon: Home },
@@ -53,6 +55,7 @@ export default function FarmerLayout({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const unreadNotifs = 2;
+  const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
   const hideShell = pathname === "/farmer/messages" && !!searchParams.get("chat");
 
   const isActive = (path: string) => {
@@ -233,6 +236,21 @@ export default function FarmerLayout({
                 <p className="font-semibold">Farmer</p>
                 <p className="text-sm text-[hsl(150,7%,45%)]">Role: Farmer</p>
               </div>
+            </div>
+
+            <div className="border-t px-4 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                disabled={isLoggingOut}
+                className="flex w-full items-center gap-3 rounded-lg px-0 py-3 text-left text-base font-medium text-red-600 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <LogOut className="h-5 w-5" />
+                {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+              </button>
             </div>
           </div>
         </div>

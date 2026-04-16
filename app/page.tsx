@@ -49,7 +49,10 @@ export default function Home() {
 
   return (
     <>
-      <div id="top" className="min-h-screen bg-[hsl(120,20%,98%)] text-[hsl(150,10%,15%)]">
+      <div
+        id="top"
+        className="min-h-screen bg-[hsl(120,20%,98%)] text-[hsl(150,10%,15%)]"
+      >
         <header className="sticky top-0 z-40 border-b border-[hsl(142,15%,88%)] bg-white">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
             <a href="#top" className="flex items-center gap-3">
@@ -155,23 +158,24 @@ export default function Home() {
                     <span>Nền tảng Truy xuất Nguồn gốc</span>
                   </h1>
                   <p className="max-w-lg text-base leading-relaxed text-[hsl(150,5%,45%)] md:text-lg">
-                    Kết nối nhà nông, hợp tác xã và người tiêu dùng qua hệ thống AI và Blockchain.
-                    Minh bạch từ thao tác canh tác thực tế đến bước thanh toán tại gian hàng.
+                    Kết nối nhà nông, hợp tác xã và người tiêu dùng qua hệ thống
+                    AI và Blockchain. Minh bạch từ thao tác canh tác thực tế đến
+                    bước thanh toán tại gian hàng.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href="/register"
+                    href="/farmer/marketplace"
                     className="inline-flex h-14 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white"
                   >
-                    Bắt đầu ghi nhật ký
+                    Mua sản phẩm
                   </Link>
-                  <a
-                    href="#tinh-nang"
+                  <Link
+                    href="/register?intent=farmer-applicant"
                     className="inline-flex h-14 items-center justify-center rounded-xl border border-[hsl(142,15%,88%)] bg-white px-8 text-base font-bold text-[hsl(150,10%,15%)]"
                   >
-                    Truy xuất nguồn gốc
-                  </a>
+                    Đăng ký nông hộ
+                  </Link>
                 </div>
               </div>
 
@@ -180,7 +184,9 @@ export default function Home() {
                   <p className="text-xs font-semibold uppercase tracking-widest text-white/70">
                     Dashboard Snapshot
                   </p>
-                  <h2 className="mt-2 text-xl font-bold">Mùa vụ rau ăn lá 2026</h2>
+                  <h2 className="mt-2 text-xl font-bold">
+                    Mùa vụ rau ăn lá 2026
+                  </h2>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-white/15 bg-white/10 p-4">
                       <p className="text-sm text-white/70">Nhật ký hôm nay</p>
@@ -198,10 +204,12 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="mt-3 rounded-xl border border-white/15 bg-white/10 p-4 text-sm">
-                    <p className="font-bold text-white">AI hỗ trợ ngay tại ruộng</p>
+                    <p className="font-bold text-white">
+                      AI hỗ trợ ngay tại ruộng
+                    </p>
                     <p className="mt-1 text-white/80">
-                      Gợi ý bệnh nghi ngờ, hướng xử lý và nhắc thời gian cách ly trước khi
-                      mở bán.
+                      Gợi ý bệnh nghi ngờ, hướng xử lý và nhắc thời gian cách ly
+                      trước khi mở bán.
                     </p>
                   </div>
                 </div>
@@ -209,9 +217,14 @@ export default function Home() {
             </div>
           </section>
 
-          <section id="tinh-nang" className="px-4 py-12 sm:px-6 lg:px-8 md:py-16">
+          <section
+            id="tinh-nang"
+            className="px-4 py-12 sm:px-6 lg:px-8 md:py-16"
+          >
             <div className="mx-auto max-w-7xl">
-              <h2 className="text-2xl font-bold text-center mb-8 text-[hsl(150,10%,15%)]">Hệ sinh thái toàn diện</h2>
+              <h2 className="text-2xl font-bold text-center mb-8 text-[hsl(150,10%,15%)]">
+                Hệ sinh thái toàn diện
+              </h2>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {features.map(([title, description], index) => (
                   <article
@@ -220,19 +233,30 @@ export default function Home() {
                     style={{ animationDelay: `${index * 70}ms` }}
                   >
                     <div className="h-12 w-12 rounded-xl bg-[hsl(142,71%,45%)]/10 flex items-center justify-center">
-                      <span className="text-sm font-bold text-[hsl(142,71%,45%)]">0{index + 1}</span>
+                      <span className="text-sm font-bold text-[hsl(142,71%,45%)]">
+                        0{index + 1}
+                      </span>
                     </div>
-                    <h3 className="mt-4 text-base font-bold text-[hsl(150,10%,15%)]">{title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-[hsl(150,5%,45%)]">{description}</p>
+                    <h3 className="mt-4 text-base font-bold text-[hsl(150,10%,15%)]">
+                      {title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-[hsl(150,5%,45%)]">
+                      {description}
+                    </p>
                   </article>
                 ))}
               </div>
             </div>
           </section>
 
-          <section id="quy-trinh" className="bg-[hsl(120,10%,95%)] px-4 py-12 sm:px-6 lg:px-8 md:py-16">
+          <section
+            id="quy-trinh"
+            className="bg-[hsl(120,10%,95%)] px-4 py-12 sm:px-6 lg:px-8 md:py-16"
+          >
             <div className="mx-auto max-w-7xl">
-              <h2 className="text-2xl font-bold text-center mb-8 text-[hsl(150,10%,15%)]">Lợi ích thiết thực</h2>
+              <h2 className="text-2xl font-bold text-center mb-8 text-[hsl(150,10%,15%)]">
+                Lợi ích thiết thực
+              </h2>
               <div className="relative mx-auto max-w-4xl px-4 md:px-0">
                 <div className="absolute bottom-6 left-9.5 top-6 w-0.5 bg-[hsl(142,15%,88%)] md:left-1/2 md:-ml-px" />
 
@@ -240,10 +264,9 @@ export default function Home() {
                   {flow.map((step, index) => (
                     <div
                       key={index}
-                      className={`relative flex flex-col md:flex-row md:items-center ${index % 2 === 0
-                        ? "md:justify-start"
-                        : "md:justify-end"
-                        }`}
+                      className={`relative flex flex-col md:flex-row md:items-center ${
+                        index % 2 === 0 ? "md:justify-start" : "md:justify-end"
+                      }`}
                     >
                       <div
                         className={`absolute left-0 top-1/2 -mt-6 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-4 border-[hsl(120,10%,95%)] bg-[hsl(142,71%,45%)] text-base font-bold text-white shadow-sm md:left-1/2 md:-ml-6`}
@@ -252,8 +275,11 @@ export default function Home() {
                       </div>
 
                       <div
-                        className={`ml-16 w-full md:w-[45%] md:ml-0 ${index % 2 === 0 ? "md:pr-10 text-left md:text-right" : "md:pl-10 text-left"
-                          }`}
+                        className={`ml-16 w-full md:w-[45%] md:ml-0 ${
+                          index % 2 === 0
+                            ? "md:pr-10 text-left md:text-right"
+                            : "md:pl-10 text-left"
+                        }`}
                       >
                         <div className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-6 shadow-sm transition-colors hover:border-[hsl(142,71%,45%)]">
                           <p className="text-sm font-medium leading-relaxed text-[hsl(150,10%,15%)]">
@@ -268,9 +294,14 @@ export default function Home() {
             </div>
           </section>
 
-          <section id="doi-tuong" className="px-4 py-12 sm:px-6 lg:px-8 md:py-16">
+          <section
+            id="doi-tuong"
+            className="px-4 py-12 sm:px-6 lg:px-8 md:py-16"
+          >
             <div className="mx-auto max-w-7xl">
-              <h2 className="text-2xl font-bold text-center mb-8 text-[hsl(150,10%,15%)]">Đối tượng sử dụng</h2>
+              <h2 className="text-2xl font-bold text-center mb-8 text-[hsl(150,10%,15%)]">
+                Đối tượng sử dụng
+              </h2>
               <div className="grid gap-4 lg:grid-cols-3">
                 {users.map((item, index) => (
                   <article
@@ -278,9 +309,13 @@ export default function Home() {
                     className="rounded-xl border border-[hsl(142,15%,88%)] bg-white p-5"
                   >
                     <div className="h-12 w-12 rounded-xl bg-[hsl(142,71%,45%)]/10 flex items-center justify-center">
-                      <span className="text-sm font-bold text-[hsl(142,71%,45%)]">0{index + 1}</span>
+                      <span className="text-sm font-bold text-[hsl(142,71%,45%)]">
+                        0{index + 1}
+                      </span>
                     </div>
-                    <p className="mt-4 text-sm leading-relaxed text-[hsl(150,5%,45%)]">{item}</p>
+                    <p className="mt-4 text-sm leading-relaxed text-[hsl(150,5%,45%)]">
+                      {item}
+                    </p>
                   </article>
                 ))}
               </div>
@@ -288,7 +323,6 @@ export default function Home() {
           </section>
         </main>
       </div>
-
     </>
   );
 }

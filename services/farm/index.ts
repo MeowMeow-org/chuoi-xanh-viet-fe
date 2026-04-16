@@ -20,3 +20,16 @@ export interface GetMyFarmsQuery {
   limit?: number;
   searchTerm?: string;
 }
+
+export interface CreateFarmPayload {
+  name: string;
+  areaHa?: number;
+  cropMain?: string;
+  province?: string;
+  district?: string;
+  ward?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  inCooperative?: boolean;
+}
