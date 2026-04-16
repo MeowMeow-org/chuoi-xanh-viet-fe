@@ -1,29 +1,8 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
-import { Leaf, LogOut, UserRound } from "lucide-react";
-
-import AuthModal, {
-  type AuthView,
-  type LoginCredentials,
-  type RegisterCredentials,
-} from "@/components/auth/auth-modal";
-import { showAppToast } from "@/components/ui/toast";
-import { loginWithEmail, registerWithEmail } from "@/services/auth/api";
-import {
-  clearAuthSession,
-  getAuthSessionSnapshot,
-  saveAuthSession,
-  subscribeAuthSession,
-} from "@/services/auth/storage";
-import type { AuthSession } from "@/services/auth/types";
-
-const roleRouteMap: Record<AuthSession["user"]["role"], string> = {
-  consumer: "/consumer",
-  admin: "/admin",
-  farmer: "/farmer",
-};
+import { useState } from "react";
+import Link from "next/link";
+import { Leaf } from "lucide-react";
 
 const features = [
   [
@@ -66,84 +45,7 @@ const users = [
 ] as const;
 
 export default function Home() {
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authView, setAuthView] = useState<AuthView>("register");
-  const authSession = useSyncExternalStore<AuthSession | null>(
-    subscribeAuthSession,
-    getAuthSessionSnapshot,
-    () => null
-  );
-
-  useEffect(() => {
-    document.body.style.overflow = authOpen ? "hidden" : "";
-    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setAuthOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [authOpen]);
-
-  const openAuth = (view: AuthView) => {
-    setAuthView(view);
-    setAuthOpen(true);
-    setMenuOpen(false);
-  };
-
-  const handleLogin = async ({ identifier, password }: LoginCredentials) => {
-    const session = await loginWithEmail({
-      email: identifier.trim(),
-      password,
-    });
-
-    saveAuthSession(session);
-    setAuthOpen(false);
-    showAppToast({
-      type: "success",
-      duration: 3000,
-      message: `Đăng nhập thành công. Xin chào ${session.user.fullName}!`,
-    });
-
-    router.push(roleRouteMap[session.user.role] ?? "/");
-  };
-
-  const handleLogout = () => {
-    clearAuthSession();
-    setAuthOpen(false);
-    showAppToast({
-      type: "success",
-      duration: 3000,
-      message: "Đăng xuất thành công.",
-    });
-  };
-
-  const handleRegister = async ({
-    fullName,
-    email,
-    phone,
-    password,
-    confirmPassword,
-  }: RegisterCredentials) => {
-    const session = await registerWithEmail({
-      fullName: fullName.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      password,
-      confirmPassword,
-    });
-
-    saveAuthSession(session);
-    setAuthOpen(false);
-    showAppToast({
-      type: "success",
-      duration: 3000,
-      message: `Đăng ký thành công. Chào mừng ${session.user.fullName}!`,
-    });
-
-    router.push(roleRouteMap[session.user.role] ?? "/");
-  };
 
   return (
     <>
@@ -171,48 +73,18 @@ export default function Home() {
             </nav>
 
             <div className="hidden items-center gap-2 lg:flex">
-              {authSession ? (
-                <>
-                  <div className="flex items-center gap-3 rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/10 text-[hsl(142,71%,45%)]">
-                      <UserRound className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-[hsl(150,10%,15%)]">
-                        {authSession.user.fullName}
-                      </p>
-                      <p className="text-xs text-[hsl(150,5%,45%)] capitalize">
-                        {authSession.user.role}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="inline-flex items-center gap-2 rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2 text-sm font-semibold text-[hsl(150,10%,15%)]"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Đăng xuất
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => openAuth("login")}
-                    className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2 text-sm font-semibold text-[hsl(150,10%,15%)]"
-                  >
-                    Đăng nhập
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openAuth("register")}
-                    className="rounded-lg bg-[hsl(142,71%,45%)] px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    Tạo tài khoản
-                  </button>
-                </>
-              )}
+              <Link
+                href="/login"
+                className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2 text-sm font-semibold text-[hsl(150,10%,15%)]"
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-lg bg-[hsl(142,71%,45%)] px-4 py-2 text-sm font-semibold text-white"
+              >
+                Tạo tài khoản
+              </Link>
             </div>
 
             <button
@@ -249,30 +121,20 @@ export default function Home() {
                   Đối tượng
                 </a>
                 <div className="grid gap-2 pt-2 sm:grid-cols-2">
-                  {authSession ? (
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(150,10%,15%)]"
-                    >
-                      Đăng xuất
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => openAuth("login")}
-                      className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(150,10%,15%)]"
-                    >
-                      Đăng nhập
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => openAuth("register")}
-                    className="rounded-lg bg-[hsl(142,71%,45%)] px-4 py-2.5 text-sm font-semibold text-white"
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-lg border border-[hsl(142,15%,88%)] bg-white px-4 py-2.5 text-sm font-semibold text-[hsl(150,10%,15%)] text-center"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMenuOpen(false)}
+                    className="rounded-lg bg-[hsl(142,71%,45%)] px-4 py-2.5 text-sm font-semibold text-white text-center"
                   >
                     Tạo tài khoản
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -298,13 +160,12 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => openAuth("register")}
-                    className="h-14 rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white"
+                  <Link
+                    href="/register"
+                    className="inline-flex h-14 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white"
                   >
                     Bắt đầu ghi nhật ký
-                  </button>
+                  </Link>
                   <a
                     href="#tinh-nang"
                     className="inline-flex h-14 items-center justify-center rounded-xl border border-[hsl(142,15%,88%)] bg-white px-8 text-base font-bold text-[hsl(150,10%,15%)]"
@@ -428,14 +289,6 @@ export default function Home() {
         </main>
       </div>
 
-      <AuthModal
-        open={authOpen}
-        view={authView}
-        onClose={() => setAuthOpen(false)}
-        onChange={setAuthView}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-      />
     </>
   );
 }
