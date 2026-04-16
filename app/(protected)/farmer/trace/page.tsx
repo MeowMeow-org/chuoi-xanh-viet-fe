@@ -2,7 +2,6 @@
 
 import { Clock, Hash, Leaf, MapPin } from "lucide-react";
 
-import FarmerLayout from "@/components/layout/FarmerLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { currentFarmer, diaryEntries, seasons } from "@/data/mockData";
@@ -20,8 +19,7 @@ export default function FarmerTracePage() {
     );
 
     return (
-        <FarmerLayout>
-            <div className="mx-auto max-w-6xl space-y-6 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-6 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
                 <h1 className="text-xl font-bold">Cổng Truy xuất Nguồn gốc</h1>
 
                 <Card className="border-[hsl(142,71%,45%)]/30">
@@ -110,7 +108,6 @@ export default function FarmerTracePage() {
                         })}
                     </div>
                 </div>
-            </div>
-        </FarmerLayout>
+        </div>
     );
 }

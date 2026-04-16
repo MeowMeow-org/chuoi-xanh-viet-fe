@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import FarmerLayout from "@/components/layout/FarmerLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,11 +32,9 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 
     if (!product) {
         return (
-            <FarmerLayout>
-                <div className="mx-auto w-full max-w-2xl px-4 py-12 text-center sm:px-6 lg:px-8">
-                    <p className="text-muted-foreground">Không tìm thấy sản phẩm</p>
-                </div>
-            </FarmerLayout>
+            <div className="mx-auto w-full max-w-2xl px-4 py-12 text-center sm:px-6 lg:px-8">
+                <p className="text-muted-foreground">Không tìm thấy sản phẩm</p>
+            </div>
         );
     }
 
@@ -68,8 +65,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     };
 
     return (
-        <FarmerLayout>
-            <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-4 pb-20 sm:px-6 md:pb-8">
+        <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-4 pb-20 sm:px-6 md:pb-8">
                 <div className="relative flex h-56 items-center justify-center rounded-xl bg-accent">
                     <span className="text-6xl">
                         {product.name.includes("Rau") ? "🥬" : product.name.includes("Cà") ? "🍅" : "🥒"}
@@ -197,7 +193,6 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                         ))
                     )}
                 </div>
-            </div>
-        </FarmerLayout>
+        </div>
     );
 }

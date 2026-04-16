@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bot, Camera, Send, User } from "lucide-react";
 
-import FarmerLayout from "@/components/layout/FarmerLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -99,8 +98,7 @@ export default function FarmerAIAssistantPage() {
     };
 
     return (
-        <FarmerLayout>
-            <div className="flex h-[calc(100vh-3.5rem-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)]">
+        <div className="flex h-[calc(100vh-3.5rem-3.5rem)] flex-col md:h-[calc(100vh-3.5rem)]">
                 <div
                     ref={chatScrollRef}
                     className="flex-1 overflow-y-scroll pr-1 [scrollbar-gutter:stable] [scrollbar-color:hsl(142_20%_70%)_hsl(120_20%_95%)] [scrollbar-width:thin] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[hsl(142,20%,70%)] [&::-webkit-scrollbar-track]:bg-[hsl(120,20%,95%)] [&::-webkit-scrollbar]:w-2"
@@ -198,7 +196,6 @@ export default function FarmerAIAssistantPage() {
                         </div>
                     </div>
                 </div>
-            </div>
-        </FarmerLayout>
+        </div>
     );
 }
