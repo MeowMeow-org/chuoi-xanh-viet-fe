@@ -116,7 +116,7 @@ export default function FarmerLayout({
                   size="icon"
                   className="relative h-9 w-9"
                 >
-                  <Bell className="h-4 w-4" />
+                  <Bell className="size-5" />
                   {unreadNotifs > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
                       {unreadNotifs}
@@ -126,7 +126,7 @@ export default function FarmerLayout({
               </Link>
               <Link href="/farmer/messages">
                 <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <MessageCircle className="h-4 w-4" />
+                  <MessageCircle className="size-5" />
                 </Button>
               </Link>
             </div>
@@ -152,9 +152,9 @@ export default function FarmerLayout({
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
+              <X className="size-5" />
             ) : (
-              <Menu className="h-5 w-5" />
+              <Menu className="size-5" />
             )}
           </Button>
         </div>

@@ -21,6 +21,7 @@ export default function FarmerFarmsPage() {
       farms.map((farm) => ({
         id: farm.id,
         name: farm.name,
+        inCooperative: farm.inCooperative,
         location:
           [farm.ward, farm.district, farm.province]
             .filter(Boolean)
@@ -102,6 +103,11 @@ export default function FarmerFarmsPage() {
                         <p className="text-xs text-muted-foreground">
                           Diện tích: {farm.area}
                         </p>
+                        {!farm.inCooperative && (
+                          <p className="mt-0.5 text-xs font-medium text-[hsl(32,90%,38%)]">
+                            Chưa tham gia hợp tác xã
+                          </p>
+                        )}
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />

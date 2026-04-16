@@ -1,5 +1,3 @@
-﻿import Link from "next/link";
-
 export default function FarmerPage() {
   return (
     <main className="min-h-screen bg-[hsl(120,20%,98%)] px-4 py-10 text-[hsl(150,10%,15%)] sm:px-6 lg:px-8">
@@ -12,15 +10,6 @@ export default function FarmerPage() {
             Farmer Dashboard (placeholder)
           </h1>
         </header>
-
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-lg bg-[hsl(142,71%,45%)] px-4 py-2 text-sm font-semibold text-white"
-          >
-            Ve trang chu
-          </Link>
-        </div>
       </div>
     </main>
   );

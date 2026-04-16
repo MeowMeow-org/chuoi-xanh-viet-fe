@@ -57,4 +57,5 @@ export interface RegisterPayload {
   full_name: string;
   phone: string;
   confirm_password: string;
+  role: "consumer" | "farmer";
 }

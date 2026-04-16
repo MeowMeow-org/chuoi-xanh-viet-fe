@@ -51,6 +51,7 @@ export default function LoginForm() {
             />
             <button
               type="button"
+              tabIndex={-1}
               onClick={() => setShowPassword((current) => !current)}
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,8%,40%)] hover:text-[hsl(150,14%,20%)]"

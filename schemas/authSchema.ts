@@ -7,11 +7,14 @@ export const loginSchema = z.object({
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 
+export const registerRoleSchema = z.enum(["consumer", "farmer"]);
+
 export const registerSchema = z
   .object({
     full_name: z.string().min(1, "Họ và tên không được để trống"),
     email: z.email("Email không hợp lệ").min(1, "Email không được để trống"),
     phone: z.string().min(1, "Số điện thoại không được để trống"),
+    role: registerRoleSchema,
     password: z.string().nonempty("Mật khẩu không được để trống"),
     confirm_password: z
       .string()

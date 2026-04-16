@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -18,6 +17,8 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -27,10 +28,13 @@ export default function RegisterForm() {
       full_name: "",
       email: "",
       phone: "",
+      role: "farmer",
       password: "",
       confirm_password: "",
     },
   });
+
+  const selectedRole = watch("role");
 
   const onSubmit = (data: RegisterFormData) => registerUser(data);
 
@@ -38,15 +42,59 @@ export default function RegisterForm() {
     const intent = searchParams.get("intent");
     if (intent === "farmer-applicant") {
       window.sessionStorage.setItem("register_intent", "farmer-applicant");
+      setValue("role", "farmer");
       return;
     }
 
     window.sessionStorage.removeItem("register_intent");
-  }, [searchParams]);
+  }, [searchParams, setValue]);
+
+  useEffect(() => {
+    if (selectedRole === "consumer") {
+      window.sessionStorage.removeItem("register_intent");
+    }
+  }, [selectedRole]);
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-2">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[hsl(150,8%,40%)]">
+            Loại tài khoản
+          </p>
+          <div
+            className="flex rounded-xl border border-[hsl(142,20%,80%)] bg-[hsl(120,25%,97%)] p-1"
+            role="group"
+            aria-label="Chọn loại tài khoản"
+          >
+            <button
+              type="button"
+              onClick={() => setValue("role", "farmer", { shouldValidate: true })}
+              className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${
+                selectedRole === "farmer"
+                  ? "bg-[hsl(142,71%,45%)] text-white shadow-sm hover:bg-[hsl(142,71%,40%)]"
+                  : "text-[hsl(150,8%,38%)] hover:bg-white/60 hover:text-[hsl(150,16%,20%)]"
+              }`}
+            >
+              Nông hộ
+            </button>
+            <button
+              type="button"
+              onClick={() => setValue("role", "consumer", { shouldValidate: true })}
+              className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${
+                selectedRole === "consumer"
+                  ? "bg-[hsl(142,71%,45%)] text-white shadow-sm hover:bg-[hsl(142,71%,40%)]"
+                  : "text-[hsl(150,8%,38%)] hover:bg-white/60 hover:text-[hsl(150,16%,20%)]"
+              }`}
+            >
+              Người tiêu dùng
+            </button>
+          </div>
+          {errors.role && (
+            <p className="text-sm text-red-700">{errors.role.message}</p>
+          )}
+        </div>
+
         <div className="space-y-2">
           <input
             type="text"
@@ -97,6 +145,7 @@ export default function RegisterForm() {
             />
             <button
               type="button"
+              tabIndex={-1}
               onClick={() => setShowPassword((current) => !current)}
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,8%,40%)] hover:text-[hsl(150,14%,20%)]"
@@ -120,6 +169,7 @@ export default function RegisterForm() {
             />
             <button
               type="button"
+              tabIndex={-1}
               onClick={() => setShowConfirmPassword((current) => !current)}
               aria-label={
                 showConfirmPassword

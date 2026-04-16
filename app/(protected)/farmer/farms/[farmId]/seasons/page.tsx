@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, ChevronRight, Sprout } from "lucide-react";
+import { ArrowLeft, Building2, Calendar, ChevronRight, Sprout } from "lucide-react";
 import { useParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,6 +76,20 @@ export default function FarmSeasonsPage() {
         <p className="text-xs text-muted-foreground">
           Diện tích: {farm?.areaHa ?? "--"} ha
         </p>
+        {farm != null && !farm.inCooperative && (
+          <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
+            <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
+              Nông trại chưa gắn với hợp tác xã.
+            </p>
+            <Link
+              href="/register-farmer-applicant"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
+            >
+              <Building2 className="h-4 w-4 shrink-0" aria-hidden />
+              Tham gia hợp tác xã
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">

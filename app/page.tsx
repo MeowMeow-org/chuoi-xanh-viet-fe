@@ -165,16 +165,16 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href="/farmer/marketplace"
+                    href="/register"
                     className="inline-flex h-14 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white"
                   >
-                    Mua sản phẩm
+                    Đăng ký nông hộ
                   </Link>
                   <Link
-                    href="/register?intent=farmer-applicant"
+                    href="/farmer/marketplace"
                     className="inline-flex h-14 items-center justify-center rounded-xl border border-[hsl(142,15%,88%)] bg-white px-8 text-base font-bold text-[hsl(150,10%,15%)]"
                   >
-                    Đăng ký nông hộ
+                    Mua sản phẩm
                   </Link>
                 </div>
               </div>

@@ -226,6 +226,7 @@ export default function AuthModal({ open, view, onClose, onChange, onLogin, onRe
                                         />
                                         <button
                                             type="button"
+                                            tabIndex={-1}
                                             onClick={() => setShowPassword((current) => !current)}
                                             aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                                             className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,5%,45%)] hover:text-[hsl(150,10%,20%)]"
@@ -310,6 +311,7 @@ export default function AuthModal({ open, view, onClose, onChange, onLogin, onRe
                                     />
                                     <button
                                         type="button"
+                                        tabIndex={-1}
                                         onClick={() => setShowRegisterPassword((current) => !current)}
                                         aria-label={showRegisterPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,5%,45%)] hover:text-[hsl(150,10%,20%)]"
@@ -333,6 +335,7 @@ export default function AuthModal({ open, view, onClose, onChange, onLogin, onRe
                                     />
                                     <button
                                         type="button"
+                                        tabIndex={-1}
                                         onClick={() => setShowRegisterConfirmPassword((current) => !current)}
                                         aria-label={showRegisterConfirmPassword ? "Ẩn xác nhận mật khẩu" : "Hiện xác nhận mật khẩu"}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(150,5%,45%)] hover:text-[hsl(150,10%,20%)]"
