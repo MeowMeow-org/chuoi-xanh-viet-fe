@@ -22,7 +22,9 @@ export default function FarmerFarmsPage() {
         id: farm.id,
         name: farm.name,
         location:
-          [farm.ward, farm.district, farm.province].filter(Boolean).join(", ") ||
+          [farm.ward, farm.district, farm.province]
+            .filter(Boolean)
+            .join(", ") ||
           farm.address ||
           "Chưa cập nhật địa chỉ",
         area:
@@ -81,7 +83,11 @@ export default function FarmerFarmsPage() {
         <>
           <div className="grid gap-3">
             {normalizedFarms.map((farm) => (
-              <Link key={farm.id} href={`/farmer/farms/${farm.id}/seasons`} className="block">
+              <Link
+                key={farm.id}
+                href={`/farmer/farms/${farm.id}/seasons`}
+                className="block"
+              >
                 <Card className="transition-colors hover:border-primary/40">
                   <CardContent className="flex items-center justify-between gap-3 p-4">
                     <div className="flex items-center gap-3">
@@ -90,8 +96,12 @@ export default function FarmerFarmsPage() {
                       </span>
                       <div>
                         <p className="text-base font-semibold">{farm.name}</p>
-                        <p className="text-sm text-muted-foreground">{farm.location}</p>
-                        <p className="text-xs text-muted-foreground">Diện tích: {farm.area}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {farm.location}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Diện tích: {farm.area}
+                        </p>
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
