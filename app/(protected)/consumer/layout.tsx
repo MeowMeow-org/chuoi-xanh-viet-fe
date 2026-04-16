@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { AUTH_ROLE_COOKIE } from "@/services/auth/constants";
@@ -22,3 +22,4 @@ export default async function ConsumerLayout({
 
   return <>{children}</>;
 }
+
