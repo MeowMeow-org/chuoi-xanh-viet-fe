@@ -7,7 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMyFarmsQuery, useRequestCooperativeJoinMutation } from "@/hooks/useFarm";
@@ -70,11 +71,12 @@ export default function JoinCooperativeConfirmPage() {
         <p className="text-sm text-muted-foreground">
           Không tìm thấy hợp tác xã này.
         </p>
-        <Button asChild variant="outline">
-          <Link href={`/farmer/farms/${farmId}/join-cooperative`}>
-            Quay lại danh sách
-          </Link>
-        </Button>
+        <Link
+          href={`/farmer/farms/${farmId}/join-cooperative`}
+          className={cn(buttonVariants({ variant: "outline" }))}
+        >
+          Quay lại danh sách
+        </Link>
       </div>
     );
   }
