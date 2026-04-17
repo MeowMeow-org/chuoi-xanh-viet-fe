@@ -34,14 +34,6 @@ export const useRegisterMutation = () => {
       });
       saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
       toast.success("Register successfully");
-      if (typeof window !== "undefined") {
-        const registerIntent = window.sessionStorage.getItem("register_intent");
-        if (registerIntent === "farmer-applicant") {
-          window.sessionStorage.removeItem("register_intent");
-          router.replace("/register-farmer-applicant");
-          return;
-        }
-      }
       const roleRoute = resolveRoleRoute(res.user.role);
       router.replace(roleRoute ?? "/");
     },
@@ -84,13 +76,18 @@ export const useLogoutMutation = () => {
     mutationFn: () => authService.logout(),
     onSuccess: () => {
       clearAuth();
+      void useAuthStore.persist.clearStorage();
       clearAuthCookies();
       queryClient.removeQueries();
       router.replace("/login");
       toast.success("Logout successfully");
     },
     onError: (error) => {
+      clearAuth();
+      void useAuthStore.persist.clearStorage();
       clearAuthCookies();
+      queryClient.removeQueries();
+      router.replace("/login");
       toast.error(error.message);
     },
   });

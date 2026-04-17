@@ -70,18 +70,50 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
         <p className="text-xs text-muted-foreground">
           Diện tích: {farm?.areaHa ?? "--"} ha
         </p>
-        {farm != null && !farm.inCooperative && (
+        {farm != null &&
+          (farm.inCooperative ||
+            farm.cooperativeMembershipStatus === "approved") && (
+            <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
+              <div className="flex flex-col gap-1 text-sm leading-snug sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2">
+                <span className="shrink-0 font-semibold text-[hsl(142,58%,28%)]">
+                  Đã tham gia
+                </span>
+                {farm.cooperativeName ? (
+                  <span className="min-w-0 max-w-full wrap-break-word font-medium text-[hsl(150,10%,22%)]">
+                    {farm.cooperativeName}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          )}
+        {farm != null &&
+          !farm.inCooperative &&
+          farm.cooperativeMembershipStatus !== "approved" && (
           <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
-            <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
-              Nông trại chưa gắn với hợp tác xã.
-            </p>
-            <Link
-              href="/register-farmer-applicant"
-              className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
-            >
-              <Building2 className="h-4 w-4 shrink-0" aria-hidden />
-              Tham gia hợp tác xã
-            </Link>
+            {farm.cooperativeMembershipStatus === "pending" ? (
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-[hsl(210,75%,38%)]">
+                  Đang chờ hợp tác xã duyệt yêu cầu
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Bạn đã gửi đơn tham gia. Khi được duyệt, nông trại sẽ gắn với
+                  hợp tác xã.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
+                  Nông trại chưa gắn với hợp tác xã.
+                </p>
+                <Link
+                  href={`/farmer/farms/${farmId}/join-cooperative`}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
+                >
+                  <Building2 className="h-4 w-4 shrink-0" aria-hidden />
+                  Tham gia hợp tác xã
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>

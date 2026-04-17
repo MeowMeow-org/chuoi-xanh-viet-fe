@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { cooperativeService } from "@/services/cooperative/cooperativeService";
 import { farmService } from "@/services/farm/farmService";
 import type { CreateFarmPayload, Farm, GetMyFarmsQuery } from "@/services/farm";
 import type { PaginationMeta } from "@/types";
@@ -31,6 +32,18 @@ export const useCreateFarmMutation = () => {
 
   return useMutation<Farm, Error, CreateFarmPayload>({
     mutationFn: (payload) => farmService.createFarm(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: farmQueryKeys.all });
+    },
+  });
+};
+
+export const useRequestCooperativeJoinMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (vars: { cooperative_user_id: string; farm_id: string }) =>
+      cooperativeService.requestJoinCooperative(vars),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: farmQueryKeys.all });
     },

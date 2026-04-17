@@ -1,8 +1,14 @@
 export interface CooperativeAccount {
   id: string;
-  full_name: string;
+  /** API trả camelCase */
+  fullName?: string;
+  full_name?: string;
   email?: string;
   phone?: string;
+}
+
+export function cooperativeDisplayName(c: CooperativeAccount): string {
+  return c.fullName ?? c.full_name ?? "—";
 }
 
 export type CooperativeMembershipStatus =
@@ -44,12 +50,3 @@ export interface GetCooperativeMembershipsQuery {
   status?: CooperativeMembershipStatus;
 }
 
-export interface RegisterFarmerApplicantPayload {
-  email: string;
-  password: string;
-  confirm_password: string;
-  full_name: string;
-  phone: string;
-  cooperative_user_id: string;
-  farm_name: string;
-}

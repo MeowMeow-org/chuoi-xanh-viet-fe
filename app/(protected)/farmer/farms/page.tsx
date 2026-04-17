@@ -22,6 +22,8 @@ export default function FarmerFarmsPage() {
         id: farm.id,
         name: farm.name,
         inCooperative: farm.inCooperative,
+        cooperativeMembershipStatus: farm.cooperativeMembershipStatus ?? null,
+        cooperativeName: farm.cooperativeName ?? null,
         location:
           [farm.ward, farm.district, farm.province]
             .filter(Boolean)
@@ -89,13 +91,13 @@ export default function FarmerFarmsPage() {
                 href={`/farmer/farms/${farm.id}/seasons`}
                 className="block"
               >
-                <Card className="transition-colors hover:border-primary/40">
+                <Card className="rounded-2xl border-[hsl(142,15%,88%)] transition-colors hover:border-primary/40">
                   <CardContent className="flex items-center justify-between gap-3 p-4">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/10">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/10">
                         <Sprout className="h-5 w-5 text-[hsl(142,71%,45%)]" />
                       </span>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="text-base font-semibold">{farm.name}</p>
                         <p className="text-sm text-muted-foreground">
                           {farm.location}
@@ -103,11 +105,33 @@ export default function FarmerFarmsPage() {
                         <p className="text-xs text-muted-foreground">
                           Diện tích: {farm.area}
                         </p>
-                        {!farm.inCooperative && (
-                          <p className="mt-0.5 text-xs font-medium text-[hsl(32,90%,38%)]">
-                            Chưa tham gia hợp tác xã
-                          </p>
+                        {(farm.inCooperative ||
+                          farm.cooperativeMembershipStatus === "approved") && (
+                          <div className="mt-0.5 flex flex-col gap-0.5 text-xs leading-snug sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2">
+                            <span className="shrink-0 font-semibold text-[hsl(142,58%,28%)]">
+                              Đã tham gia
+                            </span>
+                            {farm.cooperativeName ? (
+                              <span className="min-w-0 max-w-full wrap-break-word font-medium text-[hsl(150,10%,22%)]">
+                                {farm.cooperativeName}
+                              </span>
+                            ) : null}
+                          </div>
                         )}
+                        {!farm.inCooperative &&
+                          farm.cooperativeMembershipStatus !== "approved" &&
+                          farm.cooperativeMembershipStatus === "pending" && (
+                            <p className="mt-0.5 text-xs font-semibold text-[hsl(210,75%,38%)]">
+                              Đang chờ hợp tác xã duyệt yêu cầu
+                            </p>
+                          )}
+                        {!farm.inCooperative &&
+                          farm.cooperativeMembershipStatus !== "approved" &&
+                          farm.cooperativeMembershipStatus !== "pending" && (
+                            <p className="mt-0.5 text-xs font-medium text-[hsl(32,90%,38%)]">
+                              Chưa tham gia hợp tác xã
+                            </p>
+                          )}
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />

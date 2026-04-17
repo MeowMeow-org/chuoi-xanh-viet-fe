@@ -11,14 +11,11 @@ import { useCreateFarmMutation } from "@/hooks/useFarm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  buildGeocodeQuery,
-  geocodeVietnamAddress,
-} from "@/lib/googleGeocode";
+import { buildGeocodeQuery, geocodeVietnamAddress } from "@/lib/googleGeocode";
 
-/** Viền 1px, ring focus / invalid 1px, bo góc ~5% */
+/** Bo góc chuẩn (như Input); ring focus xanh / lỗi đỏ khi có aria-invalid */
 const farmFieldClass =
-  "rounded-[5%] border-[1px] border-input focus-visible:ring-1 focus-visible:ring-ring/50 aria-invalid:ring-1 aria-invalid:ring-destructive/25";
+  "rounded-lg border border-input aria-invalid:border-destructive focus-visible:ring-1 focus-visible:ring-ring/50 focus-visible:aria-invalid:ring-destructive/40 aria-invalid:ring-1 aria-invalid:ring-destructive/25";
 
 const farmButtonClass =
   "cursor-pointer focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed";
@@ -181,7 +178,7 @@ export default function CreateFarmPage() {
 
     if (!latStr || !lngStr) {
       toast.error(
-        "Cần có tọa độ. Bấm \"Tìm từ địa chỉ\" hoặc \"Lấy vị trí điện thoại\", hoặc nhập hai số tay.",
+        'Cần có tọa độ. Bấm "Tìm từ địa chỉ" hoặc "Lấy vị trí điện thoại", hoặc nhập hai số tay.',
       );
       return;
     }
@@ -252,6 +249,7 @@ export default function CreateFarmPage() {
               <Input
                 className={farmFieldClass}
                 placeholder="Tên nông trại *"
+                aria-invalid={errors.name ? true : undefined}
                 {...register("name", {
                   required: "Vui lòng nhập tên nông trại",
                   minLength: {
@@ -359,6 +357,7 @@ export default function CreateFarmPage() {
                     className={farmFieldClass}
                     placeholder="Ví dụ: 10.8231"
                     inputMode="decimal"
+                    aria-invalid={errors.latitude ? true : undefined}
                     {...register("latitude", {
                       required: "Cần vĩ độ — dùng nút Tìm từ địa chỉ",
                       validate: (v) => {
@@ -385,6 +384,7 @@ export default function CreateFarmPage() {
                     className={farmFieldClass}
                     placeholder="Ví dụ: 106.6297"
                     inputMode="decimal"
+                    aria-invalid={errors.longitude ? true : undefined}
                     {...register("longitude", {
                       required: "Cần kinh độ — dùng nút Tìm từ địa chỉ",
                       validate: (v) => {

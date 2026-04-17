@@ -1,3 +1,9 @@
+export type CooperativeMembershipStatusApi =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "removed";
+
 export interface Farm {
   id: string;
   ownerUserId: string;
@@ -11,6 +17,10 @@ export interface Farm {
   latitude: number | string | null;
   longitude: number | string | null;
   inCooperative: boolean;
+  /** Có trên GET /farm/mine: trạng thái đơn gia nhập HTX (một bản ghi / nông trại). */
+  cooperativeMembershipStatus?: CooperativeMembershipStatusApi | null;
+  /** Tên HTX (full_name) khi có bản ghi cooperative_members. */
+  cooperativeName?: string | null;
   createdAt: string;
   updatedAt: string;
 }
