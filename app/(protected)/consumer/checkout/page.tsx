@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -68,13 +68,6 @@ export default function ConsumerCheckoutPage() {
   const [ordered, setOrdered] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      setName((n) => n || user.fullName || "");
-      setPhone((p) => p || user.phone || "");
-    }
-  }, [user]);
-
-  useEffect(() => {
     if (hasHydrated && items.length === 0 && !ordered) {
       router.replace("/consumer/cart");
     }
@@ -82,6 +75,14 @@ export default function ConsumerCheckoutPage() {
 
   const groups = groupCartByShop(items);
   const shippingFee = groups.length * SHIPPING_FEE_PER_SHOP;
+  const displayName = useMemo(
+    () => (name.length > 0 ? name : user?.fullName ?? ""),
+    [name, user?.fullName],
+  );
+  const displayPhone = useMemo(
+    () => (phone.length > 0 ? phone : user?.phone ?? ""),
+    [phone, user?.phone],
+  );
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -94,8 +95,8 @@ export default function ConsumerCheckoutPage() {
               productId: i.productId,
               qty: i.quantity,
             })),
-            shippingName: name.trim(),
-            shippingPhone: phone.trim(),
+            shippingName: displayName.trim(),
+            shippingPhone: displayPhone.trim(),
             shippingAddress: address.trim(),
             paymentMethod: payment,
             note: note.trim() || undefined,
@@ -146,7 +147,7 @@ export default function ConsumerCheckoutPage() {
   });
 
   const placeOrder = () => {
-    if (!name.trim() || !phone.trim() || !address.trim()) {
+    if (!displayName.trim() || !displayPhone.trim() || !address.trim()) {
       toast.error("Vui lòng nhập đầy đủ họ tên, số điện thoại, địa chỉ");
       return;
     }
@@ -201,7 +202,7 @@ export default function ConsumerCheckoutPage() {
                 <Label htmlFor="name">Họ tên</Label>
                 <Input
                   id="name"
-                  value={name}
+                  value={displayName}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
@@ -209,7 +210,7 @@ export default function ConsumerCheckoutPage() {
                 <Label htmlFor="phone">Số điện thoại</Label>
                 <Input
                   id="phone"
-                  value={phone}
+                  value={displayPhone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>

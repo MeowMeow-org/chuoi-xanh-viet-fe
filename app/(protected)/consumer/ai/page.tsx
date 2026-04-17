@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import ConsumerLayout from '@/components/layout/ConsumerLayout';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Bot, User, ImagePlus } from 'lucide-react';
@@ -52,13 +51,23 @@ export default function ConsumerAIPage() {
     const msg = text || input.trim();
     if (!msg) return;
 
-    const userMsg: Message = { id: `u-${Date.now()}`, role: 'user', content: msg, timestamp: new Date().toISOString() };
+    const userMsg: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: msg,
+      timestamp: new Date().toISOString(),
+    };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
     setTimeout(() => {
-      const aiMsg: Message = { id: `a-${Date.now()}`, role: 'ai', content: getReply(msg), timestamp: new Date().toISOString() };
+      const aiMsg: Message = {
+        id: crypto.randomUUID(),
+        role: 'ai',
+        content: getReply(msg),
+        timestamp: new Date().toISOString(),
+      };
       setMessages(prev => [...prev, aiMsg]);
       setLoading(false);
     }, 800);
