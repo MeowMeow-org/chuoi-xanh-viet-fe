@@ -1,8 +1,8 @@
-import { AuthResponse, LoginPayload, RegisterPayload } from "@/services/auth";
+import { AuthResponse, LoginPayload, RegisterPayload, User } from "@/services/auth";
 import { authService } from "@/services/auth/authService";
 import { clearAuthCookies, saveAuthCookies } from "@/services/auth/storage";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -88,6 +88,40 @@ export const useLogoutMutation = () => {
       clearAuthCookies();
       queryClient.removeQueries();
       router.replace("/login");
+      toast.error(error.message);
+    },
+  });
+};
+
+export const authQueryKeys = {
+  me: ["auth", "me"] as const,
+};
+
+export const useMeQuery = (enabled = true) => {
+  return useQuery({
+    queryKey: authQueryKeys.me,
+    queryFn: () => authService.getMe(),
+    enabled,
+  });
+};
+
+export const usePatchMeMutation = () => {
+  const queryClient = useQueryClient();
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  return useMutation<User, Error, { avatarUrl: string | null }>({
+    mutationFn: (payload) => authService.patchMe(payload),
+    onSuccess: (user) => {
+      const { accessToken, refreshToken } = useAuthStore.getState();
+      setAuth({
+        accessToken,
+        refreshToken,
+        user,
+      });
+      void queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
+      toast.success("Đã cập nhật ảnh đại diện");
+    },
+    onError: (error) => {
       toast.error(error.message);
     },
   });

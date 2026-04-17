@@ -2,7 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { CreateSeasonPayload, GetSeasonsQuery, Season } from "@/services/season";
+import type {
+  ChangeSeasonStatusPayload,
+  CreateSeasonPayload,
+  GetSeasonsQuery,
+  Season,
+  UpdateSeasonPayload,
+} from "@/services/season";
 import { seasonService } from "@/services/season/seasonService";
 import type { PaginationMeta } from "@/types";
 
@@ -44,6 +50,34 @@ export const useCreateSeasonMutation = () => {
     mutationFn: (payload) => seasonService.createSeason(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: seasonQueryKeys.all });
+    },
+  });
+};
+
+export const useChangeSeasonStatusMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Season, Error, ChangeSeasonStatusPayload>({
+    mutationFn: (payload) => seasonService.changeSeasonStatus(payload),
+    onSuccess: (updatedSeason) => {
+      queryClient.setQueryData(
+        seasonQueryKeys.detail(updatedSeason.id),
+        updatedSeason,
+      );
+      void queryClient.invalidateQueries({ queryKey: ["season", "list"] });
+    },
+  });
+};
+
+export const useUpdateSeasonMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<Season, Error, { seasonId: string; payload: UpdateSeasonPayload }>({
+    mutationFn: ({ seasonId, payload }) =>
+      seasonService.updateSeason(seasonId, payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(seasonQueryKeys.detail(updated.id), updated);
+      void queryClient.invalidateQueries({ queryKey: ["season", "list"] });
     },
   });
 };
