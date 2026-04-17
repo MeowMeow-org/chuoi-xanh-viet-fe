@@ -6,7 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Building2, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyFarmsQuery } from "@/hooks/useFarm";
 import { cooperativeService } from "@/services/cooperative/cooperativeService";
@@ -100,14 +101,15 @@ export default function JoinCooperativeListPage() {
                   )}
                 </div>
               </div>
-              <Button
-                asChild
-                className="w-full shrink-0 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)] sm:w-auto"
+              <Link
+                href={`/farmer/farms/${farmId}/join-cooperative/${item.id}`}
+                className={cn(
+                  buttonVariants({ variant: "default" }),
+                  "w-full shrink-0 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)] sm:w-auto",
+                )}
               >
-                <Link href={`/farmer/farms/${farmId}/join-cooperative/${item.id}`}>
-                  Đăng ký
-                </Link>
-              </Button>
+                Đăng ký
+              </Link>
             </CardContent>
           </Card>
         ))}
