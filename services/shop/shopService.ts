@@ -1,9 +1,14 @@
 import { axiosInstance } from "@/lib/axios";
 import type { PaginatedResponse } from "@/types";
 import type {
+  AddProductPayload,
+  AvailableSeasonForProduct,
+  AvailableSaleUnitForProduct,
+  CreateShopPayload,
   GetPublicProductsQuery,
   PublicProduct,
   PublicProductDetail,
+  ShopSuggestResult,
   ShopSummary,
 } from "./index";
 
@@ -11,6 +16,7 @@ type RawProductRow = {
   id: string;
   shop_id: string;
   season_id: string | null;
+  sale_unit_id?: string | null;
   name: string;
   description: string | null;
   price: string | number;
@@ -46,6 +52,12 @@ type RawProductRow = {
     harvest_end_date?: string | null;
     status?: string;
   } | null;
+  sale_unit?: {
+    id: string;
+    code: string;
+    short_code: string | null;
+    qr_url: string;
+  } | null;
 };
 
 const parseCertifications = (raw: unknown): string[] => {
@@ -65,6 +77,7 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
   id: row.id,
   shopId: row.shop_id,
   seasonId: row.season_id,
+  saleUnitId: row.sale_unit_id ?? null,
   name: row.name,
   description: row.description,
   price: row.price,
@@ -100,6 +113,14 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
         id: row.seasons.id,
         code: row.seasons.code,
         cropName: row.seasons.crop_name,
+      }
+    : null,
+  saleUnit: row.sale_unit
+    ? {
+        id: row.sale_unit.id,
+        code: row.sale_unit.code,
+        shortCode: row.sale_unit.short_code,
+        qrUrl: row.sale_unit.qr_url,
       }
     : null,
 });
@@ -167,5 +188,46 @@ export const shopService = {
       PaginatedResponse<RawProductRow>
     >(`/shop/${shopId}/products`, { params: query });
     return { items: raw.items.map(mapProduct), meta: raw.meta };
+  },
+
+  getMyShops: async (): Promise<ShopSummary[]> => {
+    return axiosInstance.get<ShopSummary[], ShopSummary[]>("/shop/mine");
+  },
+
+  createShop: async (payload: CreateShopPayload): Promise<ShopSummary> => {
+    return axiosInstance.post<ShopSummary, ShopSummary>("/shop", payload);
+  },
+
+  suggestShop: async (farmId: string): Promise<ShopSuggestResult> => {
+    return axiosInstance.get<ShopSuggestResult, ShopSuggestResult>(
+      "/shop/suggest",
+      { params: { farm_id: farmId } },
+    );
+  },
+
+  getAvailableSeasons: async (): Promise<AvailableSeasonForProduct[]> => {
+    return axiosInstance.get<
+      AvailableSeasonForProduct[],
+      AvailableSeasonForProduct[]
+    >("/shop/available-seasons");
+  },
+
+  getAvailableSaleUnits: async (
+    shopId: string,
+  ): Promise<AvailableSaleUnitForProduct[]> => {
+    return axiosInstance.get<
+      AvailableSaleUnitForProduct[],
+      AvailableSaleUnitForProduct[]
+    >(`/shop/${shopId}/available-sale-units`);
+  },
+
+  addProduct: async (
+    shopId: string,
+    payload: AddProductPayload,
+  ): Promise<RawProductRow> => {
+    return axiosInstance.post<RawProductRow, RawProductRow>(
+      `/shop/${shopId}/products`,
+      payload,
+    );
   },
 };

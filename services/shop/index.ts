@@ -22,6 +22,7 @@ export interface PublicProduct {
   id: string;
   shopId: string;
   seasonId: string | null;
+  saleUnitId?: string | null;
   name: string;
   description: string | null;
   /** BE trả về Decimal dưới dạng string */
@@ -37,6 +38,12 @@ export interface PublicProduct {
     id: string;
     code: string;
     cropName: string;
+  } | null;
+  saleUnit?: {
+    id: string;
+    code: string;
+    shortCode: string | null;
+    qrUrl: string;
   } | null;
 }
 
@@ -80,4 +87,58 @@ export interface ShopSummary {
     address: string | null;
     owner_user_id: string;
   };
+}
+
+export interface ShopSuggestResult {
+  suggestedName: string;
+  suggestedDescription: string;
+}
+
+export interface AvailableSeasonForProduct {
+  id: string;
+  code: string;
+  crop_name: string;
+  actual_yield: unknown;
+  yield_unit: string | null;
+  status: string;
+  farms: {
+    id: string;
+    name: string;
+    province: string | null;
+    district: string | null;
+    address: string | null;
+  };
+}
+
+/** Lô đã phân có thể đăng lên gian hàng (BE GET .../available-sale-units) */
+export interface AvailableSaleUnitForProduct {
+  id: string;
+  code: string;
+  short_code: string | null;
+  quantity: string | number;
+  unit: string;
+  qr_url: string;
+  status: string;
+  created_at: string;
+  seasons: {
+    id: string;
+    code: string;
+    crop_name: string;
+  };
+}
+
+export interface CreateShopPayload {
+  farm_id: string;
+  name: string;
+  description?: string;
+}
+
+export interface AddProductPayload {
+  sale_unit_id: string;
+  name?: string;
+  description?: string;
+  price: number;
+  unit?: string;
+  stock_qty?: number;
+  image_url?: string | null;
 }

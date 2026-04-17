@@ -4,7 +4,6 @@ import type {
   CooperativeAccount,
   CooperativeMembership,
   GetCooperativeMembershipsQuery,
-  RegisterFarmerApplicantPayload,
 } from "@/services/cooperative";
 import type { PaginatedResponse } from "@/types";
 
@@ -16,26 +15,25 @@ type CooperativeListResponse =
     };
 
 export const cooperativeService = {
-  getActiveCooperatives: async (): Promise<CooperativeAccount[]> => {
+  getActiveCooperatives: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<CooperativeAccount[]> => {
     const response = await axiosInstance.get<
       CooperativeListResponse,
       CooperativeListResponse
-    >("/cooperative/htx");
+    >("/cooperative/htx", {
+      params: { page: params?.page ?? 1, limit: params?.limit ?? 100 },
+    });
 
-    if (Array.isArray(response)) {
-      return response;
-    }
+    const raw = Array.isArray(response)
+      ? response
+      : response.items ?? response.data ?? [];
 
-    return response.items ?? response.data ?? [];
-  },
-
-  registerFarmerApplicant: async (
-    payload: RegisterFarmerApplicantPayload,
-  ): Promise<unknown> => {
-    return axiosInstance.post<unknown, unknown>(
-      "/cooperative/register-farmer-applicant",
-      payload,
-    );
+    return raw.map((item: CooperativeAccount & { fullName?: string }) => ({
+      ...item,
+      full_name: item.fullName ?? item.full_name,
+    }));
   },
 
   getMyMemberships: async (
@@ -62,5 +60,17 @@ export const cooperativeService = {
       `/cooperative/members/${membershipId}/reject`,
       body ?? {},
     );
+  },
+
+  requestJoinCooperative: async (body: {
+    cooperative_user_id: string;
+    farm_id: string;
+  }): Promise<{
+    membershipId: string;
+    status: string;
+    cooperativeUserId: string;
+    farmId: string;
+  }> => {
+    return axiosInstance.post("/cooperative/join-request", body);
   },
 };

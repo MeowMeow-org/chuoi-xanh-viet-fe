@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  ClipboardCheck,
   Inbox,
   LayoutDashboard,
   Leaf,
@@ -22,12 +23,14 @@ import { useAuthStore } from "@/store/useAuthStore";
 const navItems = [
   { href: "/cooperative", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/cooperative/households", label: "Nông hộ", icon: Users },
+  { href: "/cooperative/inspections", label: "Kiểm tra", icon: ClipboardCheck },
   { href: "/cooperative/requests", label: "Yêu cầu", icon: Inbox },
 ];
 
 const mobileNavItems = [
   { href: "/cooperative/households", label: "Nông hộ", icon: Users },
   { href: "/cooperative", label: "Tổng quan", icon: LayoutDashboard },
+  { href: "/cooperative/inspections", label: "Kiểm tra", icon: ClipboardCheck },
   { href: "/cooperative/requests", label: "Yêu cầu", icon: Inbox },
 ];
 

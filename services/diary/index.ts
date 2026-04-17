@@ -1,12 +1,13 @@
+/** Khớp Prisma / POST /diary */
 export type DiaryEventType =
-  | "prepare_soil"
-  | "seed_sowing"
-  | "transplanting"
-  | "irrigation"
+  | "land_prep"
+  | "sowing"
   | "fertilizing"
   | "pesticide"
-  | "weed_control"
-  | "harvest"
+  | "irrigation"
+  | "harvesting"
+  | "packing"
+  | "inspection"
   | "other";
 
 export interface DiaryEntry {
@@ -20,6 +21,15 @@ export interface DiaryEntry {
   description: string | null;
   extraData: unknown;
   createdAt: string;
+}
+
+export interface CreateDiaryPayload {
+  seasonId: string;
+  farmId: string;
+  eventType: DiaryEventType;
+  eventDate: string;
+  description?: string;
+  extraData?: Record<string, unknown> | null;
 }
 
 export interface GetDiariesQuery {
