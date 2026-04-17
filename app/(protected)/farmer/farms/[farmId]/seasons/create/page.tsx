@@ -32,9 +32,14 @@ type FormValues = {
 
 export default function CreateSeasonPage() {
   const params = useParams<{ farmId: string }>();
-  const farmId = Array.isArray(params.farmId) ? params.farmId[0] : params.farmId;
+  const farmId = Array.isArray(params.farmId)
+    ? params.farmId[0]
+    : params.farmId;
   const router = useRouter();
-  const { farms, isLoading: farmsLoading } = useMyFarmsQuery({ page: 1, limit: 100 });
+  const { farms, isLoading: farmsLoading } = useMyFarmsQuery({
+    page: 1,
+    limit: 100,
+  });
   const createMutation = useCreateSeasonMutation();
 
   const farm = useMemo(
@@ -210,7 +215,9 @@ export default function CreateSeasonPage() {
                 {...register("startDate", { required: "Chọn ngày bắt đầu" })}
               />
               {errors.startDate && (
-                <p className="text-sm text-red-600">{errors.startDate.message}</p>
+                <p className="text-sm text-red-600">
+                  {errors.startDate.message}
+                </p>
               )}
             </div>
 
@@ -220,8 +227,8 @@ export default function CreateSeasonPage() {
                   Thu hoạch (tuỳ chọn)
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,38%)]">
-                  Có thể bổ sung sau; ngày kết thúc nên sau hoặc trùng ngày bắt đầu
-                  thu hoạch.
+                  Có thể bổ sung sau; ngày kết thúc nên sau hoặc trùng ngày bắt
+                  đầu thu hoạch.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -256,7 +263,10 @@ export default function CreateSeasonPage() {
                   htmlFor="estimated-yield"
                   className="block text-xs font-medium text-[hsl(150,10%,35%)]"
                 >
-                  Năng suất dự kiến <span className="font-normal text-[hsl(150,8%,45%)]">(tuỳ chọn)</span>
+                  Năng suất dự kiến{" "}
+                  <span className="font-normal text-[hsl(150,8%,45%)]">
+                    (tuỳ chọn)
+                  </span>
                 </label>
                 <Input
                   id="estimated-yield"
@@ -272,7 +282,10 @@ export default function CreateSeasonPage() {
                   htmlFor="actual-yield"
                   className="block text-xs font-medium text-[hsl(150,10%,35%)]"
                 >
-                  Năng suất thực tế <span className="font-normal text-[hsl(150,8%,45%)]">(tuỳ chọn)</span>
+                  Năng suất thực tế{" "}
+                  <span className="font-normal text-[hsl(150,8%,45%)]">
+                    (tuỳ chọn)
+                  </span>
                 </label>
                 <Input
                   id="actual-yield"

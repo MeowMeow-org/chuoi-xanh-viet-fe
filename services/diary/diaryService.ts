@@ -1,7 +1,7 @@
 import { axiosInstance } from "@/lib/axios";
 import type { PaginatedResponse } from "@/types";
 
-import type { DiaryEntry, GetDiariesQuery } from "./index";
+import type { CreateDiaryPayload, DiaryEntry, GetDiariesQuery } from "./index";
 
 export const diaryService = {
   getDiaries: async (
@@ -14,5 +14,9 @@ export const diaryService = {
       params: query,
     });
     return response;
+  },
+
+  createDiary: async (payload: CreateDiaryPayload): Promise<DiaryEntry> => {
+    return axiosInstance.post<DiaryEntry, DiaryEntry>("/diary", payload);
   },
 };

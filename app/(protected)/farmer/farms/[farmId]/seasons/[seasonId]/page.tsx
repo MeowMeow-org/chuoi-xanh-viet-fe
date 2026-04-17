@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Calendar, Trash2 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -35,10 +35,15 @@ const getStatusLabel = (status: SeasonStatus) => {
 export default function SeasonDetailPage() {
   const params = useParams<{ farmId: string; seasonId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  /** `?hideAddDiary=1` hoặc `true`: chỉ xem nhật ký, ẩn tab tạo mới. Mặc định: vẫn có tab ghi nhật ký. */
+  const hideAddDiary =
+    searchParams.get("hideAddDiary") === "1" || searchParams.get("hideAddDiary") === "true";
   const farmId = Array.isArray(params.farmId) ? params.farmId[0] : params.farmId;
   const seasonId = Array.isArray(params.seasonId) ? params.seasonId[0] : params.seasonId;
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [detailQueryEnabled, setDetailQueryEnabled] = useState(true);
+  const [seasonTab, setSeasonTab] = useState<"timeline" | "add">("timeline");
   const { farms } = useMyFarmsQuery({ page: 1, limit: 100 });
   const { data: season, isLoading } = useSeasonDetailQuery(seasonId, {
     enabled: detailQueryEnabled,
@@ -128,23 +133,45 @@ export default function SeasonDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Tabs defaultValue="timeline" className="space-y-4">
-        <TabsList className="grid h-12 w-full grid-cols-2">
+      <Tabs
+        value={hideAddDiary ? "timeline" : seasonTab}
+        onValueChange={(v) => {
+          if (hideAddDiary) return;
+          if (v === "timeline" || v === "add") setSeasonTab(v);
+        }}
+        className="space-y-4"
+      >
+        <TabsList className={`grid h-12 w-full ${hideAddDiary ? "grid-cols-1" : "grid-cols-2"}`}>
           <TabsTrigger value="timeline" className="text-sm font-semibold">
             Nhật ký
           </TabsTrigger>
-          <TabsTrigger value="add" className="text-sm font-semibold">
-            Thêm mới
-          </TabsTrigger>
+          {!hideAddDiary && (
+            <TabsTrigger value="add" className="text-sm font-semibold">
+              Thêm mới
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="timeline">
           <DiaryTimeline seasonId={season?.id} />
         </TabsContent>
 
-        <TabsContent value="add">
-          <DiaryEntryForm initialSeasonId={season?.id ?? ""} />
-        </TabsContent>
+        {!hideAddDiary && (
+          <TabsContent value="add">
+            {season ? (
+              <DiaryEntryForm
+                farmId={season.farmId}
+                initialSeasonId={season.id}
+                seasonSummary={`${season.code} · ${season.cropName}`}
+                onDiaryCreated={() => setSeasonTab("timeline")}
+              />
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Đang tải mùa vụ để ghi nhật ký...
+              </p>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
