@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home, Search, ShoppingCart, User, Menu, X, Leaf, Bell,
-  MessageSquare, Package, QrCode, Users, Bot,
+  MessageSquare, Package, QrCode, Users, Bot, LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import { selectCartCount, useCartStore } from '@/store/useCartStore';
+import { useLogoutMutation } from '@/hooks/useAuth';
 
 const navItems = [
   { to: '/consumer', label: 'Trang chủ', icon: Home },
@@ -36,7 +37,9 @@ const sideNav = [
 
 export default function ConsumerLayout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const pathname = usePathname();
+  const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
 
   // Cart count is derived from Zustand store so the badge updates realtime
   // khi có change ở page khác (cart/product/checkout). hasHydrated đảm bảo
@@ -71,11 +74,10 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
               <Link
                 key={item.to}
                 href={item.to}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(item.to)
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(item.to)
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                }`}
+                  }`}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
@@ -111,12 +113,41 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                   <MessageSquare className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/consumer/profile" className="flex items-center gap-2 ml-2">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium">{consumerName}</span>
-              </Link>
+              <div className="relative ml-2">
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-accent transition-colors"
+                >
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">{consumerName}</span>
+                </button>
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border bg-card shadow-lg z-50">
+                    <Link
+                      href="/consumer/profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:bg-accent rounded-t-lg"
+                    >
+                      <User className="h-4 w-4" />
+                      Hồ sơ
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileOpen(false);
+                        logout();
+                      }}
+                      disabled={isLoggingOut}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/5 rounded-b-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
               {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -133,9 +164,8 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                   key={item.to}
                   href={item.to}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                    isActive(item.to) ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${isActive(item.to) ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'
+                    }`}
                 >
                   <item.icon className="h-5 w-5" />
                   {item.label}
@@ -147,9 +177,8 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                     key={item.to}
                     href={item.to}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                      isActive(item.to) ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${isActive(item.to) ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'
+                      }`}
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
@@ -165,6 +194,18 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                   <p className="text-sm text-muted-foreground">{consumerEmail}</p>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+                disabled={isLoggingOut}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/5 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60 border-t"
+              >
+                <LogOut className="h-5 w-5" />
+                {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+              </button>
               <Link
                 href="/"
                 onClick={() => setMenuOpen(false)}
@@ -187,9 +228,8 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
             <Link
               key={item.to}
               href={item.to}
-              className={`flex flex-col items-center gap-0.5 px-2 py-2 text-xs font-medium transition-colors relative ${
-                isActive(item.to) ? 'text-primary' : 'text-muted-foreground'
-              }`}
+              className={`flex flex-col items-center gap-0.5 px-2 py-2 text-xs font-medium transition-colors relative ${isActive(item.to) ? 'text-primary' : 'text-muted-foreground'
+                }`}
             >
               <item.icon className="h-5 w-5" />
               <span className="truncate max-w-15">{item.label}</span>

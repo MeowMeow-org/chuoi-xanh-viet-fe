@@ -28,17 +28,19 @@ export default function LoginForm() {
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-2">
-        <input
-          type="email"
-          placeholder="Email"
-          autoComplete="username"
-          className="w-full rounded-xl border border-[hsl(142,20%,80%)] bg-white px-4 py-3 text-sm text-[hsl(150,16%,12%)] placeholder:text-[hsl(150,6%,55%)] outline-none focus:border-[hsl(142,71%,45%)] focus:ring-2 focus:ring-[hsl(142,71%,45%)]/20"
-          {...register("email")}
-        />
-        {errors.email && (
-          <p className="text-sm text-red-700">{errors.email.message}</p>
-        )}
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <input
+            type="email"
+            placeholder="Email"
+            autoComplete="username"
+            className="w-full rounded-xl border border-[hsl(142,20%,80%)] bg-white px-4 py-3 text-sm text-[hsl(150,16%,12%)] placeholder:text-[hsl(150,6%,55%)] outline-none focus:border-[hsl(142,71%,45%)] focus:ring-2 focus:ring-[hsl(142,71%,45%)]/20"
+            {...register("email")}
+          />
+          {errors.email && (
+            <p className="text-sm text-red-700">{errors.email.message}</p>
+          )}
+        </div>
 
         <div className="space-y-2">
           <div className="relative">
