@@ -20,6 +20,18 @@ const farmFieldClass =
 const farmButtonClass =
   "cursor-pointer focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed";
 
+/** `YYYY-MM-DD` từ input type=date → UTC midnight của ngày đó (tránh lệch múi giờ). */
+function utcDayFromYmd(ymd: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d))
+    return null;
+  return Date.UTC(y, mo - 1, d);
+}
+
 type FormValues = {
   cropName: string;
   startDate: string;
@@ -107,12 +119,32 @@ export default function CreateSeasonPage() {
     const hStart = values.harvestStartDate.trim();
     const hEnd = values.harvestEndDate.trim();
 
-    if (hStart && hEnd) {
-      const a = new Date(hStart).getTime();
-      const b = new Date(hEnd).getTime();
-      if (!Number.isNaN(a) && !Number.isNaN(b) && b < a) {
+    const tSeason = utcDayFromYmd(start);
+    if (tSeason == null) {
+      toast.error("Ngày bắt đầu mùa vụ không hợp lệ.");
+      return;
+    }
+    if (hStart) {
+      const tHs = utcDayFromYmd(hStart);
+      if (tHs != null && tHs < tSeason) {
         toast.error(
-          "Ngày kết thúc thu hoạch phải sau hoặc cùng ngày bắt đầu thu hoạch.",
+          "Ngày bắt đầu thu hoạch không được trước ngày bắt đầu mùa vụ.",
+        );
+        return;
+      }
+    }
+    if (hEnd) {
+      const tHe = utcDayFromYmd(hEnd);
+      const tMinHarvest = hStart ? utcDayFromYmd(hStart) : tSeason;
+      if (
+        tHe != null &&
+        tMinHarvest != null &&
+        tHe < tMinHarvest
+      ) {
+        toast.error(
+          hStart
+            ? "Ngày kết thúc thu hoạch phải sau hoặc cùng ngày bắt đầu thu hoạch."
+            : "Ngày kết thúc thu hoạch không được trước ngày bắt đầu mùa vụ.",
         );
         return;
       }
@@ -227,7 +259,8 @@ export default function CreateSeasonPage() {
                   Thu hoạch (tuỳ chọn)
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,38%)]">
-                  Có thể bổ sung sau; ngày kết thúc nên sau hoặc trùng ngày bắt
+                  Tuỳ chọn. Thu hoạch phải từ ngày bắt đầu mùa vụ trở đi; nếu có
+                  cả hai mốc thu hoạch, ngày kết thúc không được trước ngày bắt
                   đầu thu hoạch.
                 </p>
               </div>

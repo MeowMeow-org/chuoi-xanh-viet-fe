@@ -17,5 +17,6 @@ export const config = {
     "/consumer/:path*",
     "/cooperative/:path*",
     "/admin/:path*",
+    "/trace/:path*",
   ],
 };
