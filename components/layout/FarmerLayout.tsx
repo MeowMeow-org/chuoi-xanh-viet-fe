@@ -21,6 +21,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useLogoutMutation } from "@/hooks/useAuth";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const navItems = [
   { href: "/farmer", label: "Trang chủ", icon: Home },
@@ -56,6 +57,7 @@ export default function FarmerLayout({
   const searchParams = useSearchParams();
   const unreadNotifs = 2;
   const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
+  const user = useAuthStore((state) => state.user);
   const hideShell = pathname === "/farmer/messages" && !!searchParams.get("chat");
 
   const isActive = (path: string) => {
@@ -139,7 +141,7 @@ export default function FarmerLayout({
                   <User className="h-4 w-4 text-[hsl(142,71%,35%)]" />
                 </span>
                 <span className="font-semibold whitespace-nowrap text-[hsl(150,10%,22%)]">
-                  Nguyễn Văn Minh
+                  {user?.fullName ?? "Farmer"}
                 </span>
               </Link>
             </div>
