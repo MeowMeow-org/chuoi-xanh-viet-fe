@@ -584,103 +584,106 @@ function FarmerForumPostCard({ post, currentUserId }: FarmerForumPostCardProps) 
                                         const isEditingThisComment = editingCommentId === comment.id;
 
                                         return (
-                                            <div key={comment.id} className="space-y-1 rounded-lg border bg-muted/25 p-3">
-                                                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                    <span className="font-medium text-foreground">
-                                                        {comment.author.fullName}
-                                                    </span>
-                                                    <Badge className="h-5 border border-border bg-white text-[10px] text-foreground hover:bg-white">
-                                                        {commentRoleLabel}
-                                                    </Badge>
-                                                    <span>
-                                                        {new Date(comment.createdAt).toLocaleString("vi-VN")}
-                                                    </span>
-                                                    {canDeleteComment && (
-                                                        <div className="ml-auto flex items-center gap-1">
-                                                            {!isEditingThisComment && (
+                                            <div key={comment.id} className="rounded-lg border bg-muted/25 p-3">
+                                                <div className="space-y-3">
+                                                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                                        <span className="font-medium text-foreground">
+                                                            {comment.author.fullName}
+                                                        </span>
+                                                        <Badge className="h-5 border border-border bg-white text-[10px] text-foreground hover:bg-white">
+                                                            {commentRoleLabel}
+                                                        </Badge>
+                                                        <span>
+                                                            {new Date(comment.createdAt).toLocaleString("vi-VN")}
+                                                        </span>
+                                                        {canDeleteComment && (
+                                                            <div className="ml-auto flex items-center gap-1">
+                                                                {!isEditingThisComment && (
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="h-8 px-3"
+                                                                        onClick={() =>
+                                                                            startEditingComment(comment.id, comment.content)
+                                                                        }
+                                                                        disabled={updateCommentMutation.isPending}
+                                                                    >
+                                                                        <Pencil className="h-3.5 w-3.5" />
+                                                                        Sửa
+                                                                    </Button>
+                                                                )}
+                                                                <Popconfirm
+                                                                    title="Xóa bình luận"
+                                                                    description="Bạn có chắc muốn xóa bình luận này?"
+                                                                    okText="Xóa"
+                                                                    cancelText="Hủy"
+                                                                    okButtonProps={{
+                                                                        danger: true,
+                                                                        loading: deleteCommentMutation.isPending,
+                                                                    }}
+                                                                    onConfirm={() => void handleDeleteComment(comment.id)}
+                                                                >
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="h-8 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                                                        disabled={deleteCommentMutation.isPending}
+                                                                    >
+                                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                                        Xóa
+                                                                    </Button>
+                                                                </Popconfirm>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {isEditingThisComment ? (
+                                                        <div className="flex flex-col gap-3">
+                                                            <Input
+                                                                value={editingCommentContent}
+                                                                onChange={(event) =>
+                                                                    setEditingCommentContent(event.target.value)
+                                                                }
+                                                                onKeyDown={(event) => {
+                                                                    if (event.key === "Enter" && !updateCommentMutation.isPending) {
+                                                                        void handleUpdateComment(comment.id);
+                                                                    }
+                                                                }}
+                                                                className="h-10 px-3"
+                                                            />
+                                                            <div className="flex items-center justify-end gap-2">
                                                                 <Button
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    className="h-8 px-3"
-                                                                    onClick={() =>
-                                                                        startEditingComment(comment.id, comment.content)
-                                                                    }
+                                                                    onClick={cancelEditingComment}
                                                                     disabled={updateCommentMutation.isPending}
                                                                 >
-                                                                    <Pencil className="h-3.5 w-3.5" />
-                                                                    Sửa
+                                                                    Hủy
                                                                 </Button>
-                                                            )}
-                                                            <Popconfirm
-                                                                title="Xóa bình luận"
-                                                                description="Bạn có chắc muốn xóa bình luận này?"
-                                                                okText="Xóa"
-                                                                cancelText="Hủy"
-                                                                okButtonProps={{
-                                                                    danger: true,
-                                                                    loading: deleteCommentMutation.isPending,
-                                                                }}
-                                                                onConfirm={() => void handleDeleteComment(comment.id)}
-                                                            >
                                                                 <Button
                                                                     type="button"
-                                                                    variant="outline"
                                                                     size="sm"
-                                                                    className="h-8 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                                                    disabled={deleteCommentMutation.isPending}
+                                                                    onClick={() => void handleUpdateComment(comment.id)}
+                                                                    disabled={updateCommentMutation.isPending}
                                                                 >
-                                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                                    Xóa
+                                                                    {updateCommentMutation.isPending ? (
+                                                                        <span className="flex items-center gap-1">
+                                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                                            Đang lưu
+                                                                        </span>
+                                                                    ) : (
+                                                                        "Lưu"
+                                                                    )}
                                                                 </Button>
-                                                            </Popconfirm>
+                                                            </div>
                                                         </div>
+                                                    ) : (
+                                                        <p className="text-sm whitespace-pre-line">{comment.content}</p>
                                                     )}
                                                 </div>
-                                                {isEditingThisComment ? (
-                                                    <div className="space-y-2">
-                                                        <Input
-                                                            value={editingCommentContent}
-                                                            onChange={(event) =>
-                                                                setEditingCommentContent(event.target.value)
-                                                            }
-                                                            onKeyDown={(event) => {
-                                                                if (event.key === "Enter" && !updateCommentMutation.isPending) {
-                                                                    void handleUpdateComment(comment.id);
-                                                                }
-                                                            }}
-                                                            className="h-10 px-3 my-0!"
-                                                        />
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <Button
-                                                                type="button"
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={cancelEditingComment}
-                                                                disabled={updateCommentMutation.isPending}
-                                                            >
-                                                                Hủy
-                                                            </Button>
-                                                            <Button
-                                                                type="button"
-                                                                size="sm"
-                                                                onClick={() => void handleUpdateComment(comment.id)}
-                                                                disabled={updateCommentMutation.isPending}
-                                                            >
-                                                                {updateCommentMutation.isPending ? (
-                                                                    <span className="flex items-center gap-1">
-                                                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                                                        Đang lưu
-                                                                    </span>
-                                                                ) : (
-                                                                    "Lưu"
-                                                                )}
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <p className="text-sm whitespace-pre-line">{comment.content}</p>
-                                                )}
                                             </div>
                                         );
                                     })}

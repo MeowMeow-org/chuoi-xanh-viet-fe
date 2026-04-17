@@ -38,7 +38,7 @@ export default function RegisterForm() {
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-[hsl(150,8%,40%)]">
             Loại tài khoản
@@ -51,22 +51,20 @@ export default function RegisterForm() {
             <button
               type="button"
               onClick={() => setValue("role", "farmer", { shouldValidate: true })}
-              className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${
-                selectedRole === "farmer"
+              className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${selectedRole === "farmer"
                   ? "bg-[hsl(142,71%,45%)] text-white shadow-sm hover:bg-[hsl(142,71%,40%)]"
                   : "text-[hsl(150,8%,38%)] hover:bg-white/60 hover:text-[hsl(150,16%,20%)]"
-              }`}
+                }`}
             >
               Nông hộ
             </button>
             <button
               type="button"
               onClick={() => setValue("role", "consumer", { shouldValidate: true })}
-              className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${
-                selectedRole === "consumer"
+              className={`flex-1 rounded-lg py-2.5 text-sm font-bold transition ${selectedRole === "consumer"
                   ? "bg-[hsl(142,71%,45%)] text-white shadow-sm hover:bg-[hsl(142,71%,40%)]"
                   : "text-[hsl(150,8%,38%)] hover:bg-white/60 hover:text-[hsl(150,16%,20%)]"
-              }`}
+                }`}
             >
               Người tiêu dùng
             </button>
