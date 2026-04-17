@@ -1,10 +1,12 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Camera, CheckCircle2, Clock, MapPin, Send, Wifi, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
+import { useCreateDiaryMutation } from "@/hooks/useDiary";
 import { OfflineDiaryEntry, useOfflineStorage } from "@/hooks/useOfflineStorage";
+import type { CreateDiaryPayload } from "@/services/diary";
 import { TASK_TYPES, seasons } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,13 +15,31 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
 interface DiaryEntryFormProps {
+    /** Có thì gửi `POST /diary` (trang mùa vụ thật). Không có → lưu offline như trước (dashboard mock). */
+    farmId?: string;
     initialSeasonId?: string;
+    /**
+     * Khi có giá trị: form gắn với đúng một mùa vụ — ẩn dropdown, dùng `initialSeasonId`.
+     * (Trang chi tiết mùa vụ truyền mã + cây trồng; dashboard mock không truyền → vẫn có dropdown.)
+     */
+    seasonSummary?: string;
+    /** Gọi sau khi tạo nhật ký qua API thành công (vd. chuyển tab “Nhật ký”). */
+    onDiaryCreated?: () => void;
 }
 
 const FALLBACK_GPS = { lat: 10.4114, lng: 106.9572 };
 
-export default function DiaryEntryForm({ initialSeasonId }: DiaryEntryFormProps) {
-    const [selectedSeason, setSelectedSeason] = useState(initialSeasonId || seasons[0]?.id || "");
+export default function DiaryEntryForm({
+    farmId: farmIdProp,
+    initialSeasonId = "",
+    seasonSummary,
+    onDiaryCreated,
+}: DiaryEntryFormProps) {
+    const seasonLocked = seasonSummary != null && seasonSummary.trim() !== "";
+    const [selectedSeason, setSelectedSeason] = useState(() =>
+        seasonLocked ? "" : initialSeasonId || seasons[0]?.id || "",
+    );
+    const resolvedSeasonId = seasonLocked ? initialSeasonId : selectedSeason;
     const [taskType, setTaskType] = useState("");
     const [description, setDescription] = useState("");
     const [photos, setPhotos] = useState<string[]>([]);
@@ -27,6 +47,8 @@ export default function DiaryEntryForm({ initialSeasonId }: DiaryEntryFormProps)
     const [gpsLoading, setGpsLoading] = useState(() => typeof navigator !== "undefined" && !!navigator.geolocation);
     const [submitting, setSubmitting] = useState(false);
     const { saveEntry, isOnline, unsyncedCount, syncEntries } = useOfflineStorage();
+    const createDiary = useCreateDiaryMutation();
+    const useApi = Boolean(farmIdProp?.trim());
 
     useEffect(() => {
         if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -64,18 +86,46 @@ export default function DiaryEntryForm({ initialSeasonId }: DiaryEntryFormProps)
         toast.success("Đã chụp ảnh thành công!");
     };
 
-    const handleSubmit = () => {
-        if (!taskType || !description || !selectedSeason) {
+    const handleSubmit = async () => {
+        if (!taskType || !description || !resolvedSeasonId.trim()) {
             toast.error("Vui lòng điền đầy đủ thông tin!");
             return;
         }
 
-        setSubmitting(true);
         const taskLabel = TASK_TYPES.find((type) => type.value === taskType)?.label || taskType;
+        const eventType = taskType as CreateDiaryPayload["eventType"];
 
+        if (useApi) {
+            const farmId = farmIdProp!.trim();
+            setSubmitting(true);
+            try {
+                const extra: Record<string, unknown> = {};
+                if (gps) extra.gps = { lat: gps.lat, lng: gps.lng };
+                if (photos.length > 0) extra.localPhotoPlaceholders = photos;
+
+                await createDiary.mutateAsync({
+                    seasonId: resolvedSeasonId.trim(),
+                    farmId,
+                    eventType,
+                    eventDate: new Date().toISOString(),
+                    description,
+                    extraData: Object.keys(extra).length > 0 ? extra : undefined,
+                });
+                toast.success("Đã ghi nhật ký");
+                setTaskType("");
+                setDescription("");
+                setPhotos([]);
+                onDiaryCreated?.();
+            } finally {
+                setSubmitting(false);
+            }
+            return;
+        }
+
+        setSubmitting(true);
         const entry: OfflineDiaryEntry = {
             id: `diary-${Date.now()}`,
-            seasonId: selectedSeason,
+            seasonId: resolvedSeasonId,
             taskType,
             taskTypeLabel: taskLabel,
             description,
@@ -140,21 +190,23 @@ export default function DiaryEntryForm({ initialSeasonId }: DiaryEntryFormProps)
                 )}
             </CardHeader>
             <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
-                <div className="space-y-1.5">
-                    <label className="text-sm font-semibold">Vụ mùa</label>
-                    <Select
-                        value={selectedSeason}
-                        onChange={(event) => setSelectedSeason(event.target.value)}
-                        className="h-12 text-base"
-                    >
-                        <option value="">Chọn vụ mùa</option>
-                        {seasons.filter((season) => season.status !== "Đã thu hoạch").map((season) => (
-                            <option key={season.id} value={season.id}>
-                                {season.name} - {season.crop}
-                            </option>
-                        ))}
-                    </Select>
-                </div>
+                {!seasonLocked && (
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-semibold">Vụ mùa</label>
+                        <Select
+                            value={selectedSeason}
+                            onChange={(event) => setSelectedSeason(event.target.value)}
+                            className="h-12 text-base"
+                        >
+                            <option value="">Chọn vụ mùa</option>
+                            {seasons.filter((season) => season.status !== "Đã thu hoạch").map((season) => (
+                                <option key={season.id} value={season.id}>
+                                    {season.name} - {season.crop}
+                                </option>
+                            ))}
+                        </Select>
+                    </div>
+                )}
 
                 <div className="space-y-1.5">
                     <label className="text-sm font-semibold">Loại công việc</label>
@@ -228,15 +280,30 @@ export default function DiaryEntryForm({ initialSeasonId }: DiaryEntryFormProps)
                     </div>
                 </div>
 
-                {activeSeason && (
+                {seasonLocked && seasonSummary ? (
                     <p className="text-xs text-muted-foreground">
-                        {activeSeason.location} · {activeSeason.crop} · {activeSeason.area}
+                        <span className="font-medium text-foreground">Mùa vụ:</span> {seasonSummary}
                     </p>
+                ) : (
+                    !seasonLocked &&
+                    activeSeason && (
+                        <p className="text-xs text-muted-foreground">
+                            {activeSeason.location} · {activeSeason.crop} · {activeSeason.area}
+                        </p>
+                    )
                 )}
 
                 <Button
                     onClick={handleSubmit}
-                    disabled={submitting || !taskType || !description}
+                    disabled={
+                        submitting ||
+                        createDiary.isPending ||
+                        !taskType ||
+                        !description ||
+                        !resolvedSeasonId.trim() ||
+                        (seasonLocked && !initialSeasonId) ||
+                        (useApi && !farmIdProp?.trim())
+                    }
                     className="h-14 w-full gap-2 text-lg font-bold"
                     size="lg"
                 >

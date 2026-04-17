@@ -2,13 +2,30 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Building2, Calendar, ChevronRight, Sprout } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  Calendar,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Sprout,
+  Trash2,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Pagination } from "@/components/shared/Pagination";
-import { useMyFarmsQuery } from "@/hooks/useFarm";
+import { useDeleteFarmMutation, useMyFarmsQuery } from "@/hooks/useFarm";
 import { useSeasonsQuery } from "@/hooks/useSeason";
 import type { SeasonStatus } from "@/services/season";
 
@@ -35,6 +52,8 @@ const getStatusClass = (status: SeasonStatus) => {
 
 function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
   const [page, setPage] = useState(1);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const deleteFarmMutation = useDeleteFarmMutation();
 
   const { farms, isLoading: isFarmLoading } = useMyFarmsQuery({ page: 1, limit: 100 });
   const farm = useMemo(() => farms.find((item) => item.id === farmId), [farms, farmId]);
@@ -61,38 +80,140 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
       </Link>
 
       <div className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-4">
-        <h1 className="text-xl font-bold">{farm?.name ?? "Nông trại"}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {[farm?.ward, farm?.district, farm?.province].filter(Boolean).join(", ") ||
-            farm?.address ||
-            "Đang tải thông tin nông trại..."}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Diện tích: {farm?.areaHa ?? "--"} ha
-        </p>
-        {farm != null && !farm.inCooperative && (
-          <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
-            <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
-              Nông trại chưa gắn với hợp tác xã.
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-bold">{farm?.name ?? "Nông trại"}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {[farm?.ward, farm?.district, farm?.province].filter(Boolean).join(", ") ||
+                farm?.address ||
+                "Đang tải thông tin nông trại..."}
             </p>
-            <Link
-              href="/register-farmer-applicant"
-              className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
-            >
-              <Building2 className="h-4 w-4 shrink-0" aria-hidden />
-              Tham gia hợp tác xã
-            </Link>
+            <p className="text-xs text-muted-foreground">
+              Diện tích: {farm?.areaHa ?? "--"} ha
+            </p>
+          </div>
+          {farm != null && (
+            <div className="flex shrink-0 flex-row flex-nowrap items-center justify-end gap-2">
+              <Link
+                href={`/farmer/farms/${farmId}/edit`}
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <Pencil className="h-4 w-4 shrink-0" aria-hidden />
+                Cập nhật
+              </Link>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-9 shrink-0 gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                Xóa
+              </Button>
+            </div>
+          )}
+        </div>
+        {farm != null &&
+          (farm.inCooperative ||
+            farm.cooperativeMembershipStatus === "approved") && (
+            <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
+              <div className="flex flex-col gap-1 text-sm leading-snug sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2">
+                <span className="shrink-0 font-semibold text-[hsl(142,58%,28%)]">
+                  Đã tham gia
+                </span>
+                {farm.cooperativeName ? (
+                  <span className="min-w-0 max-w-full wrap-break-word font-medium text-[hsl(150,10%,22%)]">
+                    {farm.cooperativeName}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          )}
+        {farm != null &&
+          !farm.inCooperative &&
+          farm.cooperativeMembershipStatus !== "approved" && (
+          <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
+            {farm.cooperativeMembershipStatus === "pending" ? (
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-[hsl(210,75%,38%)]">
+                  Đang chờ hợp tác xã duyệt yêu cầu
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Bạn đã gửi đơn tham gia. Khi được duyệt, nông trại sẽ gắn với
+                  hợp tác xã.
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
+                  Nông trại chưa gắn với hợp tác xã.
+                </p>
+                <Link
+                  href={`/farmer/farms/${farmId}/join-cooperative`}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
+                >
+                  <Building2 className="h-4 w-4 shrink-0" aria-hidden />
+                  Tham gia hợp tác xã
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>
 
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xóa nông trại?</DialogTitle>
+            <DialogDescription className="text-left">
+              Hành động này không thể hoàn tác. Hệ thống chỉ cho phép xóa khi nông
+              trại chưa có mùa vụ, chưa gắn hợp tác xã, chưa có nhật ký và chưa tạo
+              gian hàng. Nếu không đủ điều kiện, bạn sẽ nhận thông báo lỗi.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleteFarmMutation.isPending}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteFarmMutation.isPending}
+              onClick={() => {
+                deleteFarmMutation.mutate(farmId, {
+                  onSettled: () => setDeleteOpen(false),
+                });
+              }}
+            >
+              {deleteFarmMutation.isPending ? "Đang xóa..." : "Xóa nông trại"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Mùa vụ của nông trại</h2>
-          {pagination && (
-            <Badge className="bg-secondary text-secondary-foreground hover:bg-secondary">
-              {pagination.total} vụ
-            </Badge>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h2 className="text-lg font-bold">Mùa vụ của nông trại</h2>
+            {pagination && (
+              <Badge className="bg-secondary text-secondary-foreground hover:bg-secondary">
+                {pagination.total} vụ
+              </Badge>
+            )}
+          </div>
+          {farm != null && (
+            <Link
+              href={`/farmer/farms/${farmId}/seasons/create`}
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-[hsl(142,71%,45%)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(142,71%,40%)]"
+            >
+              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+              Tạo mùa vụ
+            </Link>
           )}
         </div>
 

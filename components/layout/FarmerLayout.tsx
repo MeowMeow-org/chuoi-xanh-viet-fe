@@ -137,8 +137,17 @@ export default function FarmerLayout({
                 href="/farmer/profile"
                 className="ml-2 flex shrink-0 items-center gap-2 text-sm"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/15">
-                  <User className="h-4 w-4 text-[hsl(142,71%,35%)]" />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[hsl(142,71%,45%)]/15">
+                  {user?.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.avatarUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4 text-[hsl(142,71%,35%)]" />
+                  )}
                 </span>
                 <span className="font-semibold whitespace-nowrap text-[hsl(150,10%,22%)]">
                   {user?.fullName ?? "Farmer"}

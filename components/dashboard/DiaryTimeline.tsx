@@ -5,6 +5,7 @@ import { Clock, Hash, MapPin } from "lucide-react";
 import { useDiariesQuery } from "@/hooks/useDiary";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDiaryRecordedAt } from "@/lib/diary-date";
 
 interface DiaryTimelineProps {
   seasonId?: string;
@@ -18,6 +19,7 @@ const eventTypeLabelMap: Record<string, string> = {
   irrigation: "Tưới nước",
     harvesting: "Thu hoạch",
     packing: "Đóng gói",
+  inspection: "Kiểm tra HTX",
   other: "Khác",
 };
 
@@ -28,9 +30,11 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
     limit: 5,
   });
 
-  const sorted = [...diaries].sort(
-    (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
-  );
+  const sorted = [...diaries].sort((a, b) => {
+    const ta = new Date(a.serverTimestamp ?? a.createdAt).getTime();
+    const tb = new Date(b.serverTimestamp ?? b.createdAt).getTime();
+    return tb - ta;
+  });
 
   return (
     <Card>
@@ -63,7 +67,6 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
 
             <div className="space-y-4">
               {sorted.map((entry, index) => {
-                const date = new Date(entry.eventDate);
                 const hashSeed = `${entry.id}-${entry.createdAt}`;
                 const displayHash = hashSeed
                   .replace(/[^a-zA-Z0-9]/g, "")
@@ -82,13 +85,11 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
                         <Badge className="border border-border bg-white font-semibold text-foreground hover:bg-white">
                           {eventTypeLabelMap[entry.eventType] ?? "Khác"}
                         </Badge>
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {date.toLocaleDateString("vi-VN")}{" "}
-                          {date.toLocaleTimeString("vi-VN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        <span className="flex items-center gap-1 text-xs leading-none text-muted-foreground">
+                          <Clock className="h-3 w-3 shrink-0" />
+                          {formatDiaryRecordedAt(
+                            entry.serverTimestamp ?? entry.createdAt,
+                          )}
                         </span>
                       </div>
 

@@ -55,14 +55,16 @@ const generateHash = (seed: string) => {
     return `0x${hex.slice(0, 16)}`;
 };
 
+/** `value` trùng `diary_event_type` API (POST /diary). */
 export const TASK_TYPES = [
-    { value: 'lam_dat', label: 'Làm đất', icon: '🌾' },
-    { value: 'gieo_trong', label: 'Gieo trồng', icon: '🌱' },
-    { value: 'bon_phan', label: 'Bón phân', icon: '🧪' },
-    { value: 'phun_thuoc', label: 'Phun thuốc', icon: '💧' },
-    { value: 'tuoi_nuoc', label: 'Tưới nước', icon: '🚿' },
-    { value: 'thu_hoach', label: 'Thu hoạch', icon: '🧺' },
-    { value: 'khac', label: 'Khác', icon: '📝' },
+    { value: "land_prep", label: "Làm đất", icon: "🌾" },
+    { value: "sowing", label: "Gieo trồng", icon: "🌱" },
+    { value: "fertilizing", label: "Bón phân", icon: "🧪" },
+    { value: "pesticide", label: "Phun thuốc", icon: "💧" },
+    { value: "irrigation", label: "Tưới nước", icon: "🚿" },
+    { value: "harvesting", label: "Thu hoạch", icon: "🧺" },
+    { value: "packing", label: "Đóng gói", icon: "📦" },
+    { value: "other", label: "Khác", icon: "📝" },
 ] as const;
 
 export const currentFarmer: Farmer = {

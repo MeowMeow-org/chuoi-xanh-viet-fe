@@ -49,6 +49,7 @@ export interface User {
   phone: string;
   role: string;
   status: string;
+  avatarUrl?: string | null;
 }
 
 export interface RegisterPayload {

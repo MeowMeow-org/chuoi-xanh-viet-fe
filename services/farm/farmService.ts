@@ -39,4 +39,19 @@ export const farmService = {
     );
     return response;
   },
+
+  updateFarm: async (
+    farmId: string,
+    payload: CreateFarmPayload,
+  ): Promise<Farm> => {
+    const response = await axiosInstance.patch<Farm, Farm>(
+      `/farm/${farmId}`,
+      toCreateFarmBody(payload),
+    );
+    return response;
+  },
+
+  deleteFarm: async (farmId: string): Promise<void> => {
+    await axiosInstance.delete(`/farm/${farmId}`);
+  },
 };
