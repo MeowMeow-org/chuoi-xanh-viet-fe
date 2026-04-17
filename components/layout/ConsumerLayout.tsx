@@ -8,7 +8,8 @@ import {
   MessageSquare, Package, QrCode, Users, Bot,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { currentConsumer } from '@/data/consumerMockData';
+import { useAuthStore } from '@/store/useAuthStore';
+import { selectCartCount, useCartStore } from '@/store/useCartStore';
 
 const navItems = [
   { to: '/consumer', label: 'Trang chủ', icon: Home },
@@ -37,10 +38,15 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const cartCount =
-    typeof window === "undefined"
-      ? 0
-      : JSON.parse(localStorage.getItem("consumer_cart") || "[]").length;
+  // Cart count is derived from Zustand store so the badge updates realtime
+  // khi có change ở page khác (cart/product/checkout). hasHydrated đảm bảo
+  // không bị hydration mismatch giữa SSR (= 0) và CSR (persisted value).
+  const hasHydrated = useCartStore((s) => s.hasHydrated);
+  const cartCountRaw = useCartStore(selectCartCount);
+  const cartCount = hasHydrated ? cartCountRaw : 0;
+  const user = useAuthStore((s) => s.user);
+  const consumerName = user?.fullName || 'Người mua';
+  const consumerEmail = user?.email || '';
 
   const isActive = (path: string) => {
     if (path === '/consumer') return pathname === '/consumer';
@@ -90,13 +96,18 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                   )}
                 </Button>
               </Link>
+              <Link href="/consumer/orders">
+                <Button variant="ghost" size="icon" className="h-9 w-9" title="Đơn hàng của tôi">
+                  <Package className="h-4 w-4" />
+                </Button>
+              </Link>
               <Link href="/consumer/notifications">
-                <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Button variant="ghost" size="icon" className="h-9 w-9" title="Thông báo">
                   <Bell className="h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/consumer/messages">
-                <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Button variant="ghost" size="icon" className="h-9 w-9" title="Tin nhắn">
                   <MessageSquare className="h-4 w-4" />
                 </Button>
               </Link>
@@ -104,7 +115,7 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                   <User className="h-4 w-4 text-primary" />
                 </div>
-                <span className="text-sm font-medium">{currentConsumer.name}</span>
+                <span className="text-sm font-medium">{consumerName}</span>
               </Link>
             </div>
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
@@ -150,8 +161,8 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                   <User className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold">{currentConsumer.name}</p>
-                  <p className="text-sm text-muted-foreground">{currentConsumer.email}</p>
+                  <p className="font-semibold">{consumerName}</p>
+                  <p className="text-sm text-muted-foreground">{consumerEmail}</p>
                 </div>
               </div>
               <Link

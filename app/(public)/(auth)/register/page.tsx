@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -30,7 +31,9 @@ export default function RegisterPage() {
         </p>
 
         <div className="mt-6">
-          <RegisterForm />
+          <Suspense fallback={<div className="text-sm text-muted-foreground">Đang tải biểu mẫu...</div>}>
+            <RegisterForm />
+          </Suspense>
         </div>
 
         <p className="mt-4 text-center text-sm text-[hsl(150,8%,34%)]">

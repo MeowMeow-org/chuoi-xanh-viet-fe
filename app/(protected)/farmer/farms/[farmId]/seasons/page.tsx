@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Building2, Calendar, ChevronRight, Sprout } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -33,14 +33,8 @@ const getStatusClass = (status: SeasonStatus) => {
   return "bg-red-100 text-red-700";
 };
 
-export default function FarmSeasonsPage() {
-  const params = useParams<{ farmId: string }>();
-  const farmId = Array.isArray(params.farmId) ? params.farmId[0] : params.farmId;
+function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
   const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    setPage(1);
-  }, [farmId]);
 
   const { farms, isLoading: isFarmLoading } = useMyFarmsQuery({ page: 1, limit: 100 });
   const farm = useMemo(() => farms.find((item) => item.id === farmId), [farms, farmId]);
@@ -188,4 +182,12 @@ export default function FarmSeasonsPage() {
       </div>
     </div>
   );
+}
+
+export default function FarmSeasonsPage() {
+  const params = useParams<{ farmId: string }>();
+  const farmId = Array.isArray(params.farmId) ? params.farmId[0] : params.farmId;
+  if (!farmId) return null;
+  // Re-mount content when farm changes to naturally reset local pagination.
+  return <FarmSeasonsPageContent key={farmId} farmId={farmId} />;
 }
