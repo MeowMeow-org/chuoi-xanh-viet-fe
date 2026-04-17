@@ -7,6 +7,7 @@ export type DiaryEventType =
   | "irrigation"
   | "harvesting"
   | "packing"
+  | "inspection"
   | "other";
 
 export interface DiaryEntry {

@@ -30,4 +30,8 @@ export const authService = {
     const response = await axiosInstance.get<User, User>("/auth/me");
     return response;
   },
+
+  patchMe: async (payload: { avatarUrl: string | null }): Promise<User> => {
+    return axiosInstance.patch<User, User>("/auth/me", payload);
+  },
 };

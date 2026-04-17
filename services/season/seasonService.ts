@@ -1,7 +1,13 @@
 import { axiosInstance } from "@/lib/axios";
 import type { PaginatedResponse } from "@/types";
 
-import { CreateSeasonPayload, GetSeasonsQuery, Season } from "./index";
+import {
+  ChangeSeasonStatusPayload,
+  CreateSeasonPayload,
+  GetSeasonsQuery,
+  Season,
+  UpdateSeasonPayload,
+} from "./index";
 
 export const seasonService = {
   getSeasons: async (
@@ -28,5 +34,21 @@ export const seasonService = {
 
   deleteSeason: async (seasonId: string): Promise<void> => {
     await axiosInstance.delete(`/season/${seasonId}`);
+  },
+
+  changeSeasonStatus: async ({
+    seasonId,
+    status,
+  }: ChangeSeasonStatusPayload): Promise<Season> => {
+    return axiosInstance.patch<Season, Season>(`/season/${seasonId}/status`, {
+      status,
+    });
+  },
+
+  updateSeason: async (
+    seasonId: string,
+    payload: UpdateSeasonPayload,
+  ): Promise<Season> => {
+    return axiosInstance.patch<Season, Season>(`/season/${seasonId}`, payload);
   },
 };

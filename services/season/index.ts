@@ -5,6 +5,19 @@ export type SeasonStatus =
   | "amended"
   | "failed";
 
+export type AnchorStatus = "pending" | "anchored" | "failed";
+
+export interface SeasonAnchor {
+  id: string;
+  checkpointNo: number;
+  dataHash: string;
+  chainNetwork: string | null;
+  txHash: string | null;
+  txUrl: string | null;
+  status: AnchorStatus;
+  anchoredAt: string | null;
+}
+
 export interface Season {
   id: string;
   farmId: string;
@@ -13,14 +26,16 @@ export interface Season {
   startDate: string;
   harvestStartDate: string | null;
   harvestEndDate: string | null;
-  estimatedYield: number | null;
-  actualYield: number | null;
+  /** API có thể trả số hoặc chuỗi (Decimal JSON). */
+  estimatedYield: number | string | null;
+  actualYield: number | string | null;
   yieldUnit: string | null;
   status: SeasonStatus;
   sealedAt: string | null;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  latestAnchor: SeasonAnchor | null;
 }
 
 export interface GetSeasonsQuery {
@@ -31,6 +46,11 @@ export interface GetSeasonsQuery {
   farmId?: string;
 }
 
+export interface ChangeSeasonStatusPayload {
+  seasonId: string;
+  status: SeasonStatus;
+}
+
 export interface CreateSeasonPayload {
   farmId: string;
   cropName: string;
@@ -39,5 +59,15 @@ export interface CreateSeasonPayload {
   harvestEndDate?: string;
   estimatedYield?: number;
   actualYield?: number;
+  yieldUnit?: string;
+}
+
+export interface UpdateSeasonPayload {
+  cropName?: string;
+  startDate?: string;
+  harvestStartDate?: string | null;
+  harvestEndDate?: string | null;
+  estimatedYield?: number | null;
+  actualYield?: number | null;
   yieldUnit?: string;
 }
