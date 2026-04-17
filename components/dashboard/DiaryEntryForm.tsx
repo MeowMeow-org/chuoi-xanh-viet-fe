@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Camera, CheckCircle2, Clock, MapPin, Send, Wifi, WifiOff } from "lucide-react";

@@ -21,7 +21,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMyFarmsQuery } from "@/hooks/useFarm";
-import { useDeleteSeasonMutation, useSeasonDetailQuery } from "@/hooks/useSeason";
+import {
+  useDeleteSeasonMutation,
+  useSeasonDetailQuery,
+} from "@/hooks/useSeason";
 import type { SeasonStatus } from "@/services/season";
 
 const getStatusLabel = (status: SeasonStatus) => {
@@ -38,9 +41,14 @@ export default function SeasonDetailPage() {
   const searchParams = useSearchParams();
   /** `?hideAddDiary=1` hoặc `true`: chỉ xem nhật ký, ẩn tab tạo mới. Mặc định: vẫn có tab ghi nhật ký. */
   const hideAddDiary =
-    searchParams.get("hideAddDiary") === "1" || searchParams.get("hideAddDiary") === "true";
-  const farmId = Array.isArray(params.farmId) ? params.farmId[0] : params.farmId;
-  const seasonId = Array.isArray(params.seasonId) ? params.seasonId[0] : params.seasonId;
+    searchParams.get("hideAddDiary") === "1" ||
+    searchParams.get("hideAddDiary") === "true";
+  const farmId = Array.isArray(params.farmId)
+    ? params.farmId[0]
+    : params.farmId;
+  const seasonId = Array.isArray(params.seasonId)
+    ? params.seasonId[0]
+    : params.seasonId;
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [detailQueryEnabled, setDetailQueryEnabled] = useState(true);
   const [seasonTab, setSeasonTab] = useState<"timeline" | "add">("timeline");
@@ -77,9 +85,11 @@ export default function SeasonDetailPage() {
       </Link>
 
       <div className="gradient-green relative rounded-2xl p-5 text-primary-foreground">
-        <p className="text-xs uppercase tracking-wide opacity-85">{farm?.name ?? "Nông trại"}</p>
+        <p className="text-xs uppercase tracking-wide opacity-85">
+          {farm?.name ?? "Nông trại"}
+        </p>
         <h1 className="mt-1 text-lg font-bold">
-          {isLoading ? "Đang tải mùa vụ..." : season?.code ?? "Mùa vụ"}
+          {isLoading ? "Đang tải mùa vụ..." : (season?.code ?? "Mùa vụ")}
         </h1>
         <p className="mt-1 text-sm opacity-90">{season?.cropName ?? "--"}</p>
 
@@ -115,8 +125,9 @@ export default function SeasonDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa mùa vụ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này không thể hoàn tác. Mùa vụ đã neo hoặc đã có nhật ký, sản phẩm, đơn vị bán
-              liên quan sẽ không thể xóa — hệ thống sẽ báo lỗi cụ thể nếu vậy.
+              Hành động này không thể hoàn tác. Mùa vụ đã neo hoặc đã có nhật
+              ký, sản phẩm, đơn vị bán liên quan sẽ không thể xóa — hệ thống sẽ
+              báo lỗi cụ thể nếu vậy.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -141,7 +152,9 @@ export default function SeasonDetailPage() {
         }}
         className="space-y-4"
       >
-        <TabsList className={`grid h-12 w-full ${hideAddDiary ? "grid-cols-1" : "grid-cols-2"}`}>
+        <TabsList
+          className={`grid h-12 w-full ${hideAddDiary ? "grid-cols-1" : "grid-cols-2"}`}
+        >
           <TabsTrigger value="timeline" className="text-sm font-semibold">
             Nhật ký
           </TabsTrigger>
