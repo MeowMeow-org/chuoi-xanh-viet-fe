@@ -30,3 +30,14 @@ export interface GetSeasonsQuery {
   status?: SeasonStatus;
   farmId?: string;
 }
+
+export interface CreateSeasonPayload {
+  farmId: string;
+  cropName: string;
+  startDate: string;
+  harvestStartDate?: string;
+  harvestEndDate?: string;
+  estimatedYield?: number;
+  actualYield?: number;
+  yieldUnit?: string;
+}
