@@ -6,9 +6,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ExternalLink,
   Loader2,
+  Package,
   Plus,
   ShoppingCart,
   Sparkles,
+  Star,
   Store,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -30,7 +32,12 @@ import {
 } from "@/hooks/useFarmerShop";
 import { uploadService } from "@/services/upload/uploadService";
 import type { PublicProduct } from "@/services/shop";
+import { FarmerShopOrdersPanel } from "@/components/farmer/farmer-shop-orders-panel";
+import { FarmerShopReviewsPanel } from "@/components/farmer/farmer-shop-reviews-panel";
+import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { cn } from "@/lib/utils";
+
+type ShopTab = "manage" | "orders" | "reviews";
 
 function formatPrice(v: number | string) {
   const n = typeof v === "string" ? Number(v) : v;
@@ -40,6 +47,19 @@ function formatPrice(v: number | string) {
 export default function FarmerMarketplacePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const shopTab: ShopTab = (() => {
+    const t = searchParams.get("tab");
+    if (t === "orders" || t === "reviews") return t;
+    return "manage";
+  })();
+
+  const setShopTab = (t: ShopTab) => {
+    if (t === "manage") {
+      router.replace("/farmer/marketplace", { scroll: false });
+    } else {
+      router.replace(`/farmer/marketplace?tab=${t}`, { scroll: false });
+    }
+  };
   const { farms, isLoading: farmsLoading } = useMyFarmsQuery({
     page: 1,
     limit: 100,
@@ -354,6 +374,63 @@ export default function FarmerMarketplacePage() {
             </CardContent>
           </Card>
 
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={shopTab === "manage" ? "default" : "outline"}
+              className={
+                shopTab === "manage"
+                  ? "bg-[hsl(142,69%,45%)] hover:bg-[hsl(142,69%,40%)]"
+                  : "border-[hsl(142,14%,88%)]"
+              }
+              onClick={() => setShopTab("manage")}
+            >
+              <Store className="h-4 w-4" />
+              Sản phẩm & đăng bán
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={shopTab === "orders" ? "default" : "outline"}
+              className={
+                shopTab === "orders"
+                  ? "bg-[hsl(142,69%,45%)] hover:bg-[hsl(142,69%,40%)]"
+                  : "border-[hsl(142,14%,88%)]"
+              }
+              onClick={() => setShopTab("orders")}
+            >
+              <Package className="h-4 w-4" />
+              Đơn hàng
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={shopTab === "reviews" ? "default" : "outline"}
+              className={
+                shopTab === "reviews"
+                  ? "bg-[hsl(142,69%,45%)] hover:bg-[hsl(142,69%,40%)]"
+                  : "border-[hsl(142,14%,88%)]"
+              }
+              onClick={() => setShopTab("reviews")}
+            >
+              <Star
+                className={cn(
+                  "h-4 w-4",
+                  shopTab === "reviews" ? "text-white" : "text-amber-500",
+                )}
+              />
+              Đánh giá
+            </Button>
+          </div>
+
+          {shopTab === "orders" && <FarmerShopOrdersPanel />}
+
+          {shopTab === "reviews" && (
+            <FarmerShopReviewsPanel shopId={myShop.id} shopName={myShop.name} />
+          )}
+
+          {shopTab === "manage" && (
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
@@ -494,6 +571,13 @@ export default function FarmerMarketplacePage() {
                       </div>
                       <div className="p-3">
                         <p className="font-semibold leading-tight">{p.name}</p>
+                        <div className="mt-1">
+                          <ProductRatingBadge
+                            averageRating={p.averageRating}
+                            reviewCount={p.reviewCount}
+                            size="xs"
+                          />
+                        </div>
                         <p className="mt-1 text-sm text-primary">
                           {formatPrice(p.price)}đ
                           <span className="text-muted-foreground">
@@ -510,6 +594,7 @@ export default function FarmerMarketplacePage() {
               </CardContent>
             </Card>
           </div>
+          )}
         </>
       )}
     </div>

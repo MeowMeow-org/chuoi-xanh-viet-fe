@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyShopsQuery } from "@/hooks/useFarmerShop";
 import { cn } from "@/lib/utils";
+import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { shopService } from "@/services/shop/shopService";
 
 function formatPrice(v: number | string) {
@@ -107,6 +108,14 @@ export default function FarmerProductDetailPage({
 
       <div>
         <h1 className="text-xl font-bold">{p.name}</h1>
+        <div className="mt-1.5">
+          <ProductRatingBadge
+            averageRating={p.averageRating}
+            reviewCount={p.reviewCount}
+            size="sm"
+            emptyLabel="Chưa có đánh giá"
+          />
+        </div>
         <p className="mt-2 text-2xl font-semibold text-primary">
           {formatPrice(p.price)}đ
           <span className="text-base font-normal text-muted-foreground">

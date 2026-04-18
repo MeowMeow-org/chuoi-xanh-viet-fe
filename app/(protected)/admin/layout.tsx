@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import AdminShell from "@/components/layout/AdminShell";
 import { AUTH_ROLE_COOKIE } from "@/services/auth/constants";
 import { normalizeAuthRole } from "@/services/auth";
 
@@ -20,5 +21,5 @@ export default async function AdminLayout({
     redirect(`/${role}`);
   }
 
-  return <>{children}</>;
+  return <AdminShell>{children}</AdminShell>;
 }

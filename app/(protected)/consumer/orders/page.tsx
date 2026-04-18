@@ -1,12 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
+import {
+  OrderStarsDisplay,
+  ProductReviewDialog,
+} from "@/components/consumer/shop-review-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Package, Loader2, XCircle } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Package, Loader2, XCircle, Star, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { orderService } from "@/services/order/orderService";
 import type { Order, OrderStatus } from "@/services/order";
@@ -49,6 +55,11 @@ const SHIPPING_FEE = 15000;
 
 export default function ConsumerOrdersPage() {
   const [activeTab, setActiveTab] = useState<OrderStatus | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{
+    order: Order;
+    item: Order["items"][number];
+  } | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -105,6 +116,7 @@ export default function ConsumerOrdersPage() {
               const status = statusMap[order.status];
               const total = Number(order.totalAmount) + SHIPPING_FEE;
               const isPending = order.status === "pending";
+              const isDelivered = order.status === "delivered";
               return (
                 <Card key={order.id}>
                   <CardContent className="p-4 space-y-3">
@@ -125,7 +137,8 @@ export default function ConsumerOrdersPage() {
                           {status.label}
                         </Badge>
                         <span className="text-[11px] text-muted-foreground">
-                          {paymentLabel[order.paymentMethod] ?? order.paymentMethod}
+                          {paymentLabel[order.paymentMethod] ??
+                            order.paymentMethod}
                           {" · "}
                           {paymentStatusLabel[order.paymentStatus] ??
                             order.paymentStatus}
@@ -136,25 +149,62 @@ export default function ConsumerOrdersPage() {
                       {order.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center gap-2 text-sm"
+                          className="flex flex-col gap-1.5 rounded-md border border-border/50 bg-muted/20 p-2 text-sm"
                         >
-                          <div className="h-10 w-10 rounded-md bg-muted/50 overflow-hidden shrink-0">
-                            {item.product.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={item.product.imageUrl}
-                                alt={item.product.name}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : null}
+                          <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded-md bg-muted/50 overflow-hidden shrink-0">
+                              {item.product.imageUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={item.product.imageUrl}
+                                  alt={item.product.name}
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                />
+                              ) : null}
+                            </div>
+                            <span className="truncate flex-1">
+                              {item.product.name} x{formatNumber(item.qty)}
+                            </span>
+                            <span className="font-medium shrink-0">
+                              {formatNumber(item.lineTotal)}đ
+                            </span>
                           </div>
-                          <span className="truncate flex-1">
-                            {item.product.name} x{formatNumber(item.qty)}
-                          </span>
-                          <span className="font-medium shrink-0">
-                            {formatNumber(item.lineTotal)}đ
-                          </span>
+                          {isDelivered && (
+                            <div className="flex flex-wrap items-center gap-2 pl-[2.75rem]">
+                              {item.myReview ? (
+                                <>
+                                  <OrderStarsDisplay
+                                    rating={item.myReview.rating}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={() => {
+                                      setReviewTarget({ order, item });
+                                      setReviewOpen(true);
+                                    }}
+                                  >
+                                    Sửa
+                                  </Button>
+                                </>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="h-7 gap-1 text-xs"
+                                  onClick={() => {
+                                    setReviewTarget({ order, item });
+                                    setReviewOpen(true);
+                                  }}
+                                >
+                                  <Star className="h-3 w-3" />
+                                  Đánh giá SP
+                                </Button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -165,26 +215,40 @@ export default function ConsumerOrdersPage() {
                     )}
                     <div className="flex justify-between pt-2 border-t">
                       <span className="text-sm text-muted-foreground">
-                        Tổng (đã gồm ship {SHIPPING_FEE.toLocaleString("vi-VN")}đ)
+                        Tổng (đã gồm ship{" "}
+                        {SHIPPING_FEE.toLocaleString("vi-VN")}đ)
                       </span>
                       <span className="font-bold text-primary">
                         {total.toLocaleString("vi-VN")}đ
                       </span>
                     </div>
-                    {isPending && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1 text-destructive hover:text-destructive"
-                        disabled={cancelMutation.isPending}
-                        onClick={() => cancelMutation.mutate(order.id)}
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <Link
+                        href={`/consumer/orders/${order.id}`}
+                        className={cn(
+                          buttonVariants({ variant: "outline", size: "sm" }),
+                          "h-8 gap-1 text-xs",
+                        )}
                       >
-                        <XCircle className="h-3.5 w-3.5" />
-                        {cancelMutation.isPending && cancelMutation.variables === order.id
-                          ? "Đang hủy..."
-                          : "Hủy đơn"}
-                      </Button>
-                    )}
+                        Chi tiết
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </Link>
+                      {isPending && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1 h-8 text-xs text-destructive hover:text-destructive"
+                          disabled={cancelMutation.isPending}
+                          onClick={() => cancelMutation.mutate(order.id)}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          {cancelMutation.isPending &&
+                          cancelMutation.variables === order.id
+                            ? "Đang hủy..."
+                            : "Hủy đơn"}
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -192,6 +256,17 @@ export default function ConsumerOrdersPage() {
           </div>
         )}
       </div>
+
+      <ProductReviewDialog
+        order={reviewTarget?.order ?? null}
+        item={reviewTarget?.item ?? null}
+        open={reviewOpen}
+        onOpenChange={(open) => {
+          setReviewOpen(open);
+          if (!open) setReviewTarget(null);
+        }}
+        queryClient={queryClient}
+      />
     </ConsumerLayout>
   );
 }

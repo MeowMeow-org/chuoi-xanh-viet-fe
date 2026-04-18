@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import { selectCartCount, useCartStore } from '@/store/useCartStore';
 import { useLogoutMutation } from '@/hooks/useAuth';
+import { useNotificationUnreadCount } from '@/hooks/useNotifications';
 
 const navItems = [
   { to: '/consumer', label: 'Trang chủ', icon: Home },
@@ -50,6 +51,7 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
   const user = useAuthStore((s) => s.user);
   const consumerName = user?.fullName || 'Người mua';
   const consumerEmail = user?.email || '';
+  const { data: unreadNotifs = 0 } = useNotificationUnreadCount();
 
   const isActive = (path: string) => {
     if (path === '/consumer') return pathname === '/consumer';
@@ -104,8 +106,13 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                 </Button>
               </Link>
               <Link href="/consumer/notifications">
-                <Button variant="ghost" size="icon" className="h-9 w-9" title="Thông báo">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9" title="Thông báo">
                   <Bell className="h-4 w-4" />
+                  {unreadNotifs > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-medium text-destructive-foreground tabular-nums">
+                      {unreadNotifs > 99 ? '99+' : unreadNotifs}
+                    </span>
+                  )}
                 </Button>
               </Link>
               <Link href="/consumer/messages">
@@ -182,6 +189,11 @@ export default function ConsumerLayout({ children }: { children: React.ReactNode
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
+                    {item.to === '/consumer/notifications' && unreadNotifs > 0 && (
+                      <span className={`ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${isActive(item.to) ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/15 text-primary'}`}>
+                        {unreadNotifs > 99 ? '99+' : unreadNotifs}
+                      </span>
+                    )}
                   </Link>
                 ))}
               </div>

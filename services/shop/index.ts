@@ -16,6 +16,9 @@ export interface ShopInfo {
   isVerified: boolean;
   certifications?: string[] | null;
   farm?: ShopFarmInfo | null;
+  /** Tổng hợp mọi đánh giá SP thuộc gian hàng (BE) */
+  averageRating?: number | null;
+  reviewCount?: number;
 }
 
 export interface PublicProduct {
@@ -45,6 +48,9 @@ export interface PublicProduct {
     shortCode: string | null;
     qrUrl: string;
   } | null;
+  /** Tổng hợp từ shop_reviews (BE) */
+  averageRating?: number | null;
+  reviewCount?: number;
 }
 
 export interface PublicProductDetail extends PublicProduct {
@@ -78,6 +84,9 @@ export interface ShopSummary {
   certifications: unknown;
   created_at: string;
   updated_at: string;
+  /** Trung bình sao trên mọi đánh giá SP của gian hàng */
+  average_rating?: number | null;
+  review_count?: number;
   farms?: {
     id: string;
     name: string;

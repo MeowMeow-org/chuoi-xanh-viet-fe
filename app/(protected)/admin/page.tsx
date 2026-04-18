@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-[hsl(120,20%,98%)] px-4 py-10 text-[hsl(150,10%,15%)] sm:px-6 lg:px-8">
+    <main className="bg-[hsl(120,20%,98%)] px-4 py-6 text-[hsl(150,10%,15%)] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
         <header className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-6 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-[hsl(142,50%,35%)]">
@@ -12,7 +12,15 @@ export default function AdminPage() {
             Admin Dashboard (placeholder)
           </h1>
           <p className="mt-3 text-sm text-[hsl(150,5%,45%)]">
-            Trang tam de test navigate theo role admin sau khi login thanh cong.
+            Trang tạm để kiểm tra điều hướng theo vai trò admin sau khi đăng nhập.
+          </p>
+          <p className="mt-3 text-sm">
+            <Link
+              href="/admin/notifications"
+              className="font-medium text-[hsl(142,71%,38%)] underline-offset-2 hover:underline"
+            >
+              Xem thông báo
+            </Link>
           </p>
         </header>
 

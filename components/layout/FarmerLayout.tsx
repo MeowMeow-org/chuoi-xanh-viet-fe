@@ -10,7 +10,6 @@ import {
   Leaf,
   LogOut,
   MessageCircle,
-  Package,
   QrCode,
   ShoppingBag,
   Sprout,
@@ -21,6 +20,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useLogoutMutation } from "@/hooks/useAuth";
+import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const navItems = [
@@ -37,11 +37,11 @@ const mobileNavItems = [
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
   { href: "/farmer", label: "Trang chủ", icon: Home },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
+  { href: "/farmer/notifications", label: "Thông báo", icon: Bell },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
 ];
 
 const secondaryNav = [
-  { href: "/farmer/orders", label: "Đơn hàng", icon: Package },
   { href: "/farmer/messages", label: "Tin nhắn", icon: MessageCircle },
   { href: "/farmer/notifications", label: "Thông báo", icon: Bell },
   { href: "/farmer/profile", label: "Hồ sơ nông trại", icon: User },
@@ -56,7 +56,7 @@ export default function FarmerLayout({
   const [profileOpen, setProfileOpen] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const unreadNotifs = 2;
+  const { data: unreadNotifs = 0 } = useNotificationUnreadCount();
   const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
   const user = useAuthStore((state) => state.user);
   const hideShell = pathname === "/farmer/messages" && !!searchParams.get("chat");
@@ -120,8 +120,8 @@ export default function FarmerLayout({
                     >
                       <Bell className="size-5" />
                       {unreadNotifs > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                          {unreadNotifs}
+                        <span className="absolute -top-0.5 -right-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-medium text-white tabular-nums">
+                          {unreadNotifs > 99 ? "99+" : unreadNotifs}
                         </span>
                       )}
                     </Button>
@@ -252,8 +252,8 @@ export default function FarmerLayout({
                         {item.label}
                         {item.href === "/farmer/notifications" &&
                           unreadNotifs > 0 && (
-                            <span className="ml-auto rounded-full bg-[hsl(142,71%,45%)] px-1.5 py-0.5 text-[10px] text-white">
-                              {unreadNotifs}
+                            <span className="ml-auto rounded-full bg-[hsl(142,71%,45%)] px-1.5 py-0.5 text-[10px] text-white tabular-nums">
+                              {unreadNotifs > 99 ? "99+" : unreadNotifs}
                             </span>
                           )}
                       </Link>
@@ -290,20 +290,29 @@ export default function FarmerLayout({
           </div>
 
           <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur md:hidden">
-            <div className="flex justify-around py-1">
+            <div className="flex justify-around overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {mobileNavItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
+                const showUnread =
+                  item.href === "/farmer/notifications" && unreadNotifs > 0;
 
                 return (
                   <Link
                     key={`${item.href}-bottom`}
                     href={item.href}
-                    className={`flex flex-col items-center gap-0.5 px-2 py-2 text-xs font-medium transition-colors ${active ? "text-[hsl(142,71%,35%)]" : "text-[hsl(150,7%,45%)]"
+                    className={`relative flex min-w-[3.25rem] shrink-0 flex-col items-center gap-0.5 px-1.5 py-2 text-[11px] font-medium transition-colors ${active ? "text-[hsl(142,71%,35%)]" : "text-[hsl(150,7%,45%)]"
                       }`}
                   >
-                    <Icon className="h-5 w-5" />
-                    <span className="max-w-15 truncate">{item.label}</span>
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="max-w-[4.5rem] truncate text-center leading-tight">
+                      {item.label}
+                    </span>
+                    {showUnread && (
+                      <span className="absolute right-0.5 top-1 flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-medium text-white tabular-nums">
+                        {unreadNotifs > 99 ? "99+" : unreadNotifs}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
