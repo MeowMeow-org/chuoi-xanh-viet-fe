@@ -35,20 +35,6 @@ import {
 import type { SaleUnit } from "@/services/sale-unit";
 import { cn } from "@/lib/utils";
 
-type LotUnit = "tấn" | "kg" | "g";
-
-const LOT_UNIT_OPTIONS: { value: LotUnit; label: string }[] = [
-  { value: "tấn", label: "tấn" },
-  { value: "kg", label: "kg" },
-  { value: "g", label: "gam" },
-];
-
-function lotQtyToKg(q: number, u: LotUnit): number {
-  if (u === "tấn") return q * 1000;
-  if (u === "kg") return q;
-  return q * 0.001;
-}
-
 function formatKg(n: number): string {
   if (!Number.isFinite(n)) return "0";
   return n >= 100 || Number.isInteger(n)
@@ -88,7 +74,7 @@ function QrWithDownload({ value, label }: { value: string; label: string }) {
         className="gap-1.5"
       >
         <Download className="h-3.5 w-3.5" />
-        Tải PNG
+        Tải QR
       </Button>
     </div>
   );
@@ -114,15 +100,33 @@ function SaleUnitCard({
     }
   };
 
-  const statusBadge = {
-    active: "bg-green-100 text-green-800",
-    sold: "bg-blue-100 text-blue-800",
-    disabled: "bg-gray-100 text-gray-600",
-  } as const;
+  const isListed = Boolean(saleUnit.product && saleUnit.product.isActive);
+
+  let badgeLabel: string;
+  let badgeClass: string;
+  if (saleUnit.status === "disabled") {
+    badgeLabel = "Ngừng";
+    badgeClass = "bg-gray-100 text-gray-600";
+  } else if (saleUnit.status === "sold") {
+    badgeLabel = "Đã bán";
+    badgeClass = "bg-blue-100 text-blue-800";
+  } else if (isListed) {
+    badgeLabel = "Đang bán";
+    badgeClass = "bg-green-100 text-green-800";
+  } else if (saleUnit.product) {
+    badgeLabel = "Tạm ẩn";
+    badgeClass = "bg-amber-100 text-amber-800";
+  } else {
+    badgeLabel = "Chưa đăng";
+    badgeClass = "bg-slate-100 text-slate-700";
+  }
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:gap-4">
-      <QrWithDownload value={saleUnit.qrUrl} label={saleUnit.shortCode ?? saleUnit.code} />
+      <QrWithDownload
+        value={saleUnit.qrUrl}
+        label={saleUnit.shortCode ?? saleUnit.code}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-start justify-between gap-2">
@@ -131,14 +135,8 @@ function SaleUnitCard({
               <span className="font-mono text-base font-bold">
                 {saleUnit.shortCode ?? "--"}
               </span>
-              <Badge
-                className={`border-0 ${statusBadge[saleUnit.status] ?? "bg-gray-100"}`}
-              >
-                {saleUnit.status === "active"
-                  ? "Đang bán"
-                  : saleUnit.status === "sold"
-                    ? "Đã bán"
-                    : "Ngừng"}
+              <Badge className={`border-0 ${badgeClass}`}>
+                {badgeLabel}
               </Badge>
             </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
@@ -176,9 +174,9 @@ function SaleUnitCard({
               <Copy className="h-3 w-3" />
               {copied ? "Đã copy!" : "Copy link"}
             </Button>
-            {saleUnit.status === "active" && (
+            {saleUnit.status === "active" && !saleUnit.product && (
               <Link
-                href={`/farmer/marketplace?saleUnitId=${encodeURIComponent(saleUnit.id)}`}
+                href={`/farmer/marketplace/add?saleUnitId=${encodeURIComponent(saleUnit.id)}`}
                 className={cn(
                   buttonVariants({ variant: "secondary", size: "sm" }),
                   "inline-flex h-7 gap-1.5 text-xs no-underline",
@@ -186,6 +184,18 @@ function SaleUnitCard({
               >
                 <Store className="h-3 w-3" />
                 Đăng bán
+              </Link>
+            )}
+            {saleUnit.status === "active" && saleUnit.product && (
+              <Link
+                href={`/farmer/marketplace`}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "inline-flex h-7 gap-1.5 text-xs no-underline",
+                )}
+              >
+                <Store className="h-3 w-3" />
+                Xem gian hàng
               </Link>
             )}
           </div>
@@ -209,24 +219,14 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
 
   const [showForm, setShowForm] = useState(false);
   const [quantity, setQuantity] = useState("");
-  const [lotUnit, setLotUnit] = useState<LotUnit>("kg");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const quantityNum = Number(quantity);
   const quantityInvalid = !Number.isFinite(quantityNum) || quantityNum <= 0;
-  const qtyKg =
-    quantityInvalid ? 0 : lotQtyToKg(quantityNum, lotUnit);
-  const exceedsRemaining =
-    quantityInvalid ? false : qtyKg > remainingKg + 1e-6;
+  const qtyKg = quantityInvalid ? 0 : quantityNum;
+  const exceedsRemaining = quantityInvalid ? false : qtyKg > remainingKg + 1e-6;
 
-  const maxInCurrentUnit =
-    remainingKg > 0
-      ? lotUnit === "tấn"
-        ? remainingKg / 1000
-        : lotUnit === "kg"
-          ? remainingKg
-          : remainingKg / 0.001
-      : 0;
+  const maxInCurrentUnit = remainingKg > 0 ? remainingKg : 0;
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -240,15 +240,22 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
       );
       return;
     }
+    const kgQuantity = Number(quantityNum.toFixed(3));
+    if (!Number.isFinite(kgQuantity) || kgQuantity <= 0) {
+      toast.error("Khối lượng không hợp lệ");
+      return;
+    }
     createMutation.mutate(
-      { seasonId, quantity: quantityNum, unit: lotUnit },
+      { seasonId, quantity: kgQuantity, unit: "kg" },
       {
         onSuccess: () => {
           toast.success("Đã tạo lô bán + QR");
           setQuantity("");
           setShowForm(false);
         },
-        onError: (err: Error & { response?: { data?: { message?: string } } }) => {
+        onError: (
+          err: Error & { response?: { data?: { message?: string } } },
+        ) => {
           toast.error(err.response?.data?.message ?? "Không tạo được lô bán");
         },
       },
@@ -281,13 +288,7 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
         <Button
           type="button"
           size="sm"
-          onClick={() =>
-            setShowForm((v) => {
-              const next = !v;
-              if (next) setLotUnit("kg");
-              return next;
-            })
-          }
+          onClick={() => setShowForm((v) => !v)}
           className="gap-1.5"
           disabled={!isLoading && remainingKg <= 0}
         >
@@ -300,7 +301,7 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
         <div className="space-y-1.5">
           <div className="grid grid-cols-3 gap-2 rounded-xl border bg-muted/30 p-3 text-center text-xs">
             <div>
-              <p className="text-muted-foreground">Sản lượng thu hoạch</p>
+              <p className="text-muted-foreground">Sản lượng</p>
               <p className="mt-0.5 text-base font-semibold">
                 {totals.actualYield} {seasonUnit}
               </p>
@@ -323,8 +324,8 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
             </div>
           </div>
           <p className="text-center text-[11px] text-muted-foreground">
-            Mỗi lô chọn tấn / kg / gam; hệ thống quy đổi về kg (
-            {formatKg(actualYieldKg)} kg = tổng mùa) để không vượt sản lượng.
+            Mỗi lô ghi khối lượng theo kg (tổng mùa {formatKg(actualYieldKg)}{" "}
+            kg) để không vượt sản lượng.
           </p>
         </div>
       )}
@@ -337,58 +338,28 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="su-quantity">
-                Khối lượng lô *{" "}
+                Khối lượng lô (kg) *{" "}
                 <span className="text-xs text-muted-foreground">
-                  (tối đa ~{formatKg(maxInCurrentUnit)}{" "}
-                  {LOT_UNIT_OPTIONS.find((o) => o.value === lotUnit)?.label})
+                  (tối đa ~{formatKg(maxInCurrentUnit)} kg)
                 </span>
               </Label>
               <Input
                 id="su-quantity"
                 type="number"
-                step={lotUnit === "g" ? 1 : "0.01"}
-                min={lotUnit === "g" ? 1 : 0.01}
+                step="0.01"
+                min={0.01}
                 max={maxInCurrentUnit > 0 ? maxInCurrentUnit : undefined}
                 required
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                placeholder={
-                  lotUnit === "tấn"
-                    ? "Ví dụ: 0.05"
-                    : lotUnit === "g"
-                      ? "Ví dụ: 500"
-                      : "Ví dụ: 50"
-                }
+                placeholder="Ví dụ: 50"
                 className={exceedsRemaining ? "border-red-400" : undefined}
               />
               {exceedsRemaining && (
                 <p className="text-xs text-red-600">
-                  Vượt quá còn lại ({formatKg(remainingKg)} kg quy đổi)
+                  Vượt quá còn lại ({formatKg(remainingKg)} kg)
                 </p>
               )}
-            </div>
-            <div className="space-y-2">
-              <Label>Đơn vị lô</Label>
-              <div className="flex flex-wrap gap-2">
-                {LOT_UNIT_OPTIONS.map((opt) => {
-                  const selected = lotUnit === opt.value;
-                  return (
-                    <Button
-                      key={opt.value}
-                      type="button"
-                      variant={selected ? "default" : "outline"}
-                      size="sm"
-                      className="min-w-13 rounded-full"
-                      onClick={() => setLotUnit(opt.value)}
-                    >
-                      {opt.label}
-                    </Button>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Chỉ ba đơn vị này; so sánh với sản lượng mùa qua quy đổi kg.
-              </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -399,7 +370,9 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
               }
               className="gap-1.5"
             >
-              {createMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {createMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               Tạo lô + sinh QR
             </Button>
             <Button
@@ -420,12 +393,17 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
       ) : list.length === 0 ? (
         <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
           <Package className="mx-auto mb-2 h-8 w-8 opacity-40" />
-          Chưa có lô nào. Tạo lô đầu tiên để có QR truy xuất gắn lên bao bì sản phẩm.
+          Chưa có lô nào. Tạo lô đầu tiên để có QR truy xuất gắn lên bao bì sản
+          phẩm.
         </div>
       ) : (
         <div className="space-y-3">
           {list.map((unit) => (
-            <SaleUnitCard key={unit.id} saleUnit={unit} onDelete={setDeleteTarget} />
+            <SaleUnitCard
+              key={unit.id}
+              saleUnit={unit}
+              onDelete={setDeleteTarget}
+            />
           ))}
         </div>
       )}
@@ -439,7 +417,8 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
             <AlertDialogTitle>Xoá / ngừng lô bán?</AlertDialogTitle>
             <AlertDialogDescription>
               Nếu lô đã có người quét QR, hệ thống sẽ chỉ chuyển sang trạng thái
-              "Ngừng" để giữ lịch sử truy xuất. Nếu chưa có ai quét, lô sẽ bị xoá hẳn.
+              "Ngừng" để giữ lịch sử truy xuất. Nếu chưa có ai quét, lô sẽ bị
+              xoá hẳn.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

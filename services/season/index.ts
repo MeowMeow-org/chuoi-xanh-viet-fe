@@ -57,7 +57,7 @@ export interface CreateSeasonPayload {
   startDate: string;
   harvestStartDate?: string;
   harvestEndDate?: string;
-  estimatedYield?: number;
+  estimatedYield: number;
   actualYield?: number;
   yieldUnit?: string;
 }

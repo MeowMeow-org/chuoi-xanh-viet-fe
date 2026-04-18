@@ -10,6 +10,16 @@ export type DiaryEventType =
   | "inspection"
   | "other";
 
+export interface DiaryAttachment {
+  id: string;
+  diaryEntryId: string;
+  fileUrl: string;
+  mimeType: string | null;
+  sortOrder: number;
+  meta: unknown;
+  createdAt: string;
+}
+
 export interface DiaryEntry {
   id: string;
   seasonId: string;
@@ -21,6 +31,15 @@ export interface DiaryEntry {
   description: string | null;
   extraData: unknown;
   createdAt: string;
+  /** Có từ GET /diary và GET /diary/:id (BE include); create trả về có thể chưa có. */
+  attachments?: DiaryAttachment[];
+}
+
+export interface AddDiaryAttachmentPayload {
+  fileUrl: string;
+  mimeType?: string | null;
+  sortOrder?: number;
+  meta?: Record<string, unknown> | null;
 }
 
 export interface CreateDiaryPayload {

@@ -14,7 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import DiaryEntryForm from "@/components/dashboard/DiaryEntryForm";
@@ -55,8 +55,8 @@ function parseSeasonActualYield(value: unknown): number | null {
 
 const STATUS_LABEL: Record<SeasonStatus, string> = {
   draft: "Nháp",
-  ready_to_anchor: "Sẵn sàng neo",
-  anchored: "Đã neo",
+  ready_to_anchor: "Hoàn thành thu hoạch",
+  anchored: "Đã công khai",
   amended: "Đã chỉnh sửa",
   failed: "Thất bại",
 };
@@ -75,9 +75,9 @@ const STATUS_BADGE_CLASS: Record<SeasonStatus, string> = {
 const NEXT_STATUS: Partial<
   Record<SeasonStatus, { to: SeasonStatus; label: string }>
 > = {
-  draft: { to: "ready_to_anchor", label: "Sẵn sàng neo" },
-  ready_to_anchor: { to: "anchored", label: "Neo lên chain" },
-  amended: { to: "ready_to_anchor", label: "Sẵn sàng neo lại" },
+  draft: { to: "ready_to_anchor", label: "Hoàn thành thu hoạch" },
+  ready_to_anchor: { to: "anchored", label: "Đăng nhật ký" },
+  amended: { to: "ready_to_anchor", label: "Hoàn thành thu hoạch lại" },
   failed: { to: "draft", label: "Khôi phục nháp" },
 };
 
@@ -118,7 +118,6 @@ export default function SeasonDetailPage() {
 
   const actualYield = parseSeasonActualYield(season?.actualYield);
   const yieldUnitRaw = season?.yieldUnit?.trim() ?? "";
-  const yieldUnit = yieldUnitRaw.length > 0 ? yieldUnitRaw : "kg";
   const yieldMissing =
     actualYield == null || actualYield <= 0 || yieldUnitRaw.length === 0;
   const canEditYield = currentStatus === "draft" || currentStatus === "amended";
@@ -170,18 +169,9 @@ export default function SeasonDetailPage() {
     changeStatus.mutate(
       { seasonId, status: "anchored" },
       {
-        onSuccess: (updated) => {
+        onSuccess: () => {
           setAnchorOpen(false);
           toast.success("Đã neo thành công lên Sepolia!");
-          if (updated.latestAnchor?.txUrl) {
-            toast.info("Xem giao dịch trên Etherscan", {
-              action: {
-                label: "Mở",
-                onClick: () =>
-                  window.open(updated.latestAnchor!.txUrl!, "_blank"),
-              },
-            });
-          }
         },
       },
     );
@@ -199,35 +189,41 @@ export default function SeasonDetailPage() {
 
       {/* Season header card */}
       <div className="gradient-green relative rounded-2xl p-5 text-primary-foreground">
-        <p className="text-xs uppercase tracking-wide opacity-85">
-          {farm?.name ?? "Nông trại"}
-        </p>
-        <h1 className="mt-1 text-lg font-bold">
-          {isLoading ? "Đang tải mùa vụ..." : (season?.code ?? "Mùa vụ")}
-        </h1>
-        <p className="mt-1 text-sm opacity-90">{season?.cropName ?? "--"}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs uppercase tracking-wide opacity-85">
+              {farm?.name ?? "Nông trại"}
+            </p>
+            <h1 className="mt-1 text-lg font-bold">
+              #{isLoading ? "Đang tải mùa vụ..." : (season?.code ?? "Mùa vụ")}
+            </h1>
+            <p className="mt-1 text-sm opacity-90">
+              <span className="opacity-80">Cây trồng chính: </span>
+              {season?.cropName ?? "—"}
+            </p>
 
-        <div className="mt-3 flex flex-wrap gap-3 text-xs opacity-80">
-          <span className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            {season?.startDate
-              ? new Date(season.startDate).toLocaleDateString("vi-VN")
-              : "--"}
-          </span>
-        </div>
-
-        {/* Status + action buttons row */}
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap gap-3 text-xs opacity-80">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {season?.startDate
+                  ? new Date(season.startDate).toLocaleDateString("vi-VN")
+                  : "--"}
+              </span>
+            </div>
+          </div>
           <Badge
-            className={
+            className={`shrink-0 ${
               currentStatus
                 ? STATUS_BADGE_CLASS[currentStatus]
                 : "border-0 bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/20"
-            }
+            }`}
           >
             {currentStatus ? STATUS_LABEL[currentStatus] : "Đang cập nhật"}
           </Badge>
+        </div>
 
+        {/* Action buttons */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           {/* Next-step button */}
           {nextStep && !isLoading && (
             <Button
@@ -256,12 +252,13 @@ export default function SeasonDetailPage() {
             type="button"
             variant="outline"
             size="sm"
-            className="ml-auto border-primary-foreground/40 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
+            className="ml-auto gap-1.5 border-primary-foreground/40 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
             disabled={!seasonId || isLoading}
             onClick={() => setDeleteOpen(true)}
+            aria-label="Xóa mùa vụ"
           >
             <Trash2 className="h-4 w-4" />
-            Xóa mùa vụ
+            Xóa
           </Button>
         </div>
 
@@ -308,7 +305,7 @@ export default function SeasonDetailPage() {
         <YieldCard
           seasonId={seasonId!}
           actualYield={actualYield}
-          yieldUnit={yieldUnit}
+          seasonYieldUnit={yieldUnitRaw}
           yieldMissing={yieldMissing}
           editable={canEditYield}
           showWarning={needsYieldBeforeAnchor}
@@ -364,9 +361,8 @@ export default function SeasonDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Neo mùa vụ lên blockchain?</AlertDialogTitle>
             <AlertDialogDescription>
-              Toàn bộ dữ liệu nhật ký sẽ được hash và ghi lên Sepolia testnet.
-              Sau khi neo, mùa vụ không thể chỉnh sửa thêm (trừ khi chuyển sang
-              trạng thái "Đã chỉnh sửa"). Quá trình có thể mất vài giây.
+              Toàn bộ dữ liệu nhật ký đã được lưu và công khai minh bạch. Quá
+              trình mất vài giây.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -382,7 +378,7 @@ export default function SeasonDetailPage() {
                   Đang neo...
                 </>
               ) : (
-                "Neo lên chain"
+                "Đăng nhật ký"
               )}
             </Button>
           </AlertDialogFooter>
@@ -462,8 +458,8 @@ export default function SeasonDetailPage() {
 }
 
 const MASS_UNIT_OPTIONS = [
-  { value: "kg", label: "kg" },
   { value: "tấn", label: "tấn" },
+  { value: "kg", label: "kg" },
   { value: "gam", label: "gam" },
 ] as const;
 
@@ -471,10 +467,16 @@ function normalizeMassUnit(s: string): string {
   return s.trim().toLowerCase();
 }
 
+function formatYieldUnitLabel(u: string): string {
+  const t = u.trim().toLowerCase();
+  if (t === "g") return "gam";
+  return u.trim();
+}
+
 function YieldCard({
   seasonId: _seasonId,
   actualYield,
-  yieldUnit,
+  seasonYieldUnit,
   yieldMissing,
   editable,
   showWarning,
@@ -483,18 +485,28 @@ function YieldCard({
 }: {
   seasonId: string;
   actualYield: number | null;
-  yieldUnit: string;
+  /** Đơn vị đã lưu trên mùa vụ (tạo vụ / chỉnh sửa). Có giá trị → khóa, không đổi khi nhập actual. */
+  seasonYieldUnit: string;
   yieldMissing: boolean;
   editable: boolean;
   showWarning: boolean;
   isSaving: boolean;
   onSave: (value: number, unit: string) => void;
 }) {
+  const unitInDb = seasonYieldUnit.trim();
+  const unitLocked = unitInDb.length > 0;
+
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(
     actualYield != null ? String(actualYield) : "",
   );
-  const [unit, setUnit] = useState(yieldUnit);
+  const [unit, setUnit] = useState(() => unitInDb || "kg");
+
+  useEffect(() => {
+    if (!editing) {
+      setUnit(unitInDb || "kg");
+    }
+  }, [unitInDb, editing]);
 
   const handleSave = () => {
     const n = Number(value);
@@ -502,7 +514,7 @@ function YieldCard({
       toast.error("Sản lượng phải > 0");
       return;
     }
-    const u = unit.trim();
+    const u = unitLocked ? unitInDb : unit.trim();
     if (u.length === 0) {
       toast.error("Chọn đơn vị sản lượng");
       return;
@@ -510,6 +522,10 @@ function YieldCard({
     onSave(n, u);
     setEditing(false);
   };
+
+  const displayUnit = unitLocked
+    ? formatYieldUnitLabel(unitInDb)
+    : formatYieldUnitLabel(unit);
 
   return (
     <div
@@ -542,7 +558,7 @@ function YieldCard({
               <p className="text-lg font-bold">
                 {actualYield != null ? actualYield : "—"}{" "}
                 <span className="text-sm font-normal text-muted-foreground">
-                  {yieldUnit}
+                  {unitLocked || actualYield != null ? displayUnit : "—"}
                 </span>
               </p>
               {yieldMissing && (
@@ -557,7 +573,7 @@ function YieldCard({
               size="sm"
               onClick={() => {
                 setValue(actualYield != null ? String(actualYield) : "");
-                setUnit(yieldUnit);
+                setUnit(unitInDb || "kg");
                 setEditing(true);
               }}
             >
@@ -583,24 +599,34 @@ function YieldCard({
           </div>
           <div className="space-y-2">
             <Label>Đơn vị</Label>
-            <div className="flex flex-wrap gap-2">
-              {MASS_UNIT_OPTIONS.map((opt) => {
-                const selected =
-                  normalizeMassUnit(unit) === normalizeMassUnit(opt.value);
-                return (
-                  <Button
-                    key={opt.value}
-                    type="button"
-                    variant={selected ? "default" : "outline"}
-                    size="sm"
-                    className="min-w-13 rounded-full"
-                    onClick={() => setUnit(opt.value)}
-                  >
-                    {opt.label}
-                  </Button>
-                );
-              })}
-            </div>
+            {unitLocked ? (
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {formatYieldUnitLabel(unitInDb)}
+                </span>
+                {" — "}
+                Theo đơn vị đã chọn khi tạo mùa vụ (chỉ sửa được số lượng).
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {MASS_UNIT_OPTIONS.map((opt) => {
+                  const selected =
+                    normalizeMassUnit(unit) === normalizeMassUnit(opt.value);
+                  return (
+                    <Button
+                      key={opt.value}
+                      type="button"
+                      variant={selected ? "default" : "outline"}
+                      size="sm"
+                      className="min-w-13 rounded-full"
+                      onClick={() => setUnit(opt.value)}
+                    >
+                      {opt.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -630,8 +656,8 @@ function YieldCard({
 
       {showWarning && !editing && (
         <p className="mt-3 text-xs text-amber-700">
-          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái "Sẵn
-          sàng neo" hoặc neo lên blockchain.
+          Bạn cần nhập sản lượng thực tế trước khi hoàn thành thu hoạch hoặc neo
+          lên blockchain.
         </p>
       )}
 

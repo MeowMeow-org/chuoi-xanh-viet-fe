@@ -1,18 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Camera, CheckCircle2, Clock, MapPin, Send, Wifi, WifiOff } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+    Camera,
+    Clock,
+    ImagePlus,
+    Loader2,
+    MapPin,
+    Send,
+    Wifi,
+    WifiOff,
+    X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useCreateDiaryMutation } from "@/hooks/useDiary";
 import { OfflineDiaryEntry, useOfflineStorage } from "@/hooks/useOfflineStorage";
 import type { CreateDiaryPayload } from "@/services/diary";
+import { diaryService } from "@/services/diary/diaryService";
+import { uploadService } from "@/services/upload/uploadService";
 import { TASK_TYPES, seasons } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+
+const MAX_PHOTOS = 3;
+const MAX_PHOTO_SIZE = 12 * 1024 * 1024;
 
 interface DiaryEntryFormProps {
     /** Có thì gửi `POST /diary` (trang mùa vụ thật). Không có → lưu offline như trước (dashboard mock). */
@@ -42,13 +57,26 @@ export default function DiaryEntryForm({
     const resolvedSeasonId = seasonLocked ? initialSeasonId : selectedSeason;
     const [taskType, setTaskType] = useState("");
     const [description, setDescription] = useState("");
-    const [photos, setPhotos] = useState<string[]>([]);
+    const [photoFiles, setPhotoFiles] = useState<File[]>([]);
     const [gps, setGps] = useState<{ lat: number; lng: number } | null>(FALLBACK_GPS);
     const [gpsLoading, setGpsLoading] = useState(() => typeof navigator !== "undefined" && !!navigator.geolocation);
     const [submitting, setSubmitting] = useState(false);
     const { saveEntry, isOnline, unsyncedCount, syncEntries } = useOfflineStorage();
     const createDiary = useCreateDiaryMutation();
     const useApi = Boolean(farmIdProp?.trim());
+    const cameraInputRef = useRef<HTMLInputElement | null>(null);
+    const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
+    const photoPreviews = useMemo(
+        () => photoFiles.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
+        [photoFiles],
+    );
+
+    useEffect(() => {
+        return () => {
+            photoPreviews.forEach((p) => URL.revokeObjectURL(p.url));
+        };
+    }, [photoPreviews]);
 
     useEffect(() => {
         if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -80,10 +108,35 @@ export default function DiaryEntryForm({
         }
     }, [isOnline, syncEntries, unsyncedCount]);
 
-    const handlePhotoCapture = () => {
-        const mockPhoto = `photo_${Date.now()}.jpg`;
-        setPhotos([...photos, mockPhoto]);
-        toast.success("Đã chụp ảnh thành công!");
+    const addPhotos = (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+        const incoming = Array.from(files);
+        const remaining = MAX_PHOTOS - photoFiles.length;
+        if (remaining <= 0) {
+            toast.error(`Tối đa ${MAX_PHOTOS} ảnh / nhật ký.`);
+            return;
+        }
+        const valid: File[] = [];
+        for (const f of incoming.slice(0, remaining)) {
+            if (!f.type.startsWith("image/")) {
+                toast.error(`Tệp "${f.name}" không phải ảnh.`);
+                continue;
+            }
+            if (f.size > MAX_PHOTO_SIZE) {
+                toast.error(`Ảnh "${f.name}" vượt 12MB.`);
+                continue;
+            }
+            valid.push(f);
+        }
+        if (valid.length === 0) return;
+        setPhotoFiles((prev) => [...prev, ...valid]);
+        if (incoming.length > remaining) {
+            toast.warning(`Chỉ thêm được ${remaining} ảnh (giới hạn ${MAX_PHOTOS}).`);
+        }
+    };
+
+    const removePhotoAt = (index: number) => {
+        setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async () => {
@@ -101,9 +154,8 @@ export default function DiaryEntryForm({
             try {
                 const extra: Record<string, unknown> = {};
                 if (gps) extra.gps = { lat: gps.lat, lng: gps.lng };
-                if (photos.length > 0) extra.localPhotoPlaceholders = photos;
 
-                await createDiary.mutateAsync({
+                const diary = await createDiary.mutateAsync({
                     seasonId: resolvedSeasonId.trim(),
                     farmId,
                     eventType,
@@ -111,10 +163,41 @@ export default function DiaryEntryForm({
                     description,
                     extraData: Object.keys(extra).length > 0 ? extra : undefined,
                 });
+
+                if (photoFiles.length > 0) {
+                    try {
+                        const { items } = await uploadService.uploadImages(photoFiles);
+                        for (let i = 0; i < items.length; i++) {
+                            const item = items[i];
+                            await diaryService.addAttachment(diary.id, {
+                                fileUrl: item.url,
+                                mimeType: photoFiles[i]?.type || null,
+                                sortOrder: i,
+                                meta: {
+                                    imageId: item.id,
+                                    thumb: item.thumb || null,
+                                    size: item.size,
+                                    aspectRatio: item.aspect_ratio,
+                                    ...(gps ? { gps: { lat: gps.lat, lng: gps.lng } } : {}),
+                                },
+                            });
+                        }
+                    } catch (err) {
+                        // Rollback: xoá diary vừa tạo để tránh nhật ký không ảnh
+                        await diaryService.deleteDiary(diary.id).catch(() => {});
+                        const msg =
+                            err instanceof Error && err.message
+                                ? err.message
+                                : "Không tải được ảnh. Nhật ký đã bị huỷ, vui lòng thử lại.";
+                        toast.error(msg);
+                        return;
+                    }
+                }
+
                 toast.success("Đã ghi nhật ký");
                 setTaskType("");
                 setDescription("");
-                setPhotos([]);
+                setPhotoFiles([]);
                 onDiaryCreated?.();
             } finally {
                 setSubmitting(false);
@@ -129,7 +212,7 @@ export default function DiaryEntryForm({
             taskType,
             taskTypeLabel: taskLabel,
             description,
-            photos,
+            photos: photoFiles.map((f) => f.name),
             gpsLat: gps?.lat || 0,
             gpsLng: gps?.lng || 0,
             timestamp: new Date().toISOString(),
@@ -153,7 +236,7 @@ export default function DiaryEntryForm({
 
             setTaskType("");
             setDescription("");
-            setPhotos([]);
+            setPhotoFiles([]);
         }, 800);
     };
 
@@ -239,26 +322,83 @@ export default function DiaryEntryForm({
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-sm font-semibold">Ảnh thực địa</label>
+                    <label className="text-sm font-semibold">
+                        Ảnh thực địa{" "}
+                        <span className="font-normal text-muted-foreground">
+                            (tối đa {MAX_PHOTOS})
+                        </span>
+                    </label>
+                    <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => {
+                            addPhotos(e.target.files);
+                            e.target.value = "";
+                        }}
+                    />
+                    <input
+                        ref={galleryInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                            addPhotos(e.target.files);
+                            e.target.value = "";
+                        }}
+                    />
                     <div className="flex flex-wrap gap-2">
                         <Button
                             type="button"
                             variant="outline"
                             className="flex h-20 w-20 flex-col gap-1 border-2 border-dashed"
-                            onClick={handlePhotoCapture}
+                            onClick={() => cameraInputRef.current?.click()}
+                            disabled={photoFiles.length >= MAX_PHOTOS || submitting}
                         >
                             <Camera className="h-6 w-6 text-muted-foreground" />
                             <span className="text-xs text-muted-foreground">Chụp</span>
                         </Button>
-                        {photos.map((photo, index) => (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex h-20 w-20 flex-col gap-1 border-2 border-dashed"
+                            onClick={() => galleryInputRef.current?.click()}
+                            disabled={photoFiles.length >= MAX_PHOTOS || submitting}
+                        >
+                            <ImagePlus className="h-6 w-6 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">Thư viện</span>
+                        </Button>
+                        {photoPreviews.map((preview, index) => (
                             <div
-                                key={`${photo}-${index}`}
-                                className="flex h-20 w-20 items-center justify-center rounded-lg border bg-primary/10"
+                                key={preview.url}
+                                className="group relative h-20 w-20 overflow-hidden rounded-lg border bg-muted"
                             >
-                                <CheckCircle2 className="h-6 w-6 text-primary" />
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={preview.url}
+                                    alt={`Ảnh ${index + 1}`}
+                                    className="h-full w-full object-cover"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removePhotoAt(index)}
+                                    disabled={submitting}
+                                    aria-label="Xoá ảnh"
+                                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white shadow transition hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
                             </div>
                         ))}
                     </div>
+                    {useApi && photoFiles.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                            Ảnh sẽ được tải lên và đính kèm vào nhật ký sau khi lưu.
+                        </p>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 rounded-xl bg-muted/50 p-3 sm:grid-cols-2">
@@ -308,7 +448,10 @@ export default function DiaryEntryForm({
                     size="lg"
                 >
                     {submitting ? (
-                        <>Đang ghi nhật ký...</>
+                        <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            Đang ghi nhật ký...
+                        </>
                     ) : (
                         <>
                             <Send className="h-5 w-5" />
