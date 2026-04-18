@@ -113,18 +113,44 @@ export default function CooperativeLayout({
                 </Button>
               </Link>
             </div>
-            <div className="hidden items-center gap-1 md:flex">
-              <Link
-                href="/cooperative/profile"
-                className="ml-2 flex shrink-0 items-center gap-2 text-sm"
+            <div className="group relative ml-2 hidden shrink-0 md:block">
+              <div
+                className="flex cursor-default select-none items-center gap-2 rounded-lg px-2 py-1.5 text-sm outline-none transition-colors hover:bg-[hsl(120,10%,94%)] focus-visible:ring-2 focus-visible:ring-[hsl(142,71%,45%)] focus-visible:ring-offset-2"
+                tabIndex={0}
+                aria-haspopup="menu"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/15">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/15">
                   <User className="h-4 w-4 text-[hsl(142,71%,35%)]" />
                 </span>
-                <span className="whitespace-nowrap font-semibold text-[hsl(150,10%,22%)]">
+                <span className="max-w-[10rem] truncate font-semibold text-[hsl(150,10%,22%)]">
                   {displayName}
                 </span>
-              </Link>
+              </div>
+              <div
+                className="pointer-events-none invisible absolute right-0 top-full z-[60] pt-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
+                role="menu"
+              >
+                <div className="w-52 rounded-lg border border-[hsl(142,14%,88%)] bg-white py-1 shadow-lg">
+                  <Link
+                    href="/cooperative/profile"
+                    role="menuitem"
+                    className="flex items-center gap-2 px-3 py-2.5 text-sm text-[hsl(150,10%,22%)] hover:bg-[hsl(120,10%,96%)]"
+                  >
+                    <User className="h-4 w-4 shrink-0" />
+                    Hồ sơ tài khoản
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => logout()}
+                    disabled={isLoggingOut}
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <LogOut className="h-4 w-4 shrink-0" />
+                    {isLoggingOut ? "Đang đăng xuất…" : "Đăng xuất"}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -249,9 +275,7 @@ export default function CooperativeLayout({
                 key={`${item.href}-bottom`}
                 href={item.href}
                 className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-center transition-colors ${
-                  active
-                    ? "text-[hsl(142,71%,35%)]"
-                    : "text-[hsl(150,7%,45%)]"
+                  active ? "text-[hsl(142,71%,35%)]" : "text-[hsl(150,7%,45%)]"
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />

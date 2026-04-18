@@ -14,10 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  useMyShopsQuery,
-  useShopProductsQuery,
-} from "@/hooks/useFarmerShop";
+import { useMyShopsQuery, useShopProductsQuery } from "@/hooks/useFarmerShop";
 import type { PublicProduct } from "@/services/shop";
 import { cn } from "@/lib/utils";
 
@@ -83,71 +80,78 @@ export default function FarmerShopDetailPage({
       {!loading && shop && (
         <>
           <Card className="border-primary/25">
-            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted">
-                  {shop.avatar_url ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={shop.avatar_url}
-                      alt={shop.farms?.name ?? shop.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <Store className="h-7 w-7 text-muted-foreground" />
-                  )}
+            <CardContent className="flex flex-col gap-4 p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted">
+                    {shop.avatar_url ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={shop.avatar_url}
+                        alt={shop.farms?.name ?? shop.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <Store className="h-7 w-7 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="truncate text-xl font-bold">
+                      {shop.farms?.name ?? shop.name}
+                    </h1>
+                    <p className="truncate text-xs text-muted-foreground">
+                      Tên gian hàng: {shop.name}
+                    </p>
+                    {shop.farms?.cooperative_members?.[0]?.cooperative_user
+                      ?.full_name && (
+                      <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                        <Users className="h-3 w-3 shrink-0" />
+                        HTX:{" "}
+                        <span className="truncate font-medium text-foreground">
+                          {
+                            shop.farms.cooperative_members[0]
+                              .cooperative_user.full_name
+                          }
+                        </span>
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="truncate text-xl font-bold">
-                    {shop.farms?.name ?? shop.name}
-                  </h1>
-                  <p className="truncate text-xs text-muted-foreground">
-                    Tên gian hàng: {shop.name}
+                <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+                  <Link
+                    href={`/consumer/shop/${shop.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "inline-flex shrink-0 gap-1.5",
+                    )}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Xem trang công khai
+                  </Link>
+                  <Link
+                    href={`/farmer/marketplace/shops/${shop.id}/add`}
+                    className={cn(
+                      buttonVariants({ size: "sm" }),
+                      "inline-flex shrink-0 gap-1.5",
+                    )}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Thêm sản phẩm
+                  </Link>
+                </div>
+              </div>
+              {shop.description ? (
+                <div className="border-t pt-3">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Giới thiệu gian hàng
                   </p>
-                  {shop.farms?.cooperative_members?.[0]?.cooperative_user
-                    ?.full_name && (
-                    <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                      <Users className="h-3 w-3 shrink-0" />
-                      HTX:{" "}
-                      <span className="truncate font-medium text-foreground">
-                        {
-                          shop.farms.cooperative_members[0].cooperative_user
-                            .full_name
-                        }
-                      </span>
-                    </p>
-                  )}
-                  {shop.description && (
-                    <p className="mt-2 line-clamp-2 min-w-0 w-full break-words text-sm text-muted-foreground">
-                      {shop.description}
-                    </p>
-                  )}
+                  <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground wrap-break-word">
+                    {shop.description}
+                  </p>
                 </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-                <Link
-                  href={`/consumer/shop/${shop.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
-                    "inline-flex shrink-0 gap-1.5",
-                  )}
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  Xem trang công khai
-                </Link>
-                <Link
-                  href={`/farmer/marketplace/shops/${shop.id}/add`}
-                  className={cn(
-                    buttonVariants({ size: "sm" }),
-                    "inline-flex shrink-0 gap-1.5",
-                  )}
-                >
-                  <Plus className="h-4 w-4" />
-                  Thêm sản phẩm
-                </Link>
-              </div>
+              ) : null}
             </CardContent>
           </Card>
 

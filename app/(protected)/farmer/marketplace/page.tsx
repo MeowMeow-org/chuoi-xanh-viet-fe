@@ -31,7 +31,9 @@ export default function FarmerMarketplacePage() {
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-4 pb-24 sm:px-6 md:pb-8 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold tracking-tight">Gian hàng của tôi</h1>
+          <h1 className="text-xl font-bold tracking-tight">
+            Gian hàng của tôi
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Mỗi nông trại có 1 gian hàng riêng để giữ nguyên câu chuyện nguồn
             gốc.
@@ -140,7 +142,7 @@ export default function FarmerMarketplacePage() {
                   </div>
                 </div>
                 {s.description && (
-                  <p className="line-clamp-2 min-w-0 w-full break-words px-4 pb-4 text-sm text-muted-foreground">
+                  <p className="min-w-0 truncate px-4 pb-4 text-sm text-muted-foreground">
                     {s.description}
                   </p>
                 )}
