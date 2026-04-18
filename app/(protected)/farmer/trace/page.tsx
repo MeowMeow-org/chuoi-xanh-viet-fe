@@ -43,7 +43,7 @@ export default function FarmerTracePage() {
                                 <p className="font-semibold">{season.crop}</p>
                             </div>
                             <div>
-                                <p className="text-xs text-[hsl(150,7%,45%)]">Nông dân</p>
+                                <p className="text-xs text-[hsl(150,7%,45%)]">Nông hộ</p>
                                 <p className="font-semibold">{currentFarmer.name}</p>
                             </div>
                             <div>

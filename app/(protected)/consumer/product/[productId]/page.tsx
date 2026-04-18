@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -90,11 +90,71 @@ function ReviewStarsRow({ rating }: { rating: number }) {
   );
 }
 
+function ProductImageGallery({
+  productName,
+  imageUrl,
+  isVerified,
+}: {
+  productName: string;
+  imageUrl: string | null;
+  isVerified: boolean;
+}) {
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const galleryImages = useMemo(
+    () => (imageUrl ? [imageUrl] : []),
+    [imageUrl],
+  );
+  const activeImageUrl = galleryImages[activeImageIndex] ?? null;
+
+  return (
+    <>
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted/50 lg:rounded-2xl">
+        {activeImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={activeImageUrl}
+            alt={productName}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <Leaf className="h-16 w-16 text-primary/20" />
+          </div>
+        )}
+        {isVerified && (
+          <Badge className="absolute left-3 top-3 gap-1">
+            <ShieldCheck className="h-3 w-3" /> Đã xác minh nguồn gốc
+          </Badge>
+        )}
+      </div>
+      {galleryImages.length > 0 && (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {galleryImages.map((url, i) => (
+            <button
+              key={`${url}-${i}`}
+              type="button"
+              onClick={() => setActiveImageIndex(i)}
+              className={cn(
+                "h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-muted/30 transition",
+                i === activeImageIndex
+                  ? "border-primary ring-2 ring-primary/25"
+                  : "border-transparent opacity-80 hover:opacity-100",
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function ConsumerProductPage() {
   const { productId } = useParams<{ productId: string }>();
   const router = useRouter();
   const [qty, setQty] = useState(1);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
 
   const { data: product, isLoading } = useQuery({
@@ -123,15 +183,6 @@ export default function ConsumerProductPage() {
       reviewService.listByProduct(productId as string, { page: 1, limit: 30 }),
     enabled: !!productId,
   });
-
-  const galleryImages = useMemo(
-    () => (product?.imageUrl ? [product.imageUrl] : []),
-    [product?.imageUrl],
-  );
-
-  useEffect(() => {
-    setActiveImageIndex(0);
-  }, [productId]);
 
   const openChatMutation = useMutation({
     mutationFn: (peerUserId: string) => chatService.openConversation(peerUserId),
@@ -167,7 +218,6 @@ export default function ConsumerProductPage() {
 
   const stock = toNumber(product.stockQty);
   const outOfStock = stock <= 0;
-  const activeImageUrl = galleryImages[activeImageIndex] ?? null;
   const unitLabel = product.unit ?? "đơn vị";
   const certs = (product.shop.certifications as string[] | null) ?? [];
   const shopPanel = shopDetailQuery.data;
@@ -220,7 +270,7 @@ export default function ConsumerProductPage() {
   const messageFarmer = () => {
     const peerUserId = product.shop.farm?.ownerUserId;
     if (!peerUserId) {
-      toast.error("Không tìm thấy nông dân của gian hàng này");
+      toast.error("Không tìm thấy nông hộ của gian hàng này");
       return;
     }
     openChatMutation.mutate(peerUserId);
@@ -285,45 +335,12 @@ export default function ConsumerProductPage() {
         <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-10">
           {/* Gallery — mobile: full width; desktop: cột trái */}
           <div className="lg:col-span-5 lg:sticky lg:top-20 lg:self-start">
-            <div className="relative aspect-square overflow-hidden rounded-xl bg-muted/50 lg:rounded-2xl">
-              {activeImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={activeImageUrl}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <Leaf className="h-16 w-16 text-primary/20" />
-                </div>
-              )}
-              {product.shop.isVerified && (
-                <Badge className="absolute left-3 top-3 gap-1">
-                  <ShieldCheck className="h-3 w-3" /> Đã xác minh nguồn gốc
-                </Badge>
-              )}
-            </div>
-            {galleryImages.length > 0 && (
-              <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {galleryImages.map((url, i) => (
-                  <button
-                    key={`${url}-${i}`}
-                    type="button"
-                    onClick={() => setActiveImageIndex(i)}
-                    className={cn(
-                      "h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-muted/30 transition",
-                      i === activeImageIndex
-                        ? "border-primary ring-2 ring-primary/25"
-                        : "border-transparent opacity-80 hover:opacity-100",
-                    )}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt="" className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+            <ProductImageGallery
+              key={String(productId)}
+              productName={product.name}
+              imageUrl={product.imageUrl}
+              isVerified={product.shop.isVerified}
+            />
           </div>
 
           {/* Nội dung mua & mô tả — desktop: cột phải */}
@@ -379,6 +396,17 @@ export default function ConsumerProductPage() {
                     : `Còn ${stock.toLocaleString("vi-VN")} ${unitLabel}`}
                 </p>
               </div>
+              {product.shop.farm?.ownerUserId && (
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={messageFarmer}
+                  disabled={openChatMutation.isPending}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  {openChatMutation.isPending ? "Đang mở..." : "Nhắn nông hộ"}
+                </Button>
+              )}
             </div>
 
             {traceCard}

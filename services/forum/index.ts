@@ -1,120 +1,83 @@
-export const FORUM_LABELS = [
-    "ky-thuat-trong",
-    "phan-bon",
-    "sau-benh",
-    "tuoi-nuoc",
-    "thu-hoach",
-    "bao-quan",
-    "thi-truong",
-    "khac",
-] as const;
+import type { ForumLabelSlug } from "@/constants/forum-labels";
 
-export type ForumLabel = (typeof FORUM_LABELS)[number];
-
-export interface ForumPostImage {
-    id: string;
-    objectKey: string;
-    url: string;
-    sortOrder: number;
+export interface ForumAuthor {
+  id: string;
+  fullName: string;
+  role: string;
 }
 
-export interface ForumPostAuthor {
-    id: string;
-    fullName: string;
-    role: string;
+export interface ForumPostImage {
+  id: string;
+  objectKey: string;
+  url: string;
+  sortOrder: number;
 }
 
 export interface ForumPost {
-    id: string;
-    authorUserId: string;
-    title: string;
-    content: string;
-    status: string;
-    labels: ForumLabel[];
-    images: ForumPostImage[];
-    commentCount: number;
-    author: ForumPostAuthor;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface ForumPostsPagination {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-}
-
-export interface ForumPostsResponse {
-    items: ForumPost[];
-    pagination: ForumPostsPagination;
+  id: string;
+  authorUserId: string;
+  title: string;
+  content: string;
+  status: string;
+  labels: string[];
+  images: ForumPostImage[];
+  commentCount: number;
+  author: ForumAuthor;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ForumComment {
-    id: string;
-    postId: string;
-    authorUserId: string;
-    content: string;
-    author: ForumPostAuthor;
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  postId: string;
+  authorUserId: string;
+  content: string;
+  author: ForumAuthor;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ForumPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface ForumPostsResponse {
+  items: ForumPost[];
+  pagination: ForumPagination;
 }
 
 export interface ForumCommentsResponse {
-    items: ForumComment[];
-    pagination: ForumPostsPagination;
+  items: ForumComment[];
+  pagination: ForumPagination;
 }
 
-export interface GetForumPostsQuery {
-    page?: number;
-    limit?: number;
-    searchTerm?: string;
-    label?: ForumLabel;
+export interface GetForumPostsParams {
+  page?: number;
+  limit?: number;
+  label?: ForumLabelSlug;
+  searchTerm?: string;
 }
 
-export interface GetForumCommentsQuery {
-    page?: number;
-    limit?: number;
+export interface CreateForumPostPayload {
+  title: string;
+  content: string;
+  labels: string[];
+  images?: Array<{ objectKey: string; url: string }>;
 }
 
-export interface CreateForumCommentBody {
-    content: string;
+export interface UpdateForumPostPayload {
+  title?: string;
+  content?: string;
+  labels?: string[];
+  images?: Array<{ objectKey: string; url: string }>;
 }
 
-export interface UpdateForumCommentBody {
-    content: string;
-}
-
-export interface CreateForumPostImage {
-    objectKey: string;
-    url: string;
-}
-
-export interface CreateForumPostBody {
-    title: string;
-    content: string;
-    labels: ForumLabel[];
-    images: CreateForumPostImage[];
-}
-
-export interface UpdateForumPostBody {
-    title: string;
-    content: string;
-    labels: ForumLabel[];
-    images: CreateForumPostImage[];
-    status?: string;
-}
-
-export interface ForumUploadItem {
-    success: boolean;
-    url: string;
-    thumb: string;
-    id: string;
-    size: number;
-    aspect_ratio: number;
-    forumImage?: CreateForumPostImage;
-}
-
-export interface ForumUploadResponse {
-    items: ForumUploadItem[];
+export interface GetForumCommentsParams {
+  page?: number;
+  limit?: number;
+  /** `desc`: mới nhất trước (phân trang từ cuối thread). `asc`: mặc định BE. */
+  sort?: "asc" | "desc";
 }

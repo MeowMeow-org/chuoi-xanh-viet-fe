@@ -84,8 +84,8 @@ export default function ConsumerHomePage() {
               giao tận nhà bạn
             </h1>
             <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">
-              Quét QR xem nhật ký canh tác. Mua trực tiếp từ nông dân. Minh bạch
-              từ ruộng đến bàn ăn.
+              Quét QR xem nhật ký canh tác. Mua trực tiếp từ nông dân và nông hộ.
+              Minh bạch từ ruộng đến bàn ăn.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/consumer/marketplace">

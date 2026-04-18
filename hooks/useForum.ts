@@ -1,182 +1,158 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
-import { forumService } from "@/services/forum/forumService";
 import type {
-    CreateForumCommentBody,
-    CreateForumPostBody,
-    ForumComment,
-    ForumPost,
-    ForumUploadResponse,
-    GetForumCommentsQuery,
-    GetForumPostsQuery,
-    UpdateForumCommentBody,
-    UpdateForumPostBody,
+  CreateForumPostPayload,
+  ForumComment,
+  ForumCommentsResponse,
+  GetForumPostsParams,
+  UpdateForumPostPayload,
 } from "@/services/forum";
-import type { PaginationMeta } from "@/types";
+import { forumService } from "@/services/forum/forumService";
+
+/** Số bình luận mỗi lần tải (mới nhất trước, “Xem thêm” nạp thêm một trang). */
+export const FORUM_COMMENT_PAGE_SIZE = 3;
 
 export const forumQueryKeys = {
-    all: ["forum"] as const,
-    list: (query?: GetForumPostsQuery) => ["forum", "list", query] as const,
-    comments: (postId: string, query?: GetForumCommentsQuery) =>
-        ["forum", "comments", postId, query] as const,
+  all: ["forum"] as const,
+  posts: (params: GetForumPostsParams) => ["forum", "posts", params] as const,
+  post: (id: string) => ["forum", "post", id] as const,
+  comments: (postId: string) => ["forum", "comments", postId] as const,
 };
 
-const toPaginationMeta = (
-    apiPagination:
-        | {
-            page: number;
-            limit: number;
-            total: number;
-            totalPages: number;
-        }
-        | undefined,
-): PaginationMeta | undefined => {
-    if (!apiPagination) return undefined;
+/** Gộp các trang `sort=desc` thành một danh sách thời gian tăng dần (cũ → mới). */
+export function mergeForumCommentPages(
+  pages: ForumCommentsResponse[] | undefined,
+): ForumComment[] {
+  if (!pages?.length) return [];
+  return [...pages]
+    .map((p) => [...p.items].reverse())
+    .reverse()
+    .flat();
+}
 
-    return {
-        page: apiPagination.page,
-        limit: apiPagination.limit,
-        total: apiPagination.total,
-        totalPages: apiPagination.totalPages,
-        previousPage: apiPagination.page > 1 ? apiPagination.page - 1 : null,
-        nextPage: apiPagination.page < apiPagination.totalPages ? apiPagination.page + 1 : null,
-    };
-};
+export function useForumPostsQuery(
+  params: GetForumPostsParams = {},
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: forumQueryKeys.posts(params),
+    queryFn: () => forumService.getPosts(params),
+    enabled,
+  });
+}
 
-export const useForumPostsQuery = (query?: GetForumPostsQuery) => {
-    const queryResult = useQuery({
-        queryKey: forumQueryKeys.list(query),
-        queryFn: () => forumService.getPosts(query),
-        placeholderData: (prev) => prev,
-    });
+export function useForumCommentsInfiniteQuery(
+  postId: string | undefined,
+  enabled = true,
+) {
+  return useInfiniteQuery({
+    queryKey: [
+      ...forumQueryKeys.comments(postId ?? ""),
+      "infinite",
+      FORUM_COMMENT_PAGE_SIZE,
+    ] as const,
+    queryFn: ({ pageParam }) =>
+      forumService.getComments(postId as string, {
+        page: pageParam,
+        limit: FORUM_COMMENT_PAGE_SIZE,
+        sort: "desc",
+      }),
+    initialPageParam: 1,
+    enabled: Boolean(postId) && enabled,
+    getNextPageParam: (last) =>
+      last.pagination.page < last.pagination.totalPages
+        ? last.pagination.page + 1
+        : undefined,
+  });
+}
 
-    return {
-        ...queryResult,
-        posts: (queryResult.data?.items ?? []) as ForumPost[],
-        pagination: toPaginationMeta(queryResult.data?.pagination),
-    };
-};
+export function useCreateForumPostMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateForumPostPayload) =>
+      forumService.createPost(payload),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
+    },
+  });
+}
 
-export const useForumCommentsQuery = (
-    postId: string,
-    query?: GetForumCommentsQuery,
-    enabled = true,
-) => {
-    const queryResult = useQuery({
-        queryKey: forumQueryKeys.comments(postId, query),
-        queryFn: () => forumService.getComments(postId, query),
-        placeholderData: (prev) => prev,
-        enabled: enabled && postId.trim().length > 0,
-    });
+export function useUpdateForumPostMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      postId,
+      payload,
+    }: {
+      postId: string;
+      payload: UpdateForumPostPayload;
+    }) => forumService.updatePost(postId, payload),
+    onSuccess: (data) => {
+      void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
+      void qc.invalidateQueries({ queryKey: forumQueryKeys.post(data.id) });
+    },
+  });
+}
 
-    return {
-        ...queryResult,
-        comments: (queryResult.data?.items ?? []) as ForumComment[],
-        pagination: toPaginationMeta(queryResult.data?.pagination),
-    };
-};
+export function useDeleteForumPostMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (postId: string) => forumService.deletePost(postId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
+    },
+  });
+}
 
-export const useCreateForumCommentMutation = (postId: string) => {
-    const queryClient = useQueryClient();
+export function useCreateForumCommentMutation(postId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (content: string) =>
+      forumService.createComment(postId, content),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: forumQueryKeys.comments(postId),
+      });
+      void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
+    },
+  });
+}
 
-    return useMutation({
-        mutationFn: (payload: CreateForumCommentBody) =>
-            forumService.createComment(postId, payload),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.comments(postId),
-                exact: false,
-            });
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.all,
-            });
-        },
-    });
-};
+export function useUpdateForumCommentMutation(postId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      commentId,
+      content,
+    }: {
+      commentId: string;
+      content: string;
+    }) => forumService.updateComment(commentId, content),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: forumQueryKeys.comments(postId),
+      });
+    },
+  });
+}
 
-export const useCreateForumPostMutation = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (payload: CreateForumPostBody) => forumService.createPost(payload),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.all,
-            });
-        },
-    });
-};
-
-export const useUploadForumImagesMutation = () => {
-    return useMutation<ForumUploadResponse, unknown, File[]>({
-        mutationFn: (files) => forumService.uploadImages(files),
-    });
-};
-
-export const useUpdateForumPostMutation = (postId: string) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (payload: UpdateForumPostBody) => forumService.updatePost(postId, payload),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.all,
-            });
-        },
-    });
-};
-
-export const useDeleteForumPostMutation = (postId: string) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: () => forumService.deletePost(postId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.all,
-            });
-        },
-    });
-};
-
-export const useDeleteForumCommentMutation = (postId: string) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (commentId: string) => forumService.deleteComment(commentId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.comments(postId),
-                exact: false,
-            });
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.all,
-            });
-        },
-    });
-};
-
-export const useUpdateForumCommentMutation = (postId: string) => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({
-            commentId,
-            payload,
-        }: {
-            commentId: string;
-            payload: UpdateForumCommentBody;
-        }) => forumService.updateComment(commentId, payload),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.comments(postId),
-                exact: false,
-            });
-            queryClient.invalidateQueries({
-                queryKey: forumQueryKeys.all,
-            });
-        },
-    });
-};
+export function useDeleteForumCommentMutation(postId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (commentId: string) =>
+      forumService.deleteComment(commentId),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: forumQueryKeys.comments(postId),
+      });
+      void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
+    },
+  });
+}

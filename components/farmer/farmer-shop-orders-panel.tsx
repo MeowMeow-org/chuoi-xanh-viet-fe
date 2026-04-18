@@ -207,7 +207,7 @@ export function FarmerShopOrdersPanel() {
                       </p>
                       {order.shop && (
                         <Link
-                          href="/farmer/marketplace?tab=manage"
+                          href={`/farmer/marketplace/shops/${order.shop.id}`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-[hsl(142,58%,32%)] hover:underline"
                         >
                           <Store className="h-3.5 w-3.5" />

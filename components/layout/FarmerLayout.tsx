@@ -10,7 +10,6 @@ import {
   Leaf,
   LogOut,
   MessageCircle,
-  QrCode,
   ShoppingBag,
   Sprout,
   User,
@@ -24,18 +23,17 @@ import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const navItems = [
-  { href: "/farmer", label: "Trang chủ", icon: Home },
+  { href: "/farmer", label: "Tổng quan", icon: Home },
   { href: "/farmer/farms", label: "Nông trại", icon: Sprout },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
-  { href: "/farmer/trace", label: "Truy xuất", icon: QrCode },
 ];
 
 const mobileNavItems = [
   { href: "/farmer/farms", label: "Nông trại", icon: Sprout },
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
-  { href: "/farmer", label: "Trang chủ", icon: Home },
+  { href: "/farmer", label: "Tổng quan", icon: Home },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
   { href: "/farmer/notifications", label: "Thông báo", icon: Bell },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
@@ -53,13 +51,13 @@ export default function FarmerLayout({
   children: React.ReactNode;
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data: unreadNotifs = 0 } = useNotificationUnreadCount();
   const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
   const user = useAuthStore((state) => state.user);
-  const hideShell = pathname === "/farmer/messages" && !!searchParams.get("chat");
+  const hideShell =
+    pathname === "/farmer/messages" && !!searchParams.get("chat");
 
   const isActive = (path: string) => {
     if (path === "/farmer") {
@@ -98,10 +96,11 @@ export default function FarmerLayout({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm leading-none transition-colors ${active
+                      className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm leading-none transition-colors ${
+                        active
                           ? "bg-[hsl(142,69%,45%)] text-white font-semibold"
                           : "text-[hsl(150,6%,38%)] font-medium hover:bg-[hsl(120,10%,92%)] hover:text-[hsl(150,10%,18%)]"
-                        }`}
+                      }`}
                     >
                       <Icon className="h-4 w-4" />
                       {item.label}
@@ -132,52 +131,52 @@ export default function FarmerLayout({
                     </Button>
                   </Link>
                 </div>
-                <div className="hidden items-center gap-1 md:flex">
-                  <div className="relative ml-2">
-                    <button
-                      onClick={() => setProfileOpen(!profileOpen)}
-                      className="flex shrink-0 items-center gap-2 text-sm rounded-lg px-2 py-1 hover:bg-[hsl(120,10%,92%)] transition-colors"
-                    >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[hsl(142,71%,45%)]/15">
-                        {user?.avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={user.avatarUrl}
-                            alt=""
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <User className="h-4 w-4 text-[hsl(142,71%,35%)]" />
-                        )}
-                      </span>
-                      <span className="font-semibold whitespace-nowrap text-[hsl(150,10%,22%)]">
-                        {user?.fullName ?? "Farmer"}
-                      </span>
-                    </button>
-                    {profileOpen && (
-                      <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-[hsl(142,14%,88%)] bg-white shadow-lg z-50">
-                        <Link
-                          href="/farmer/profile"
-                          onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-[hsl(150,10%,22%)] hover:bg-[hsl(120,10%,92%)] rounded-t-lg"
-                        >
-                          <User className="h-4 w-4" />
-                          Hồ sơ nông trại
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProfileOpen(false);
-                            logout();
-                          }}
-                          disabled={isLoggingOut}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-b-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
-                        </button>
-                      </div>
-                    )}
+                <div className="group relative ml-2 hidden shrink-0 md:block">
+                  <div
+                    className="flex cursor-default select-none items-center gap-2 rounded-lg px-2 py-1.5 text-sm outline-none transition-colors hover:bg-[hsl(120,10%,94%)] focus-visible:ring-2 focus-visible:ring-[hsl(142,71%,45%)] focus-visible:ring-offset-2"
+                    tabIndex={0}
+                    aria-haspopup="menu"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[hsl(142,71%,45%)]/15">
+                      {user?.avatarUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={user.avatarUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-4 w-4 text-[hsl(142,71%,35%)]" />
+                      )}
+                    </span>
+                    <span className="max-w-[10rem] truncate font-semibold text-[hsl(150,10%,22%)]">
+                      {user?.fullName ?? "Farmer"}
+                    </span>
+                  </div>
+                  <div
+                    className="pointer-events-none invisible absolute right-0 top-full z-[60] pt-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
+                    role="menu"
+                  >
+                    <div className="w-52 rounded-lg border border-[hsl(142,14%,88%)] bg-white py-1 shadow-lg">
+                      <Link
+                        href="/farmer/profile"
+                        role="menuitem"
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-[hsl(150,10%,22%)] hover:bg-[hsl(120,10%,96%)]"
+                      >
+                        <User className="h-4 w-4 shrink-0" />
+                        Hồ sơ tài khoản
+                      </Link>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => logout()}
+                        disabled={isLoggingOut}
+                        className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <LogOut className="h-4 w-4 shrink-0" />
+                        {isLoggingOut ? "Đang đăng xuất…" : "Đăng xuất"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -195,21 +194,22 @@ export default function FarmerLayout({
                 )}
               </Button>
             </div>
-
           </header>
 
           <main className="flex-1">{children}</main>
 
           <div
-            className={`fixed inset-x-0 top-14 bottom-[57px] z-40 md:hidden transition-opacity duration-200 ${mobileMenuOpen
+            className={`fixed inset-x-0 top-14 bottom-[57px] z-40 md:hidden transition-opacity duration-200 ${
+              mobileMenuOpen
                 ? "pointer-events-auto bg-black/35 opacity-100"
                 : "pointer-events-none bg-black/0 opacity-0"
-              }`}
+            }`}
             onClick={() => setMobileMenuOpen(false)}
           >
             <div
-              className={`h-full w-[84%] max-w-xs overflow-y-auto border-r bg-white p-3 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+              className={`h-full w-[84%] max-w-xs overflow-y-auto border-r bg-white p-3 transition-transform duration-300 ease-out ${
+                mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+              }`}
               onClick={(event) => event.stopPropagation()}
             >
               <div className="space-y-1">
@@ -222,10 +222,11 @@ export default function FarmerLayout({
                       key={`${item.href}-mobile`}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${active
+                      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                        active
                           ? "bg-[hsl(142,71%,45%)] text-white"
                           : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
-                        }`}
+                      }`}
                     >
                       <Icon className="h-5 w-5" />
                       {item.label}
@@ -243,10 +244,11 @@ export default function FarmerLayout({
                         key={`${item.href}-secondary`}
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${active
+                        className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                          active
                             ? "bg-[hsl(142,71%,45%)] text-white"
                             : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
-                          }`}
+                        }`}
                       >
                         <Icon className="h-5 w-5" />
                         {item.label}
@@ -267,7 +269,9 @@ export default function FarmerLayout({
                   </span>
                   <div>
                     <p className="font-semibold">Farmer</p>
-                    <p className="text-sm text-[hsl(150,7%,45%)]">Role: Farmer</p>
+                    <p className="text-sm text-[hsl(150,7%,45%)]">
+                      Role: Farmer
+                    </p>
                   </div>
                 </div>
 
@@ -290,7 +294,7 @@ export default function FarmerLayout({
           </div>
 
           <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur md:hidden">
-            <div className="flex justify-around overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-full justify-around overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {mobileNavItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
@@ -301,15 +305,18 @@ export default function FarmerLayout({
                   <Link
                     key={`${item.href}-bottom`}
                     href={item.href}
-                    className={`relative flex min-w-[3.25rem] shrink-0 flex-col items-center gap-0.5 px-1.5 py-2 text-[11px] font-medium transition-colors ${active ? "text-[hsl(142,71%,35%)]" : "text-[hsl(150,7%,45%)]"
-                      }`}
+                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium leading-tight transition-colors sm:text-xs ${
+                      active
+                        ? "text-[hsl(142,71%,35%)]"
+                        : "text-[hsl(150,7%,45%)]"
+                    }`}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
-                    <span className="max-w-[4.5rem] truncate text-center leading-tight">
+                    <span className="line-clamp-2 w-full min-w-0 text-center wrap-break-word">
                       {item.label}
                     </span>
                     {showUnread && (
-                      <span className="absolute right-0.5 top-1 flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-medium text-white tabular-nums">
+                      <span className="absolute right-0.5 top-0.5 flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-medium text-white tabular-nums">
                         {unreadNotifs > 99 ? "99+" : unreadNotifs}
                       </span>
                     )}

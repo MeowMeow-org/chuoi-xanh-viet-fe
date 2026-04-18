@@ -7,7 +7,7 @@ import { Leaf } from "lucide-react";
 const features = [
   [
     "AI nông nghiệp",
-    "Hỏi đáp kỹ thuật, chẩn đoán bệnh cây qua ảnh và gợi ý giá bán dễ hiểu cho nông dân.",
+    "Hỏi đáp kỹ thuật, chẩn đoán bệnh cây qua ảnh và gợi ý giá bán dễ hiểu cho nông hộ.",
   ],
   [
     "Nhật ký số",
@@ -23,7 +23,7 @@ const features = [
   ],
   [
     "Diễn đàn kỹ thuật",
-    "Kết nối nông dân, hợp tác xã và chuyên gia để giải đáp vấn đề thực tế ngoài đồng ruộng.",
+    "Kết nối nông hộ, hợp tác xã và chuyên gia để giải đáp vấn đề thực tế ngoài đồng ruộng.",
   ],
   [
     "Mobile-first",
@@ -39,7 +39,7 @@ const flow = [
 ] as const;
 
 const users = [
-  "Nông dân và hộ sản xuất nhỏ cần công cụ giảm rào cản số khi bắt đầu đưa nông sản lên sàn.",
+  "Nông hộ và hộ sản xuất nhỏ cần công cụ giảm rào cản số khi bắt đầu đưa nông sản lên sàn.",
   "Hợp tác xã và cán bộ khuyến nông cần công cụ quản lý chất lượng và theo dõi quy chuẩn.",
   "Người tiêu dùng cần nhìn thấy hồ sơ nguồn gốc chân thực, bằng chứng rõ ràng trước khi mua.",
 ] as const;

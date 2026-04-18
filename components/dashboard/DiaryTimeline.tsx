@@ -1,14 +1,22 @@
 "use client";
 
-import { Clock, Hash, MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Clock, Hash, MapPin, X } from "lucide-react";
 
 import { useDiariesQuery } from "@/hooks/useDiary";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDiaryRecordedAt } from "@/lib/diary-date";
+import type { DiaryAttachment } from "@/services/diary";
 
 interface DiaryTimelineProps {
   seasonId?: string;
+}
+
+function attachmentThumb(a: DiaryAttachment): string {
+  const meta = (a.meta ?? {}) as { thumb?: unknown };
+  if (typeof meta.thumb === "string" && meta.thumb.trim()) return meta.thumb;
+  return a.fileUrl;
 }
 
 const eventTypeLabelMap: Record<string, string> = {
@@ -29,6 +37,17 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
     page: 1,
     limit: 5,
   });
+
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!lightboxUrl) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxUrl(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxUrl]);
 
   const sorted = [...diaries].sort((a, b) => {
     const ta = new Date(a.serverTimestamp ?? a.createdAt).getTime();
@@ -97,6 +116,28 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
                         {entry.description ?? "Không có mô tả"}
                       </p>
 
+                      {entry.attachments && entry.attachments.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {entry.attachments.map((att) => (
+                            <button
+                              key={att.id}
+                              type="button"
+                              onClick={() => setLightboxUrl(att.fileUrl)}
+                              className="h-16 w-16 overflow-hidden rounded-md border bg-muted transition hover:opacity-85"
+                              aria-label="Xem ảnh"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={attachmentThumb(att)}
+                                alt=""
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
@@ -115,6 +156,33 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
           </div>
         )}
       </CardContent>
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxUrl(null);
+            }}
+            aria-label="Đóng"
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightboxUrl}
+            alt="Ảnh nhật ký"
+            className="max-h-full max-w-full rounded-lg object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </Card>
   );
 }

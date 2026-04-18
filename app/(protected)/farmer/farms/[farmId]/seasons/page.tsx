@@ -31,8 +31,8 @@ import type { SeasonStatus } from "@/services/season";
 
 const getStatusLabel = (status: SeasonStatus) => {
   if (status === "draft") return "Nháp";
-  if (status === "ready_to_anchor") return "Sẵn sàng neo";
-  if (status === "anchored") return "Đã neo";
+  if (status === "ready_to_anchor") return "Hoàn thành";
+  if (status === "anchored") return "Đã công khai";
   if (status === "amended") return "Đã chỉnh sửa";
   return "Thất bại";
 };
@@ -166,9 +166,12 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           <DialogHeader>
             <DialogTitle>Xóa nông trại?</DialogTitle>
             <DialogDescription className="text-left">
-              Hành động này không thể hoàn tác. Hệ thống chỉ cho phép xóa khi nông
-              trại chưa có mùa vụ, chưa gắn hợp tác xã, chưa có nhật ký và chưa tạo
-              gian hàng. Nếu không đủ điều kiện, bạn sẽ nhận thông báo lỗi.
+              Hành động này không thể hoàn tác. Chỉ xóa được khi trại{" "}
+              <strong>chưa có mùa vụ</strong>, <strong>chưa có nhật ký</strong>,{" "}
+              <strong>chưa có hồ sơ HTX</strong> (kể cả chờ duyệt) và{" "}
+              <strong>chưa tạo gian hàng</strong>. Trang này chỉ liệt kê mùa vụ —
+              nếu bạn đã mở Gian hàng hoặc gửi đơn vào hợp tác xã, vẫn không xóa
+              được dù chưa có vụ.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

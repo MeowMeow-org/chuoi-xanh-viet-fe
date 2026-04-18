@@ -74,11 +74,18 @@ export interface GetPublicProductsQuery {
   shopId?: string;
 }
 
+export interface ShopCooperativeSummary {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+}
+
 export interface ShopSummary {
   id: string;
   farm_id: string;
   name: string;
   description: string | null;
+  avatar_url: string | null;
   status: string;
   is_verified: boolean;
   certifications: unknown;
@@ -90,11 +97,15 @@ export interface ShopSummary {
   farms?: {
     id: string;
     name: string;
-    province: string | null;
-    district: string | null;
-    ward: string | null;
-    address: string | null;
-    owner_user_id: string;
+    province?: string | null;
+    district?: string | null;
+    ward?: string | null;
+    address?: string | null;
+    owner_user_id?: string;
+    /** BE GET /shop/mine trả kèm: ['approved'] member của farm này (tối đa 1). */
+    cooperative_members?: Array<{
+      cooperative_user: ShopCooperativeSummary;
+    }>;
   };
 }
 
@@ -140,6 +151,7 @@ export interface CreateShopPayload {
   farm_id: string;
   name: string;
   description?: string;
+  avatar_url?: string | null;
 }
 
 export interface AddProductPayload {

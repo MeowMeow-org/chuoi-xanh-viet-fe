@@ -243,7 +243,7 @@ export default function TraceSeasonView({
                   <Clock className="h-3 w-3" />
                 )}
                 {latestAnchor.status === "anchored"
-                  ? "Đã neo"
+                  ? "Đã công khai"
                   : latestAnchor.status}
               </Badge>
             </div>
