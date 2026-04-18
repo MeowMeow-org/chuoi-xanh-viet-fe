@@ -100,4 +100,4 @@ export interface TraceVerifyResult {
   anchor: TraceAnchor | null;
 }
 
-export interface TraceResolveResult extends SaleUnit {}
+export type TraceResolveResult = SaleUnit;
