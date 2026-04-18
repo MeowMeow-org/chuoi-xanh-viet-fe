@@ -3,8 +3,7 @@ import { Be_Vietnam_Pro, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "../providers/query";
 import { cn } from "@/lib/utils";
-import { Toaster } from "sonner";
-import { ToastViewport } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/sonner";
 
 const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-sans",
@@ -31,6 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
+      suppressHydrationWarning
       className={cn(
         "h-full",
         "antialiased",
@@ -41,8 +41,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <Toaster position="top-right" richColors />
-          <ToastViewport />
+          <Toaster position="top-center" richColors />
           {children}
         </QueryProvider>
       </body>

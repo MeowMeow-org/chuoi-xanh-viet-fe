@@ -6,8 +6,14 @@ import { notificationService } from "@/services/notification/notificationService
 
 export const notificationQueryKeys = {
   all: ["notifications"] as const,
-  list: (params?: { page?: number; limit?: number }) =>
-    ["notifications", "list", params?.page ?? 1, params?.limit ?? 50] as const,
+  list: (params?: { page?: number; limit?: number; unreadOnly?: boolean }) =>
+    [
+      "notifications",
+      "list",
+      params?.page ?? 1,
+      params?.limit ?? 50,
+      params?.unreadOnly ?? false,
+    ] as const,
   /** Gọi GET /notification với limit nhỏ chỉ để lấy meta.unreadTotal cho badge */
   unreadSummary: () => ["notifications", "unread-summary"] as const,
 };
@@ -23,13 +29,18 @@ export function useNotificationUnreadCount() {
   });
 }
 
-export function useNotificationsQuery(params?: { page?: number; limit?: number }) {
+export function useNotificationsQuery(params?: {
+  page?: number;
+  limit?: number;
+  unreadOnly?: boolean;
+}) {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 50;
+  const unreadOnly = params?.unreadOnly;
 
   return useQuery({
-    queryKey: notificationQueryKeys.list({ page, limit }),
-    queryFn: () => notificationService.list({ page, limit }),
+    queryKey: notificationQueryKeys.list({ page, limit, unreadOnly }),
+    queryFn: () => notificationService.list({ page, limit, unreadOnly }),
   });
 }
 

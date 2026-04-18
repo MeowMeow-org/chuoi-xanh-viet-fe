@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
 import { useLogoutMutation } from "@/hooks/useAuth";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -111,20 +112,11 @@ export default function FarmerLayout({
 
               <div className="absolute right-1 flex items-center gap-1 md:static md:justify-self-end">
                 <div className="flex items-center gap-1">
-                  <Link href="/farmer/notifications">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="relative h-9 w-9"
-                    >
-                      <Bell className="size-5" />
-                      {unreadNotifs > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-medium text-white tabular-nums">
-                          {unreadNotifs > 99 ? "99+" : unreadNotifs}
-                        </span>
-                      )}
-                    </Button>
-                  </Link>
+                  <NotificationsPopover
+                    variant="farmer"
+                    viewAllHref="/farmer/notifications"
+                    unreadCount={unreadNotifs}
+                  />
                   <Link href="/farmer/messages">
                     <Button variant="ghost" size="icon" className="h-9 w-9">
                       <MessageCircle className="size-5" />

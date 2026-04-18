@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Leaf, LogOut } from "lucide-react";
+import { Leaf, LogOut } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
 import { useLogoutMutation } from "@/hooks/useAuth";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -28,21 +29,12 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </Link>
 
           <div className="flex items-center gap-2">
-            <Link href="/admin/notifications">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-9 w-9"
-                title="Thông báo"
-              >
-                <Bell className="h-5 w-5" />
-                {unreadNotifs > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-medium text-white tabular-nums">
-                    {unreadNotifs > 99 ? "99+" : unreadNotifs}
-                  </span>
-                )}
-              </Button>
-            </Link>
+            <NotificationsPopover
+              variant="admin"
+              viewAllHref="/admin/notifications"
+              unreadCount={unreadNotifs}
+              triggerClassName="h-9 w-9"
+            />
             <span className="hidden text-sm font-medium text-[hsl(150,10%,22%)] sm:inline">
               {user?.fullName?.trim() || "Admin"}
             </span>
