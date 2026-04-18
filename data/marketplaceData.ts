@@ -26,7 +26,7 @@ export interface Review {
 
 export interface Notification {
     id: string;
-    type: "order" | "message" | "review" | "system";
+    type: "order" | "message" | "review" | "system" | "cooperative" | "forum";
     title: string;
     content: string;
     read: boolean;

@@ -67,23 +67,34 @@ export default function FarmerMarketplacePage() {
   const [shopName, setShopName] = useState("");
   const [shopDesc, setShopDesc] = useState("");
 
-  const [prodSaleUnitId, setProdSaleUnitId] = useState("");
+  const urlSaleUnitId = searchParams.get("saleUnitId") ?? "";
+  const [userPickedSaleUnitId, setUserPickedSaleUnitId] = useState<string | null>(
+    null,
+  );
   const [prodDesc, setProdDesc] = useState("");
   const [prodPrice, setProdPrice] = useState("");
   const [prodImageFile, setProdImageFile] = useState<File | null>(null);
+
+  const canonicalFromUrl = useMemo(() => {
+    if (!saleUnits?.length) return "";
+    if (urlSaleUnitId && saleUnits.some((u) => u.id === urlSaleUnitId)) {
+      return urlSaleUnitId;
+    }
+    return "";
+  }, [saleUnits, urlSaleUnitId]);
+
+  const prodSaleUnitId = userPickedSaleUnitId ?? canonicalFromUrl;
 
   const selectedSaleUnit = useMemo(
     () => saleUnits?.find((u) => u.id === prodSaleUnitId),
     [saleUnits, prodSaleUnitId],
   );
 
+  /* Khi query `saleUnitId` đổi (deep link khác), bỏ override tay để URL là nguồn đúng. */
   useEffect(() => {
-    const fromUrl = searchParams.get("saleUnitId");
-    if (!fromUrl || !saleUnits?.length) return;
-    if (saleUnits.some((u) => u.id === fromUrl)) {
-      setProdSaleUnitId(fromUrl);
-    }
-  }, [searchParams, saleUnits]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset override khi URL đổi; không derive được thuần render
+    setUserPickedSaleUnitId(null);
+  }, [urlSaleUnitId]);
 
   const loading = farmsLoading || shopsLoading;
 
@@ -168,7 +179,7 @@ export default function FarmerMarketplacePage() {
           setProdDesc("");
           setProdPrice("");
           setProdImageFile(null);
-          setProdSaleUnitId("");
+          setUserPickedSaleUnitId(null);
           router.replace("/farmer/marketplace", { scroll: false });
         },
       },
@@ -356,7 +367,9 @@ export default function FarmerMarketplacePage() {
                       "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50",
                     )}
                     value={prodSaleUnitId}
-                    onChange={(e) => setProdSaleUnitId(e.target.value)}
+                    onChange={(e) =>
+                      setUserPickedSaleUnitId(e.target.value || null)
+                    }
                     disabled={saleUnitsLoading}
                   >
                     <option value="">

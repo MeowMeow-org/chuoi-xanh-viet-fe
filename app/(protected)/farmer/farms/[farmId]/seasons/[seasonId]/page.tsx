@@ -306,7 +306,6 @@ export default function SeasonDetailPage() {
       {/* Yield summary + quick editor */}
       {season && (
         <YieldCard
-          seasonId={seasonId!}
           actualYield={actualYield}
           yieldUnit={yieldUnit}
           yieldMissing={yieldMissing}
@@ -366,7 +365,7 @@ export default function SeasonDetailPage() {
             <AlertDialogDescription>
               Toàn bộ dữ liệu nhật ký sẽ được hash và ghi lên Sepolia testnet.
               Sau khi neo, mùa vụ không thể chỉnh sửa thêm (trừ khi chuyển sang
-              trạng thái "Đã chỉnh sửa"). Quá trình có thể mất vài giây.
+              trạng thái &quot;Đã chỉnh sửa&quot;). Quá trình có thể mất vài giây.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -472,7 +471,6 @@ function normalizeMassUnit(s: string): string {
 }
 
 function YieldCard({
-  seasonId: _seasonId,
   actualYield,
   yieldUnit,
   yieldMissing,
@@ -481,7 +479,6 @@ function YieldCard({
   isSaving,
   onSave,
 }: {
-  seasonId: string;
   actualYield: number | null;
   yieldUnit: string;
   yieldMissing: boolean;
@@ -630,15 +627,15 @@ function YieldCard({
 
       {showWarning && !editing && (
         <p className="mt-3 text-xs text-amber-700">
-          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái "Sẵn
-          sàng neo" hoặc neo lên blockchain.
+          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái &quot;Sẵn
+          sàng neo&quot; hoặc neo lên blockchain.
         </p>
       )}
 
       {!editable && !editing && !yieldMissing && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang "Đã
-          chỉnh sửa".
+          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang &quot;Đã
+          chỉnh sửa&quot;.
         </p>
       )}
     </div>
