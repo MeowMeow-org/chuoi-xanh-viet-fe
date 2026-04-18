@@ -226,7 +226,7 @@ export default function ConsumerMarketplacePage() {
                               </div>
                             )}
                             {shop.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
+                              <p className="line-clamp-2 min-w-0 w-full break-words text-xs text-muted-foreground">
                                 {shop.description}
                               </p>
                             )}

@@ -1,296 +1,292 @@
 "use client";
 
-import { useState } from "react";
-import type { LucideIcon } from "lucide-react";
-import {
-    AlertCircle,
-    Award,
-    MessageCircle,
-    Plus,
-    Send,
-    Shield,
-    Sprout,
-    ThumbsUp,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, Plus } from "lucide-react";
+import { toast } from "sonner";
 
-import { forumPosts, type ForumPost } from "@/data/forumData";
+import { ForumPostCard } from "@/components/forum/ForumPostCard";
+import { ForumPostImagePicker } from "@/components/forum/ForumPostImagePicker";
+import { ForumPostListFilters } from "@/components/forum/ForumPostListFilters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
-const roleLabel: Record<string, { label: string; icon: LucideIcon }> = {
-    farmer: { label: "Nông dân", icon: Sprout },
-    expert: { label: "Chuyên gia", icon: Award },
-    extension_officer: { label: "Cán bộ khuyến nông", icon: Shield },
-};
+import {
+  FORUM_LABEL_OPTIONS,
+  type ForumLabelSlug,
+} from "@/constants/forum-labels";
+import {
+  useCreateForumPostMutation,
+  useForumPostsQuery,
+} from "@/hooks/useForum";
+import { useAuthStore } from "@/store/useAuthStore";
+import { uploadService } from "@/services/upload/uploadService";
+import { cn } from "@/lib/utils";
 
 export default function FarmerForumPage() {
-    const [posts, setPosts] = useState<ForumPost[]>(forumPosts);
-    const [newTitle, setNewTitle] = useState("");
-    const [newContent, setNewContent] = useState("");
-    const [newTags, setNewTags] = useState("");
-    const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
-    const [dialogOpen, setDialogOpen] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const [page, setPage] = useState(1);
+  const [labelFilter, setLabelFilter] = useState<ForumLabelSlug | undefined>();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [selectedLabels, setSelectedLabels] = useState<ForumLabelSlug[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [postBusy, setPostBusy] = useState(false);
+  const [searchDraft, setSearchDraft] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const handlePost = () => {
-        if (!newTitle.trim() || !newContent.trim()) {
-            return;
+  const { data, isLoading, isError, error, refetch } = useForumPostsQuery(
+    {
+      page,
+      limit: 15,
+      label: labelFilter,
+      searchTerm: searchTerm || undefined,
+    },
+    true,
+  );
+  const createPost = useCreateForumPostMutation();
+
+  useEffect(() => {
+    setPage(1);
+  }, [labelFilter, searchTerm]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setSearchTerm(searchDraft.trim());
+    }, 320);
+    return () => window.clearTimeout(id);
+  }, [searchDraft]);
+
+  useEffect(() => {
+    if (!dialogOpen) setImageFiles([]);
+  }, [dialogOpen]);
+
+  const toggleLabel = (slug: ForumLabelSlug) => {
+    setSelectedLabels((prev) => {
+      if (prev.includes(slug)) {
+        return prev.filter((s) => s !== slug);
+      }
+      if (prev.length >= 10) return prev;
+      return [...prev, slug];
+    });
+  };
+
+  const handlePost = async () => {
+    if (!newTitle.trim() || !newContent.trim()) {
+      toast.error("Nhập tiêu đề và nội dung");
+      return;
+    }
+    if (selectedLabels.length === 0) {
+      toast.error("Chọn ít nhất một nhãn chủ đề");
+      return;
+    }
+    setPostBusy(true);
+    try {
+      let images:
+        | Array<{ objectKey: string; url: string }>
+        | undefined;
+      if (imageFiles.length > 0) {
+        const { items } = await uploadService.uploadImages(imageFiles);
+        const mapped = items
+          .filter((item) => item.success && item.forumImage)
+          .map((item) => item.forumImage);
+        if (mapped.length !== imageFiles.length) {
+          toast.error("Một số ảnh chưa tải lên được. Vui lòng thử lại.");
+          return;
         }
+        images = mapped;
+      }
+      await createPost.mutateAsync({
+        title: newTitle.trim(),
+        content: newContent.trim(),
+        labels: [...selectedLabels],
+        ...(images?.length ? { images } : {}),
+      });
+      toast.success("Đã đăng bài");
+      setNewTitle("");
+      setNewContent("");
+      setSelectedLabels([]);
+      setImageFiles([]);
+      setDialogOpen(false);
+    } catch {
+      toast.error("Không đăng được bài — kiểm tra nhãn và thử lại");
+    } finally {
+      setPostBusy(false);
+    }
+  };
 
-        const post: ForumPost = {
-            id: `post-${Date.now()}`,
-            authorId: "farmer-001",
-            authorName: "Nguyễn Văn Minh",
-            authorRole: "farmer",
-            authorBadge: "Nông dân tích cực",
-            title: newTitle.trim(),
-            content: newContent.trim(),
-            tags: newTags.split(",").map((tag) => tag.trim()).filter(Boolean),
-            createdAt: new Date().toISOString(),
-            likes: 0,
-            comments: [],
-            isEscalated: false,
-        };
+  const posts = data?.items ?? [];
+  const pagination = data?.pagination;
+  const listFiltered = Boolean(labelFilter || searchTerm);
 
-        setPosts([post, ...posts]);
-        setNewTitle("");
-        setNewContent("");
-        setNewTags("");
-        setDialogOpen(false);
-    };
+  return (
+    <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-bold">Diễn đàn kỹ thuật</h1>
 
-    const handleComment = (postId: string) => {
-        const text = commentInputs[postId];
-        if (!text?.trim()) {
-            return;
-        }
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger
+            render={
+              <Button className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                Đăng bài
+              </Button>
+            }
+          />
+          <DialogContent className="sm:max-w-140 rounded-2xl bg-white p-5">
+            <DialogHeader className="pr-8">
+              <DialogTitle className="text-2xl font-bold text-[hsl(150,10%,15%)]">
+                Đăng bài mới
+              </DialogTitle>
+            </DialogHeader>
 
-        setPosts((prev) =>
-            prev.map((post) => {
-                if (post.id !== postId) {
-                    return post;
+            <div className="mt-1 space-y-4">
+              <Input
+                placeholder="Tiêu đề bài viết"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                maxLength={220}
+                className="flex h-11 w-full rounded-xl border border-[hsl(142,15%,82%)] bg-white px-3 py-2 text-base text-[hsl(150,10%,15%)] placeholder:text-[hsl(150,6%,55%)] ring-offset-background focus:outline-none focus:ring-2 focus:ring-[hsl(142,71%,45%)] focus:ring-offset-1"
+              />
+              <Textarea
+                placeholder="Nội dung chi tiết..."
+                rows={5}
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+                maxLength={20000}
+                className="min-h-40 rounded-xl border-[hsl(142,15%,82%)] bg-white px-3 py-2 text-base text-[hsl(150,10%,15%)] placeholder:text-[hsl(150,6%,55%)] focus-visible:ring-[hsl(142,71%,45%)]"
+              />
+              <ForumPostImagePicker
+                files={imageFiles}
+                onFilesChange={setImageFiles}
+              />
+              <div>
+                <p className="mb-2 text-sm text-muted-foreground">
+                  Nhãn chủ đề (bắt buộc, tối đa 10)
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {FORUM_LABEL_OPTIONS.map(({ value, label }) => (
+                    <Badge
+                      key={value}
+                      variant={
+                        selectedLabels.includes(value) ? "default" : "outline"
+                      }
+                      className={cn(
+                        "cursor-pointer text-xs",
+                        selectedLabels.includes(value) && "hover:bg-primary",
+                      )}
+                      onClick={() => toggleLabel(value)}
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <Button
+                className="h-11 w-full text-base font-semibold"
+                onClick={() => void handlePost()}
+                disabled={
+                  postBusy ||
+                  createPost.isPending ||
+                  !newTitle.trim() ||
+                  !newContent.trim() ||
+                  selectedLabels.length === 0
                 }
+              >
+                {postBusy || createPost.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang đăng…
+                  </>
+                ) : (
+                  "Đăng bài"
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-                return {
-                    ...post,
-                    comments: [
-                        ...post.comments,
-                        {
-                            id: `cmt-${Date.now()}`,
-                            authorId: "farmer-001",
-                            authorName: "Nguyễn Văn Minh",
-                            authorRole: "farmer",
-                            content: text.trim(),
-                            createdAt: new Date().toISOString(),
-                            likes: 0,
-                        },
-                    ],
-                };
-            })
-        );
+      <ForumPostListFilters
+        labelFilter={labelFilter}
+        onLabelChange={setLabelFilter}
+        searchDraft={searchDraft}
+        onSearchDraftChange={setSearchDraft}
+      />
 
-        setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
-    };
-
-    const handleLike = (postId: string) => {
-        setPosts((prev) =>
-            prev.map((post) => (post.id === postId ? { ...post, likes: post.likes + 1 } : post))
-        );
-    };
-
-    return (
-        <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-bold">Diễn đàn kỹ thuật</h1>
-
-                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                        <DialogTrigger
-                            render={
-                                <Button className="gap-1.5">
-                                    <Plus className="h-4 w-4" />
-                                    Đăng bài
-                                </Button>
-                            }
-                        />
-                        <DialogContent className="sm:max-w-140 rounded-2xl bg-white p-5">
-                            <DialogHeader className="pr-8">
-                                <DialogTitle className="text-2xl font-bold text-[hsl(150,10%,15%)]">Đăng bài mới</DialogTitle>
-                            </DialogHeader>
-
-                            <div className="mt-1 space-y-4">
-                                <input
-                                    placeholder="Tiêu đề bài viết"
-                                    value={newTitle}
-                                    onChange={(event) => setNewTitle(event.target.value)}
-                                    className="flex h-11 w-full rounded-xl border border-[hsl(142,15%,82%)] bg-white px-3 py-2 text-base text-[hsl(150,10%,15%)] placeholder:text-[hsl(150,6%,55%)] ring-offset-background focus:outline-none focus:ring-2 focus:ring-[hsl(142,71%,45%)] focus:ring-offset-1"
-                                />
-                                <Textarea
-                                    placeholder="Nội dung chi tiết..."
-                                    rows={5}
-                                    value={newContent}
-                                    onChange={(event) => setNewContent(event.target.value)}
-                                    className="min-h-40 rounded-xl border-[hsl(142,15%,82%)] bg-white px-3 py-2 text-base text-[hsl(150,10%,15%)] placeholder:text-[hsl(150,6%,55%)] focus-visible:ring-[hsl(142,71%,45%)]"
-                                />
-                                <input
-                                    placeholder="Thẻ (phân cách bằng dấu phẩy)"
-                                    value={newTags}
-                                    onChange={(event) => setNewTags(event.target.value)}
-                                    className="flex h-11 w-full rounded-xl border border-[hsl(142,15%,82%)] bg-white px-3 py-2 text-base text-[hsl(150,10%,15%)] placeholder:text-[hsl(150,6%,55%)] ring-offset-background focus:outline-none focus:ring-2 focus:ring-[hsl(142,71%,45%)] focus:ring-offset-1"
-                                />
-                                <Button
-                                    className="h-11 w-full text-base font-semibold"
-                                    onClick={handlePost}
-                                    disabled={!newTitle.trim() || !newContent.trim()}
-                                >
-                                    Đăng bài
-                                </Button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-
-                <div className="space-y-4">
-                    {posts.map((post) => {
-                        const role = roleLabel[post.authorRole];
-                        const RoleIcon = role.icon;
-
-                        return (
-                            <Card key={post.id} className={post.isEscalated ? "border-warning/50" : ""}>
-                                <CardHeader className="pb-2">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="min-w-0 space-y-1">
-                                            <CardTitle className="text-base leading-snug">{post.title}</CardTitle>
-                                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                                <span className="flex items-center gap-1 font-medium text-foreground">
-                                                    <RoleIcon className="h-3 w-3 text-primary" />
-                                                    {post.authorName}
-                                                </span>
-                                                <Badge className="h-5 border border-border bg-white text-[10px] text-foreground hover:bg-white">
-                                                    {role.label}
-                                                </Badge>
-                                                {post.authorBadge && (
-                                                    <Badge className="h-5 bg-secondary text-[10px] text-secondary-foreground hover:bg-secondary">
-                                                        {post.authorBadge}
-                                                    </Badge>
-                                                )}
-                                                <span>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</span>
-                                            </div>
-                                        </div>
-
-                                        {post.isEscalated && (
-                                            <Badge className="shrink-0 gap-1 border border-warning bg-white text-warning hover:bg-white">
-                                                <AlertCircle className="h-3 w-3" />
-                                                Cần chuyên gia
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </CardHeader>
-
-                                <CardContent className="space-y-3">
-                                    <p className="whitespace-pre-line text-sm">{post.content}</p>
-
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {post.tags.map((tag) => (
-                                            <Badge
-                                                key={tag}
-                                                className="bg-secondary text-xs text-secondary-foreground hover:bg-secondary"
-                                            >
-                                                {tag}
-                                            </Badge>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleLike(post.id)}
-                                            className="flex items-center gap-1 transition-colors hover:text-primary"
-                                        >
-                                            <ThumbsUp className="h-4 w-4" />
-                                            {post.likes}
-                                        </button>
-                                        <span className="flex items-center gap-1">
-                                            <MessageCircle className="h-4 w-4" />
-                                            {post.comments.length}
-                                        </span>
-                                    </div>
-
-                                    {post.comments.length > 0 && (
-                                        <div className="space-y-3 border-t pt-3">
-                                            {post.comments.map((comment) => {
-                                                const commentRole = roleLabel[comment.authorRole];
-                                                const CommentRoleIcon = commentRole.icon;
-
-                                                return (
-                                                    <div
-                                                        key={comment.id}
-                                                        className="space-y-1 border-l-2 border-primary/20 pl-3"
-                                                    >
-                                                        <div className="flex items-center gap-2 text-xs">
-                                                            <span className="flex items-center gap-1 font-medium">
-                                                                <CommentRoleIcon className="h-3 w-3 text-primary" />
-                                                                {comment.authorName}
-                                                            </span>
-                                                            <Badge className="h-4 border border-border bg-white text-[10px] text-foreground hover:bg-white">
-                                                                {commentRole.label}
-                                                            </Badge>
-                                                            <span className="text-muted-foreground">
-                                                                {new Date(comment.createdAt).toLocaleDateString("vi-VN")}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-sm">{comment.content}</p>
-                                                        <button
-                                                            type="button"
-                                                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
-                                                        >
-                                                            <ThumbsUp className="h-3 w-3" />
-                                                            {comment.likes}
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-2">
-                                        <input
-                                            placeholder="Viết bình luận..."
-                                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                            value={commentInputs[post.id] || ""}
-                                            onChange={(event) =>
-                                                setCommentInputs((prev) => ({
-                                                    ...prev,
-                                                    [post.id]: event.target.value,
-                                                }))
-                                            }
-                                            onKeyDown={(event) => {
-                                                if (event.key === "Enter") {
-                                                    handleComment(post.id);
-                                                }
-                                            }}
-                                        />
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-9 px-3"
-                                            onClick={() => handleComment(post.id)}
-                                        >
-                                            <Send className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        );
-                    })}
-                </div>
+      {isLoading && (
+        <div className="flex justify-center py-12 text-sm text-muted-foreground">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Đang tải bài viết…
         </div>
-    );
+      )}
+
+      {isError && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          {(error as Error)?.message ?? "Lỗi tải diễn đàn"}
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-3"
+            onClick={() => void refetch()}
+          >
+            Thử lại
+          </Button>
+        </div>
+      )}
+
+      {!isLoading && !isError && posts.length === 0 && (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          {listFiltered
+            ? "Không có bài phù hợp bộ lọc hoặc từ khóa. Thử chỉnh lại tìm kiếm hoặc nhãn."
+            : "Chưa có bài viết. Hãy đăng bài đầu tiên."}
+        </p>
+      )}
+
+      <div className="space-y-4">
+        {posts.map((post) => (
+          <ForumPostCard
+            key={post.id}
+            post={post}
+            currentUserId={user?.id}
+            allowEditPost={false}
+          />
+        ))}
+      </div>
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex justify-center gap-2 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Trang trước
+          </Button>
+          <span className="flex items-center text-sm text-muted-foreground">
+            {page} / {pagination.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= pagination.totalPages}
+            onClick={() =>
+              setPage((p) => Math.min(pagination.totalPages, p + 1))
+            }
+          >
+            Trang sau
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 }

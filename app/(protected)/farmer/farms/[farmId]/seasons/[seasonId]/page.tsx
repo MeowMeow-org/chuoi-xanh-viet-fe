@@ -449,7 +449,12 @@ export default function SeasonDetailPage() {
 
         {season?.status === "anchored" && (
           <TabsContent value="sale-units">
-            {season && <SaleUnitsSection seasonId={season.id} />}
+            {season && (
+              <SaleUnitsSection
+                seasonId={season.id}
+                farmId={season.farmId}
+              />
+            )}
           </TabsContent>
         )}
       </Tabs>

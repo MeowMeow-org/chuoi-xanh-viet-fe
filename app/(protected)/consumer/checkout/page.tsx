@@ -126,7 +126,7 @@ export default function ConsumerCheckoutPage() {
       const successCount = results.length - failed.length;
       if (failed.length === 0) {
         toast.success("Đặt hàng thành công!", {
-          description: `Đã tạo ${successCount} đơn hàng. Nông dân sẽ xác nhận sớm.`,
+          description: `Đã tạo ${successCount} đơn hàng. Nông hộ sẽ xác nhận sớm.`,
         });
         setOrdered(true);
         // Defensive clear (should be empty after removeByShop loop).
@@ -173,7 +173,7 @@ export default function ConsumerCheckoutPage() {
           </div>
           <h1 className="text-xl font-bold">Đặt hàng thành công!</h1>
           <p className="text-muted-foreground text-sm">
-            Đơn hàng đã được gửi đến gian hàng. Bạn sẽ nhận thông báo khi nông dân
+            Đơn hàng đã được gửi đến gian hàng. Bạn sẽ nhận thông báo khi nông hộ
             xác nhận.
           </p>
           <div className="flex gap-3 justify-center">

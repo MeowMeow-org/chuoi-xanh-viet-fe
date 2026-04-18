@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Chuỗi Xanh Việt | Landing Page",
   description:
-    "WebDev Adventure 2026 - Nhóm Meow Meow. Nền tảng truy xuất nguồn gốc nông sản kết hợp AI, nhật ký số, blockchain và gian hàng số, kết nối nông dân, hợp tác xã và người tiêu dùng.",
+    "WebDev Adventure 2026 - Nhóm Meow Meow. Nền tảng truy xuất nguồn gốc nông sản kết hợp AI, nhật ký số, blockchain và gian hàng số, kết nối nông hộ, hợp tác xã và người tiêu dùng.",
 };
 
 export default function RootLayout({

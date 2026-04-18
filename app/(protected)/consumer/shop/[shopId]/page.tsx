@@ -88,7 +88,7 @@ export default function ConsumerShopPage() {
 
   const messageFarmer = () => {
     if (!farmer) {
-      toast.error("Không tìm thấy nông dân");
+      toast.error("Không tìm thấy nông hộ");
       return;
     }
     openChatMutation.mutate(farmer);
@@ -118,7 +118,9 @@ export default function ConsumerShopPage() {
               </div>
             </div>
             {shop.description && (
-              <p className="text-sm text-muted-foreground">{shop.description}</p>
+              <p className="line-clamp-2 min-w-0 w-full break-words text-sm text-muted-foreground">
+                {shop.description}
+              </p>
             )}
             {certs.length > 0 && (
               <div className="flex gap-2 flex-wrap">
@@ -138,7 +140,7 @@ export default function ConsumerShopPage() {
                 disabled={openChatMutation.isPending || !farmer}
               >
                 <MessageSquare className="h-3.5 w-3.5" />
-                Nhắn nông dân
+                Nhắn nông hộ
               </Button>
               <Link href={`/consumer/trace`}>
                 <Button variant="outline" size="sm" className="gap-1">

@@ -7,7 +7,7 @@ import { Bell, Package, MessageSquare, Star } from 'lucide-react';
 
 const notifications = [
   { id: '1', type: 'order', title: 'Đơn hàng đang giao', content: 'Đơn Xà lách lô lô xanh đang được giao đến bạn.', read: false, time: '2 giờ trước' },
-  { id: '2', type: 'order', title: 'Đơn hàng đã xác nhận', content: 'Đơn Dưa leo baby + Bí đao xanh đã được nông dân xác nhận.', read: false, time: '1 ngày trước' },
+  { id: '2', type: 'order', title: 'Đơn hàng đã xác nhận', content: 'Đơn Dưa leo baby + Bí đao xanh đã được nông hộ xác nhận.', read: false, time: '1 ngày trước' },
   { id: '3', type: 'message', title: 'Tin nhắn mới', content: 'Nguyễn Văn Minh đã trả lời câu hỏi của bạn trên diễn đàn.', read: true, time: '2 ngày trước' },
   { id: '4', type: 'review', title: 'Đánh giá của bạn đã được đăng', content: 'Cảm ơn bạn đã đánh giá Rau muống hữu cơ!', read: true, time: '5 ngày trước' },
 ];

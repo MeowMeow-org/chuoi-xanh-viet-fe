@@ -106,7 +106,7 @@ export default function ConsumerProductPage() {
   const messageFarmer = () => {
     const peerUserId = product.shop.farm?.ownerUserId;
     if (!peerUserId) {
-      toast.error("Không tìm thấy nông dân của gian hàng này");
+      toast.error("Không tìm thấy nông hộ của gian hàng này");
       return;
     }
     openChatMutation.mutate(peerUserId);
@@ -183,7 +183,7 @@ export default function ConsumerProductPage() {
             disabled={openChatMutation.isPending}
           >
             <MessageSquare className="h-4 w-4" />
-            {openChatMutation.isPending ? "Đang mở..." : "Nhắn nông dân"}
+            {openChatMutation.isPending ? "Đang mở..." : "Nhắn nông hộ"}
           </Button>
         )}
 

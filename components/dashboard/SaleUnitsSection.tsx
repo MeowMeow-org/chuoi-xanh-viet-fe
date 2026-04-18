@@ -32,6 +32,7 @@ import {
   useDeleteSaleUnitMutation,
   useSaleUnitsQuery,
 } from "@/hooks/useSaleUnit";
+import { useMyShopsQuery } from "@/hooks/useFarmerShop";
 import type { SaleUnit } from "@/services/sale-unit";
 import { cn } from "@/lib/utils";
 
@@ -83,9 +84,13 @@ function QrWithDownload({ value, label }: { value: string; label: string }) {
 function SaleUnitCard({
   saleUnit,
   onDelete,
+  shopId,
+  farmId,
 }: {
   saleUnit: SaleUnit;
   onDelete: (id: string) => void;
+  shopId?: string | null;
+  farmId?: string | null;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -135,7 +140,9 @@ function SaleUnitCard({
               <span className="font-mono text-base font-bold">
                 {saleUnit.shortCode ?? "--"}
               </span>
-              <Badge className={`border-0 ${badgeClass}`}>{badgeLabel}</Badge>
+              <Badge className={`border-0 ${badgeClass}`}>
+                {badgeLabel}
+              </Badge>
             </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {saleUnit.quantity}{" "}
@@ -174,19 +181,27 @@ function SaleUnitCard({
             </Button>
             {saleUnit.status === "active" && !saleUnit.product && (
               <Link
-                href={`/farmer/marketplace/add?saleUnitId=${encodeURIComponent(saleUnit.id)}`}
+                href={
+                  shopId
+                    ? `/farmer/marketplace/shops/${shopId}/add?saleUnitId=${encodeURIComponent(saleUnit.id)}`
+                    : `/farmer/marketplace/new?saleUnitId=${encodeURIComponent(saleUnit.id)}${farmId ? `&farmId=${encodeURIComponent(farmId)}` : ""}`
+                }
                 className={cn(
                   buttonVariants({ variant: "secondary", size: "sm" }),
                   "inline-flex h-7 gap-1.5 text-xs no-underline",
                 )}
               >
                 <Store className="h-3 w-3" />
-                Đăng bán
+                {shopId ? "Đăng bán" : "Mở gian hàng & đăng bán"}
               </Link>
             )}
             {saleUnit.status === "active" && saleUnit.product && (
               <Link
-                href={`/farmer/marketplace`}
+                href={
+                  shopId
+                    ? `/farmer/marketplace/shops/${shopId}`
+                    : `/farmer/marketplace`
+                }
                 className={cn(
                   buttonVariants({ variant: "outline", size: "sm" }),
                   "inline-flex h-7 gap-1.5 text-xs no-underline",
@@ -203,10 +218,20 @@ function SaleUnitCard({
   );
 }
 
-export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
+export default function SaleUnitsSection({
+  seasonId,
+  farmId,
+}: {
+  seasonId: string;
+  farmId?: string | null;
+}) {
   const { data, isLoading } = useSaleUnitsQuery(seasonId);
   const createMutation = useCreateSaleUnitMutation();
   const deleteMutation = useDeleteSaleUnitMutation(seasonId);
+  const { data: myShops } = useMyShopsQuery();
+  const shopForFarm = farmId
+    ? (myShops?.find((s) => s.farm_id === farmId) ?? null)
+    : null;
 
   const list = data?.items ?? [];
   const totals = data?.totals;
@@ -401,6 +426,8 @@ export default function SaleUnitsSection({ seasonId }: { seasonId: string }) {
               key={unit.id}
               saleUnit={unit}
               onDelete={setDeleteTarget}
+              shopId={shopForFarm?.id ?? null}
+              farmId={farmId ?? null}
             />
           ))}
         </div>
