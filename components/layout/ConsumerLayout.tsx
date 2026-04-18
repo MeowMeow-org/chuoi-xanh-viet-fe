@@ -19,6 +19,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
 import { useLogoutMutation } from "@/hooks/useAuth";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -128,21 +129,11 @@ export default function ConsumerLayout({
                   <Package className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/consumer/notifications">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative h-9 w-9"
-                  title="Thông báo"
-                >
-                  <Bell className="h-4 w-4" />
-                  {unreadNotifs > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-medium text-destructive-foreground tabular-nums">
-                      {unreadNotifs > 99 ? "99+" : unreadNotifs}
-                    </span>
-                  )}
-                </Button>
-              </Link>
+              <NotificationsPopover
+                variant="consumer"
+                viewAllHref="/consumer/notifications"
+                unreadCount={unreadNotifs}
+              />
               <Link href="/consumer/messages">
                 <Button
                   variant="ghost"
@@ -201,6 +192,13 @@ export default function ConsumerLayout({
                   </div>
                 </div>
               </div>
+            </div>
+            <div className="flex items-center gap-0.5 md:hidden">
+              <NotificationsPopover
+                variant="consumer"
+                viewAllHref="/consumer/notifications"
+                unreadCount={unreadNotifs}
+              />
             </div>
             <Button
               variant="ghost"

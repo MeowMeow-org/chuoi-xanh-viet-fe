@@ -5,3 +5,20 @@ export function formatDateTimeVN(iso: string) {
   const time = (timeWithZone ?? "").slice(0, 5);
   return `${time} ${day}/${month}/${year}`;
 }
+
+/** Thời gian tương đối ngắn (VD: "Vừa xong", "3 giờ", "2 ngày") — dùng UI thông báo. */
+export function formatRelativeTimeVN(iso: string) {
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return "";
+  const sec = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (sec < 60) return "Vừa xong";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} phút`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} giờ`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day} ngày`;
+  const week = Math.floor(day / 7);
+  if (week < 5) return `${week} tuần`;
+  return formatDateTimeVN(iso);
+}
