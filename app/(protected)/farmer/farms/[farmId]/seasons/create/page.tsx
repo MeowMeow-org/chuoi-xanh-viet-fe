@@ -232,7 +232,8 @@ export default function CreateSeasonPage() {
                 })}
               />
               <p className="text-xs leading-relaxed text-[hsl(150,8%,40%)]">
-                Một mùa vụ chỉ ghi <span className="font-medium">một loại cây</span>.
+                Một mùa vụ chỉ ghi{" "}
+                <span className="font-medium">một loại cây</span>.
               </p>
             </div>
             {errors.cropName && (
@@ -304,8 +305,7 @@ export default function CreateSeasonPage() {
                       const n = Number(t);
                       if (Number.isNaN(n))
                         return "Năng suất dự kiến phải là số";
-                      if (n <= 0)
-                        return "Năng suất dự kiến phải lớn hơn 0";
+                      if (n <= 0) return "Năng suất dự kiến phải lớn hơn 0";
                       return true;
                     },
                   })}

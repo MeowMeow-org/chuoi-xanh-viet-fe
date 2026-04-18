@@ -135,9 +135,7 @@ function SaleUnitCard({
               <span className="font-mono text-base font-bold">
                 {saleUnit.shortCode ?? "--"}
               </span>
-              <Badge className={`border-0 ${badgeClass}`}>
-                {badgeLabel}
-              </Badge>
+              <Badge className={`border-0 ${badgeClass}`}>{badgeLabel}</Badge>
             </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {saleUnit.quantity}{" "}
