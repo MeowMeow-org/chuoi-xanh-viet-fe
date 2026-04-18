@@ -20,6 +20,17 @@ const farmFieldClass =
 const farmButtonClass =
   "cursor-pointer focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed";
 
+/** Cùng chuẩn với nhập sản lượng mùa vụ / lô bán (BE quy đổi kg). */
+const MASS_UNIT_OPTIONS = [
+  { value: "tấn", label: "tấn" },
+  { value: "kg", label: "kg" },
+  { value: "gam", label: "gam" },
+] as const;
+
+function normalizeMassUnit(s: string): string {
+  return s.trim().toLowerCase();
+}
+
 /** `YYYY-MM-DD` từ input type=date → UTC midnight của ngày đó (tránh lệch múi giờ). */
 function utcDayFromYmd(ymd: string): number | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
@@ -35,8 +46,7 @@ function utcDayFromYmd(ymd: string): number | null {
 type FormValues = {
   cropName: string;
   startDate: string;
-  harvestStartDate: string;
-  harvestEndDate: string;
+  expectedHarvestDate: string;
   estimatedYield: string;
   actualYield: string;
   yieldUnit: string;
@@ -62,6 +72,8 @@ export default function CreateSeasonPage() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     mode: "onBlur",
@@ -69,13 +81,14 @@ export default function CreateSeasonPage() {
     defaultValues: {
       cropName: "",
       startDate: "",
-      harvestStartDate: "",
-      harvestEndDate: "",
+      expectedHarvestDate: "",
       estimatedYield: "",
       actualYield: "",
       yieldUnit: "kg",
     },
   });
+
+  const yieldUnitWatch = watch("yieldUnit");
 
   if (!farmId) return null;
 
@@ -116,52 +129,26 @@ export default function CreateSeasonPage() {
     }
 
     const start = values.startDate;
-    const hStart = values.harvestStartDate.trim();
-    const hEnd = values.harvestEndDate.trim();
+    const hExpected = values.expectedHarvestDate.trim();
 
     const tSeason = utcDayFromYmd(start);
     if (tSeason == null) {
       toast.error("Ngày bắt đầu mùa vụ không hợp lệ.");
       return;
     }
-    if (hStart) {
-      const tHs = utcDayFromYmd(hStart);
-      if (tHs != null && tHs < tSeason) {
+    if (hExpected) {
+      const tH = utcDayFromYmd(hExpected);
+      if (tH != null && tH < tSeason) {
         toast.error(
-          "Ngày bắt đầu thu hoạch không được trước ngày bắt đầu mùa vụ.",
-        );
-        return;
-      }
-    }
-    if (hEnd) {
-      const tHe = utcDayFromYmd(hEnd);
-      const tMinHarvest = hStart ? utcDayFromYmd(hStart) : tSeason;
-      if (
-        tHe != null &&
-        tMinHarvest != null &&
-        tHe < tMinHarvest
-      ) {
-        toast.error(
-          hStart
-            ? "Ngày kết thúc thu hoạch phải sau hoặc cùng ngày bắt đầu thu hoạch."
-            : "Ngày kết thúc thu hoạch không được trước ngày bắt đầu mùa vụ.",
+          "Ngày thu hoạch dự kiến không được trước ngày bắt đầu mùa vụ.",
         );
         return;
       }
     }
 
-    const est = values.estimatedYield.trim();
+    const estimatedYield = Number(values.estimatedYield.trim());
     const act = values.actualYield.trim();
-    let estimatedYield: number | undefined;
     let actualYield: number | undefined;
-    if (est !== "") {
-      const n = Number(est);
-      if (Number.isNaN(n)) {
-        toast.error("Năng suất dự kiến phải là số.");
-        return;
-      }
-      estimatedYield = n;
-    }
     if (act !== "") {
       const n = Number(act);
       if (Number.isNaN(n)) {
@@ -171,17 +158,17 @@ export default function CreateSeasonPage() {
       actualYield = n;
     }
 
-    const yieldUnit = values.yieldUnit.trim() || "kg";
+    const yieldUnit =
+      values.yieldUnit.trim().length > 0 ? values.yieldUnit.trim() : "kg";
 
     createMutation.mutate(
       {
         farmId,
         cropName,
         startDate: start,
-        harvestStartDate: hStart || undefined,
-        harvestEndDate: hEnd || undefined,
+        harvestStartDate: hExpected || undefined,
         estimatedYield,
-        actualYield,
+        ...(actualYield !== undefined ? { actualYield } : {}),
         yieldUnit,
       },
       {
@@ -209,9 +196,21 @@ export default function CreateSeasonPage() {
           </h1>
           <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,40%)]">
             {farm
-              ? `Nông trại: ${farm.name} — mã vụ do hệ thống gán (6 chữ cái + 6 số); bạn chỉ cần cây trồng và thời gian.`
+              ? `Nông trại: ${farm.name} — mã vụ do hệ thống gán (6 chữ cái + 6 số); cần cây trồng, ngày bắt đầu và năng suất dự kiến.`
               : "Đang tải thông tin nông trại..."}
           </p>
+          {farm && (
+            <p className="mt-2 text-sm leading-relaxed text-[hsl(150,8%,40%)]">
+              <span className="font-semibold text-[hsl(150,12%,22%)]">
+                Cây trồng chính{" "}
+              </span>
+              <span className="text-[hsl(150,10%,28%)]">
+                {farm.cropMain?.trim()
+                  ? farm.cropMain.trim()
+                  : "— chưa khai báo trên hồ sơ trại"}
+              </span>
+            </p>
+          )}
         </div>
       </div>
 
@@ -221,16 +220,21 @@ export default function CreateSeasonPage() {
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            <Input
-              className={farmFieldClass}
-              placeholder="Cây trồng / vụ chính * (ví dụ: Rau muống hữu cơ)"
-              maxLength={120}
-              aria-invalid={errors.cropName ? true : undefined}
-              disabled={farmsLoading || !farm}
-              {...register("cropName", {
-                required: "Nhập tên cây trồng hoặc mô tả vụ",
-              })}
-            />
+            <div className="space-y-1">
+              <Input
+                className={farmFieldClass}
+                placeholder="Cây trồng / vụ chính"
+                maxLength={120}
+                aria-invalid={errors.cropName ? true : undefined}
+                disabled={farmsLoading || !farm}
+                {...register("cropName", {
+                  required: "Nhập cây trồng / vụ chính",
+                })}
+              />
+              <p className="text-xs leading-relaxed text-[hsl(150,8%,40%)]">
+                Một mùa vụ chỉ ghi <span className="font-medium">một loại cây</span>.
+              </p>
+            </div>
             {errors.cropName && (
               <p className="text-sm text-red-600">{errors.cropName.message}</p>
             )}
@@ -254,39 +258,26 @@ export default function CreateSeasonPage() {
             </div>
 
             <div className="space-y-3 rounded-xl border border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] p-4">
-              <div>
-                <p className="text-sm font-semibold text-[hsl(150,16%,18%)]">
-                  Thu hoạch (tuỳ chọn)
+              <div className="space-y-1">
+                <label
+                  htmlFor="expected-harvest"
+                  className="block text-sm font-semibold text-[hsl(150,16%,18%)]"
+                >
+                  Ngày thu hoạch dự kiến{" "}
+                  <span className="font-normal text-[hsl(150,8%,40%)]">
+                    (tuỳ chọn)
+                  </span>
+                </label>
+                <p className="text-xs leading-relaxed text-[hsl(150,8%,38%)]">
+                  Không được trước ngày bắt đầu vụ.
                 </p>
-                <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,38%)]">
-                  Tuỳ chọn. Thu hoạch phải từ ngày bắt đầu mùa vụ trở đi; nếu có
-                  cả hai mốc thu hoạch, ngày kết thúc không được trước ngày bắt
-                  đầu thu hoạch.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="block text-xs font-medium text-[hsl(150,10%,35%)]">
-                    Bắt đầu thu hoạch
-                  </label>
-                  <Input
-                    type="date"
-                    className={farmFieldClass}
-                    disabled={farmsLoading || !farm}
-                    {...register("harvestStartDate")}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="block text-xs font-medium text-[hsl(150,10%,35%)]">
-                    Kết thúc thu hoạch
-                  </label>
-                  <Input
-                    type="date"
-                    className={farmFieldClass}
-                    disabled={farmsLoading || !farm}
-                    {...register("harvestEndDate")}
-                  />
-                </div>
+                <Input
+                  id="expected-harvest"
+                  type="date"
+                  className={farmFieldClass}
+                  disabled={farmsLoading || !farm}
+                  {...register("expectedHarvestDate")}
+                />
               </div>
             </div>
 
@@ -296,19 +287,34 @@ export default function CreateSeasonPage() {
                   htmlFor="estimated-yield"
                   className="block text-xs font-medium text-[hsl(150,10%,35%)]"
                 >
-                  Năng suất dự kiến{" "}
-                  <span className="font-normal text-[hsl(150,8%,45%)]">
-                    (tuỳ chọn)
-                  </span>
+                  Năng suất dự kiến *
                 </label>
                 <Input
                   id="estimated-yield"
                   className={farmFieldClass}
                   inputMode="decimal"
                   placeholder="Ví dụ: 1500"
+                  aria-invalid={errors.estimatedYield ? true : undefined}
                   disabled={farmsLoading || !farm}
-                  {...register("estimatedYield")}
+                  {...register("estimatedYield", {
+                    required: "Nhập năng suất dự kiến",
+                    validate: (v) => {
+                      const t = String(v ?? "").trim();
+                      if (!t) return "Nhập năng suất dự kiến";
+                      const n = Number(t);
+                      if (Number.isNaN(n))
+                        return "Năng suất dự kiến phải là số";
+                      if (n <= 0)
+                        return "Năng suất dự kiến phải lớn hơn 0";
+                      return true;
+                    },
+                  })}
                 />
+                {errors.estimatedYield && (
+                  <p className="text-sm text-red-600">
+                    {errors.estimatedYield.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1">
                 <label
@@ -331,23 +337,34 @@ export default function CreateSeasonPage() {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label
-                htmlFor="yield-unit"
-                className="block text-xs font-medium text-[hsl(150,10%,35%)]"
-              >
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-[hsl(150,10%,35%)]">
                 Đơn vị tính
-              </label>
-              <Input
-                id="yield-unit"
-                className={farmFieldClass}
-                placeholder="kg"
-                maxLength={20}
-                disabled={farmsLoading || !farm}
-                {...register("yieldUnit")}
-              />
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {MASS_UNIT_OPTIONS.map((opt) => {
+                  const selected =
+                    normalizeMassUnit(yieldUnitWatch) ===
+                    normalizeMassUnit(opt.value);
+                  return (
+                    <Button
+                      key={opt.value}
+                      type="button"
+                      variant={selected ? "default" : "outline"}
+                      size="sm"
+                      className="min-w-13 rounded-full"
+                      disabled={farmsLoading || !farm}
+                      onClick={() =>
+                        setValue("yieldUnit", opt.value, { shouldDirty: true })
+                      }
+                    >
+                      {opt.label}
+                    </Button>
+                  );
+                })}
+              </div>
               <p className="text-xs leading-relaxed text-[hsl(150,8%,40%)]">
-                Mặc định <span className="font-medium">kg</span> nếu để trống.
+                Áp dụng cho cả năng suất dự kiến và năng suất thực tế.
               </p>
             </div>
 

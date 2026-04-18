@@ -30,7 +30,7 @@ export const forumPosts: ForumPost[] = [
         authorId: "farmer-001",
         authorName: "Nguyễn Văn Minh",
         authorRole: "farmer",
-        authorBadge: "Nông dân tích cực",
+        authorBadge: "Nông hộ tích cực",
         title: "Cách xử lý rau muống bị vàng lá sau khi bón phân?",
         content: "Chào mọi người, rau muống nhà mình sau khi bón phân NPK 16-16-8 được 3 ngày thì lá bắt đầu vàng từ gốc lên. Mình đã tưới đủ nước. Có ai gặp tình trạng tương tự không? Xin hướng dẫn cách khắc phục ạ.",
         tags: ["Rau muống", "Bón phân", "Bệnh cây"],

@@ -11,6 +11,11 @@ export interface SaleUnit {
   shortCode: string | null;
   status: SaleUnitStatus;
   createdAt: string;
+  /** Nếu đã đăng bán thì có product liên kết (1-1). */
+  product?: {
+    id: string;
+    isActive: boolean;
+  } | null;
 }
 
 export interface CreateSaleUnitPayload {
