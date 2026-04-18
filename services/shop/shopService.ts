@@ -32,6 +32,8 @@ type RawProductRow = {
     description?: string | null;
     is_verified: boolean;
     certifications: unknown;
+    average_rating?: number | null;
+    review_count?: number;
     farms?: {
       id: string;
       name: string;
@@ -58,6 +60,8 @@ type RawProductRow = {
     short_code: string | null;
     qr_url: string;
   } | null;
+  average_rating?: number | null;
+  review_count?: number;
 };
 
 const parseCertifications = (raw: unknown): string[] => {
@@ -106,6 +110,8 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
               cropMain: row.shops.farms.crop_main ?? null,
             }
           : null,
+        averageRating: row.shops.average_rating ?? null,
+        reviewCount: row.shops.review_count ?? 0,
       }
     : null,
   season: row.seasons
@@ -123,6 +129,8 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
         qrUrl: row.sale_unit.qr_url,
       }
     : null,
+  averageRating: row.average_rating ?? null,
+  reviewCount: row.review_count ?? 0,
 });
 
 const mapProductDetail = (row: RawProductRow): PublicProductDetail => {

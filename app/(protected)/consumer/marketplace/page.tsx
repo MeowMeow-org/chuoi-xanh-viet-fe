@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Leaf, ShieldCheck, MapPin, Search, Loader2 } from "lucide-react";
+import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { shopService } from "@/services/shop/shopService";
 
 const REGIONS = [
@@ -161,6 +162,12 @@ export default function ConsumerMarketplacePage() {
                           <p className="text-xs text-muted-foreground line-clamp-1">
                             {product.shop?.name}
                           </p>
+                          <ProductRatingBadge
+                            averageRating={product.averageRating}
+                            reviewCount={product.reviewCount}
+                            size="xs"
+                            className="block"
+                          />
                           {product.shop?.farm?.province && (
                             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                               <MapPin className="h-3 w-3" />
@@ -216,6 +223,12 @@ export default function ConsumerMarketplacePage() {
                           </div>
                           <div className="flex-1 min-w-0 space-y-1">
                             <p className="font-bold text-sm">{shop.name}</p>
+                            <ProductRatingBadge
+                              averageRating={shop.average_rating}
+                              reviewCount={shop.review_count}
+                              size="xs"
+                              className="block"
+                            />
                             {shop.farms?.province && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <MapPin className="h-3 w-3" />

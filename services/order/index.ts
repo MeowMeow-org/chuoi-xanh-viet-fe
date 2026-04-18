@@ -21,6 +21,12 @@ export interface OrderItem {
     unit: string | null;
     imageUrl: string | null;
   };
+  /** Đánh giá sản phẩm này trong đơn (nếu đã có) */
+  myReview?: {
+    id: string;
+    rating: number;
+    comment: string | null;
+  } | null;
 }
 
 export interface OrderShop {

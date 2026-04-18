@@ -109,7 +109,11 @@ export const usePatchMeMutation = () => {
   const queryClient = useQueryClient();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  return useMutation<User, Error, { avatarUrl: string | null }>({
+  return useMutation<
+    User,
+    Error,
+    { avatarUrl?: string | null; fullName?: string; phone?: string }
+  >({
     mutationFn: (payload) => authService.patchMe(payload),
     onSuccess: (user) => {
       const { accessToken, refreshToken } = useAuthStore.getState();
@@ -119,7 +123,23 @@ export const usePatchMeMutation = () => {
         user,
       });
       void queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
-      toast.success("Đã cập nhật ảnh đại diện");
+      toast.success("Đã cập nhật hồ sơ");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+};
+
+export const useChangePasswordMutation = () => {
+  return useMutation<
+    void,
+    Error,
+    { currentPassword: string; newPassword: string; confirm_password: string }
+  >({
+    mutationFn: (payload) => authService.changePassword(payload),
+    onSuccess: () => {
+      toast.success("Đã đổi mật khẩu");
     },
     onError: (error) => {
       toast.error(error.message);

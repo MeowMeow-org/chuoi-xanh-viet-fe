@@ -43,13 +43,6 @@ export function FancySelect({
     };
   }, [open]);
 
-  useEffect(() => {
-    if (open) {
-      const idx = options.findIndex((o) => o.value === value);
-      setHighlight(idx >= 0 ? idx : 0);
-    }
-  }, [open, options, value]);
-
   const commit = (v: string) => {
     onChange(v);
     setOpen(false);
@@ -59,16 +52,22 @@ export function FancySelect({
     if (disabled) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (!open) setOpen(true);
-      else
+      if (!open) {
+        const idx = options.findIndex((o) => o.value === value);
+        setHighlight(idx >= 0 ? idx : 0);
+        setOpen(true);
+      } else
         setHighlight((i) => {
           const max = Math.max(0, options.length - 1);
           return Math.min(max, i + 1);
         });
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (!open) setOpen(true);
-      else setHighlight((i) => Math.max(0, i - 1));
+      if (!open) {
+        const idx = options.findIndex((o) => o.value === value);
+        setHighlight(idx >= 0 ? idx : 0);
+        setOpen(true);
+      } else setHighlight((i) => Math.max(0, i - 1));
     } else if (e.key === "Enter" && open) {
       e.preventDefault();
       const opt = options[highlight];
@@ -81,7 +80,17 @@ export function FancySelect({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={() => {
+          if (disabled) return;
+          setOpen((o) => {
+            const next = !o;
+            if (next) {
+              const idx = options.findIndex((x) => x.value === value);
+              setHighlight(idx >= 0 ? idx : 0);
+            }
+            return next;
+          });
+        }}
         onKeyDown={handleKey}
         aria-haspopup="listbox"
         aria-expanded={open}

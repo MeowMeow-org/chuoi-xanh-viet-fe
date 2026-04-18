@@ -18,6 +18,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useLogoutMutation } from "@/hooks/useAuth";
+import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const navItems = [
@@ -32,6 +33,7 @@ const mobileNavItems = [
   { href: "/cooperative", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/cooperative/inspections", label: "Kiểm tra", icon: ClipboardCheck },
   { href: "/cooperative/requests", label: "Yêu cầu", icon: Inbox },
+  { href: "/cooperative/notifications", label: "Thông báo", icon: Bell },
 ];
 
 const secondaryNav = [
@@ -48,7 +50,7 @@ export default function CooperativeLayout({
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const displayName = user?.fullName?.trim() || "Hợp tác xã";
-  const unreadNotifs = 0;
+  const { data: unreadNotifs = 0 } = useNotificationUnreadCount();
   const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
 
   const isActive = (path: string) => {
@@ -106,8 +108,8 @@ export default function CooperativeLayout({
                 >
                   <Bell className="size-5" />
                   {unreadNotifs > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                      {unreadNotifs}
+                    <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-medium text-white tabular-nums">
+                      {unreadNotifs > 99 ? "99+" : unreadNotifs}
                     </span>
                   )}
                 </Button>
@@ -227,8 +229,8 @@ export default function CooperativeLayout({
                     {item.label}
                     {item.href === "/cooperative/notifications" &&
                       unreadNotifs > 0 && (
-                        <span className="ml-auto rounded-full bg-[hsl(142,71%,45%)] px-1.5 py-0.5 text-[10px] text-white">
-                          {unreadNotifs}
+                        <span className="ml-auto rounded-full bg-[hsl(142,71%,45%)] px-1.5 py-0.5 text-[10px] text-white tabular-nums">
+                          {unreadNotifs > 99 ? "99+" : unreadNotifs}
                         </span>
                       )}
                   </Link>
@@ -265,23 +267,32 @@ export default function CooperativeLayout({
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur md:hidden">
-        <div className="flex py-1">
+        <div className="flex overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
+            const showUnread =
+              item.href === "/cooperative/notifications" && unreadNotifs > 0;
 
             return (
               <Link
                 key={`${item.href}-bottom`}
                 href={item.href}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-center transition-colors ${
-                  active ? "text-[hsl(142,71%,35%)]" : "text-[hsl(150,7%,45%)]"
+                className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-center transition-colors ${
+                  active
+                    ? "text-[hsl(142,71%,35%)]"
+                    : "text-[hsl(150,7%,45%)]"
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                <span className="w-full text-[11px] font-medium leading-tight whitespace-normal">
+                <span className="w-full text-[10px] font-medium leading-tight whitespace-normal">
                   {item.label}
                 </span>
+                {showUnread && (
+                  <span className="absolute right-0.5 top-0.5 flex min-h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-medium text-white tabular-nums">
+                    {unreadNotifs > 99 ? "99+" : unreadNotifs}
+                  </span>
+                )}
               </Link>
             );
           })}

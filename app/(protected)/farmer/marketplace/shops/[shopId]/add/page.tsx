@@ -49,7 +49,6 @@ export default function FarmerShopAddProductPage({
   const [prodDesc, setProdDesc] = useState("");
   const [prodPrice, setProdPrice] = useState("");
   const [prodImageFile, setProdImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const saleUnitOptions = useMemo(
@@ -61,35 +60,37 @@ export default function FarmerShopAddProductPage({
     [saleUnits],
   );
 
+  const saleUnitIdFromUrl = useMemo(() => {
+    const fromUrl = searchParams.get("saleUnitId");
+    if (!fromUrl || !saleUnits?.length) return "";
+    return saleUnits.some((u) => u.id === fromUrl) ? fromUrl : "";
+  }, [searchParams, saleUnits]);
+
+  const effectiveSaleUnitId = prodSaleUnitId || saleUnitIdFromUrl;
+
   const selectedSaleUnit = useMemo(
-    () => saleUnits?.find((u) => u.id === prodSaleUnitId),
-    [saleUnits, prodSaleUnitId],
+    () => saleUnits?.find((u) => u.id === effectiveSaleUnitId),
+    [saleUnits, effectiveSaleUnitId],
+  );
+
+  const imagePreview = useMemo(
+    () => (prodImageFile ? URL.createObjectURL(prodImageFile) : null),
+    [prodImageFile],
   );
 
   useEffect(() => {
-    if (!prodImageFile) {
-      setImagePreview(null);
-      return;
-    }
-    const url = URL.createObjectURL(prodImageFile);
-    setImagePreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [prodImageFile]);
-
-  useEffect(() => {
-    const fromUrl = searchParams.get("saleUnitId");
-    if (!fromUrl || !saleUnits?.length) return;
-    if (saleUnits.some((u) => u.id === fromUrl)) {
-      setProdSaleUnitId(fromUrl);
-    }
-  }, [searchParams, saleUnits]);
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
 
   const nameCount = prodName.length;
   const descCount = prodDesc.length;
 
   const handleAddProduct = async () => {
     if (!shop?.id) return;
-    if (!prodSaleUnitId) {
+    const saleUnitId = prodSaleUnitId || saleUnitIdFromUrl;
+    if (!saleUnitId) {
       toast.error("Chọn lô đã phân (có QR) để đăng bán");
       return;
     }
@@ -123,7 +124,7 @@ export default function FarmerShopAddProductPage({
       {
         shopId: shop.id,
         payload: {
-          sale_unit_id: prodSaleUnitId,
+          sale_unit_id: saleUnitId,
           name: prodName.trim(),
           description: prodDesc.trim() || undefined,
           price,
@@ -200,7 +201,7 @@ export default function FarmerShopAddProductPage({
                 Lô đã phân (QR) <span className="text-destructive">*</span>
               </Label>
               <FancySelect
-                value={prodSaleUnitId}
+                value={effectiveSaleUnitId}
                 onChange={setProdSaleUnitId}
                 options={saleUnitOptions}
                 placeholder={
@@ -379,7 +380,7 @@ export default function FarmerShopAddProductPage({
                 type="button"
                 disabled={
                   addProduct.isPending ||
-                  !prodSaleUnitId ||
+                  !effectiveSaleUnitId ||
                   !prodName.trim() ||
                   saleUnitsLoading
                 }

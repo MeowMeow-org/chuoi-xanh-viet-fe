@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ImagePlus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,15 @@ export function ForumPostImagePicker({
   className?: string;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [previews, setPreviews] = useState<string[]>([]);
+
+  const previews = useMemo(
+    () => files.map((f) => URL.createObjectURL(f)),
+    [files],
+  );
 
   useEffect(() => {
-    const urls = files.map((f) => URL.createObjectURL(f));
-    setPreviews(urls);
-    return () => urls.forEach((u) => URL.revokeObjectURL(u));
-  }, [files]);
+    return () => previews.forEach((u) => URL.revokeObjectURL(u));
+  }, [previews]);
 
   const addFiles = (list: FileList | null) => {
     if (!list?.length) return;

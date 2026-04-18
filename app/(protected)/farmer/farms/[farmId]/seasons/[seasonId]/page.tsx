@@ -14,7 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import DiaryEntryForm from "@/components/dashboard/DiaryEntryForm";
@@ -505,12 +505,6 @@ function YieldCard({
   );
   const [unit, setUnit] = useState(() => unitInDb || "kg");
 
-  useEffect(() => {
-    if (!editing) {
-      setUnit(unitInDb || "kg");
-    }
-  }, [unitInDb, editing]);
-
   const handleSave = () => {
     const n = Number(value);
     if (!Number.isFinite(n) || n <= 0) {
@@ -528,7 +522,9 @@ function YieldCard({
 
   const displayUnit = unitLocked
     ? formatYieldUnitLabel(unitInDb)
-    : formatYieldUnitLabel(unit);
+    : editing
+      ? formatYieldUnitLabel(unit)
+      : formatYieldUnitLabel(unitInDb || "kg");
 
   return (
     <div

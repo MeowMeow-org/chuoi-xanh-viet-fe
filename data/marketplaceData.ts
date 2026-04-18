@@ -139,7 +139,7 @@ export const notifications: Notification[] = [
         content: "Lê Hoàng Nam đã đặt 5 bó Rau muống hữu cơ",
         read: false,
         createdAt: "2026-04-08T06:30:00+07:00",
-        link: "/farmer/orders",
+        link: "/farmer/marketplace",
     },
     {
         id: "noti-002",
@@ -157,7 +157,7 @@ export const notifications: Notification[] = [
         content: "Nguyễn Thị Hằng đã đánh giá 5 sao cho Cà chua Savior F1",
         read: true,
         createdAt: "2026-04-01T09:00:00+07:00",
-        link: "/farmer/marketplace/prod-002",
+        link: "/farmer/marketplace",
     },
     {
         id: "noti-004",

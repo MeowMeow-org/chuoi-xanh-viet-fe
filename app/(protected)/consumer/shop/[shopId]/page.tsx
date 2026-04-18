@@ -16,9 +16,9 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { shopService } from "@/services/shop/shopService";
 import { chatService } from "@/services/chat/chatService";
-
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
   return Number.isFinite(num) ? num.toLocaleString("vi-VN") : "0";
@@ -105,6 +105,12 @@ export default function ConsumerShopPage() {
               </div>
               <div className="flex-1 min-w-0 space-y-1">
                 <h1 className="font-bold text-lg">{shop.name}</h1>
+                <ProductRatingBadge
+                  averageRating={shop.average_rating}
+                  reviewCount={shop.review_count}
+                  size="sm"
+                  className="block"
+                />
                 {region && (
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" /> {region}
@@ -185,6 +191,11 @@ export default function ConsumerShopPage() {
                     <p className="font-semibold text-sm line-clamp-1">
                       {product.name}
                     </p>
+                    <ProductRatingBadge
+                      averageRating={product.averageRating}
+                      reviewCount={product.reviewCount}
+                      size="xs"
+                    />
                     <p className="text-primary font-bold text-sm">
                       {formatPrice(product.price)}đ/{product.unit ?? "đơn vị"}
                     </p>

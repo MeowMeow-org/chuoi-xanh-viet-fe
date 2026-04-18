@@ -1,22 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { use, useMemo } from "react";
 import {
   ArrowLeft,
   ExternalLink,
   Loader2,
+  Package,
   Plus,
+  Star,
   Store,
   Users,
 } from "lucide-react";
 
+import { FarmerShopOrdersPanel } from "@/components/farmer/farmer-shop-orders-panel";
+import { FarmerShopReviewsPanel } from "@/components/farmer/farmer-shop-reviews-panel";
+import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMyShopsQuery, useShopProductsQuery } from "@/hooks/useFarmerShop";
 import type { PublicProduct } from "@/services/shop";
 import { cn } from "@/lib/utils";
+
+type ShopTab = "manage" | "orders" | "reviews";
 
 function formatPrice(v: number | string) {
   const n = typeof v === "string" ? Number(v) : v;
@@ -29,6 +37,24 @@ export default function FarmerShopDetailPage({
   params: Promise<{ shopId: string }>;
 }) {
   const { shopId } = use(params);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const shopTab: ShopTab = (() => {
+    const t = searchParams.get("tab");
+    if (t === "orders" || t === "reviews") return t;
+    return "manage";
+  })();
+
+  const setShopTab = (t: ShopTab) => {
+    if (t === "manage") {
+      router.replace(`/farmer/marketplace/shops/${shopId}`, { scroll: false });
+    } else {
+      router.replace(`/farmer/marketplace/shops/${shopId}?tab=${t}`, {
+        scroll: false,
+      });
+    }
+  };
 
   const { data: shops, isLoading: shopsLoading } = useMyShopsQuery();
   const shop = useMemo(
@@ -155,71 +181,139 @@ export default function FarmerShopDetailPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Sản phẩm đang bán ({products.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {productsLoading && (
-                <p className="text-sm text-muted-foreground">Đang tải…</p>
-              )}
-              {!productsLoading && products.length === 0 && (
-                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  Chưa có sản phẩm nào.{" "}
-                  <Link
-                    href={`/farmer/marketplace/shops/${shop.id}/add`}
-                    className="font-medium text-primary underline"
-                  >
-                    Thêm sản phẩm đầu tiên
-                  </Link>
-                  .
-                </div>
-              )}
-              {products.length > 0 && (
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {products.map((p) => (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={shopTab === "manage" ? "default" : "outline"}
+              className={
+                shopTab === "manage"
+                  ? "bg-[hsl(142,69%,45%)] hover:bg-[hsl(142,69%,40%)]"
+                  : "border-[hsl(142,14%,88%)]"
+              }
+              onClick={() => setShopTab("manage")}
+            >
+              <Store className="h-4 w-4" />
+              Sản phẩm & đăng bán
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={shopTab === "orders" ? "default" : "outline"}
+              className={
+                shopTab === "orders"
+                  ? "bg-[hsl(142,69%,45%)] hover:bg-[hsl(142,69%,40%)]"
+                  : "border-[hsl(142,14%,88%)]"
+              }
+              onClick={() => setShopTab("orders")}
+            >
+              <Package className="h-4 w-4" />
+              Đơn hàng
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={shopTab === "reviews" ? "default" : "outline"}
+              className={
+                shopTab === "reviews"
+                  ? "bg-[hsl(142,69%,45%)] hover:bg-[hsl(142,69%,40%)]"
+                  : "border-[hsl(142,14%,88%)]"
+              }
+              onClick={() => setShopTab("reviews")}
+            >
+              <Star
+                className={cn(
+                  "h-4 w-4",
+                  shopTab === "reviews" ? "text-white" : "text-amber-500",
+                )}
+              />
+              Đánh giá
+            </Button>
+          </div>
+
+          {shopTab === "orders" && <FarmerShopOrdersPanel />}
+
+          {shopTab === "reviews" && (
+            <FarmerShopReviewsPanel shopId={shop.id} shopName={shop.name} />
+          )}
+
+          {shopTab === "manage" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Sản phẩm đang bán ({products.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {productsLoading && (
+                  <p className="text-sm text-muted-foreground">Đang tải…</p>
+                )}
+                {!productsLoading && products.length === 0 && (
+                  <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                    Chưa có sản phẩm nào.{" "}
                     <Link
-                      key={p.id}
-                      href={`/farmer/marketplace/${p.id}`}
-                      className="block rounded-xl border bg-card transition hover:border-primary/40"
+                      href={`/farmer/marketplace/shops/${shop.id}/add`}
+                      className="font-medium text-primary underline"
                     >
-                      <div className="relative h-32 overflow-hidden bg-muted">
-                        {p.imageUrl ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={p.imageUrl}
-                            alt=""
-                            className="absolute inset-0 h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-3xl">
-                            🌱
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-3">
-                        <p className="font-semibold leading-tight">{p.name}</p>
-                        <p className="mt-1 text-sm text-primary">
-                          {formatPrice(p.price)}đ
-                          <span className="text-muted-foreground">
-                            /{p.unit ?? "đơn vị"}
-                          </span>
-                        </p>
-                        <Badge variant="secondary" className="mt-2 text-[10px]">
-                          {p.saleUnit?.shortCode ??
-                            p.saleUnit?.code ??
-                            p.season?.code ??
-                            "—"}
-                        </Badge>
-                      </div>
+                      Thêm sản phẩm đầu tiên
                     </Link>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    .
+                  </div>
+                )}
+                {products.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {products.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/farmer/marketplace/${p.id}`}
+                        className="block rounded-xl border bg-card transition hover:border-primary/40"
+                      >
+                        <div className="relative h-32 overflow-hidden bg-muted">
+                          {p.imageUrl ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={p.imageUrl}
+                              alt=""
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center text-3xl">
+                              🌱
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <p className="font-semibold leading-tight">{p.name}</p>
+                          <div className="mt-1">
+                            <ProductRatingBadge
+                              averageRating={p.averageRating}
+                              reviewCount={p.reviewCount}
+                              size="xs"
+                            />
+                          </div>
+                          <p className="mt-1 text-sm text-primary">
+                            {formatPrice(p.price)}đ
+                            <span className="text-muted-foreground">
+                              /{p.unit ?? "đơn vị"}
+                            </span>
+                          </p>
+                          <Badge
+                            variant="secondary"
+                            className="mt-2 text-[10px]"
+                          >
+                            {p.saleUnit?.shortCode ??
+                              p.saleUnit?.code ??
+                              p.season?.code ??
+                              "—"}
+                          </Badge>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

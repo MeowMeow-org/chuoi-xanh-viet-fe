@@ -31,7 +31,19 @@ export const authService = {
     return response;
   },
 
-  patchMe: async (payload: { avatarUrl: string | null }): Promise<User> => {
+  patchMe: async (payload: {
+    avatarUrl?: string | null;
+    fullName?: string;
+    phone?: string;
+  }): Promise<User> => {
     return axiosInstance.patch<User, User>("/auth/me", payload);
+  },
+
+  changePassword: async (payload: {
+    currentPassword: string;
+    newPassword: string;
+    confirm_password: string;
+  }): Promise<void> => {
+    await axiosInstance.post("/auth/me/password", payload);
   },
 };
