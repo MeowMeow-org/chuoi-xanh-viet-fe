@@ -52,6 +52,7 @@ export default function ConsumerLayout({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
 
   // Cart count is derived from Zustand store so the badge updates realtime
   // khi có change ở page khác (cart/product/checkout). hasHydrated đảm bảo
@@ -62,7 +63,6 @@ export default function ConsumerLayout({
   const user = useAuthStore((s) => s.user);
   const consumerName = user?.fullName || "Người mua";
   const consumerEmail = user?.email || "";
-  const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
 
   const isActive = (path: string) => {
     if (path === "/consumer") return pathname === "/consumer";
@@ -257,6 +257,18 @@ export default function ConsumerLayout({
                   </p>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+                disabled={isLoggingOut}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/5 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60 border-t"
+              >
+                <LogOut className="h-5 w-5" />
+                {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+              </button>
               <Link
                 href="/"
                 onClick={() => setMenuOpen(false)}
@@ -274,17 +286,19 @@ export default function ConsumerLayout({
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur">
-        <div className="flex justify-around py-1">
+        <div className="flex w-full py-1">
           {mobileNav.map((item) => (
             <Link
               key={item.to}
               href={item.to}
-              className={`flex flex-col items-center gap-0.5 px-2 py-2 text-xs font-medium transition-colors relative ${
+              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium leading-tight transition-colors sm:text-xs ${
                 isActive(item.to) ? "text-primary" : "text-muted-foreground"
               }`}
             >
-              <item.icon className="h-5 w-5" />
-              <span className="truncate max-w-15">{item.label}</span>
+              <item.icon className="h-5 w-5 shrink-0" />
+              <span className="line-clamp-2 w-full min-w-0 text-center wrap-break-word">
+                {item.label}
+              </span>
               {item.to === "/consumer/cart" && cartCount > 0 && (
                 <span className="absolute top-1 right-1 h-3.5 w-3.5 rounded-full bg-destructive text-destructive-foreground text-[9px] flex items-center justify-center">
                   {cartCount}

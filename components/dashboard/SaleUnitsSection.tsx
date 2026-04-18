@@ -442,7 +442,7 @@ export default function SaleUnitsSection({
             <AlertDialogTitle>Xoá / ngừng lô bán?</AlertDialogTitle>
             <AlertDialogDescription>
               Nếu lô đã có người quét QR, hệ thống sẽ chỉ chuyển sang trạng thái
-              "Ngừng" để giữ lịch sử truy xuất. Nếu chưa có ai quét, lô sẽ bị
+              &quot;Ngừng&quot; để giữ lịch sử truy xuất. Nếu chưa có ai quét, lô sẽ bị
               xoá hẳn.
             </AlertDialogDescription>
           </AlertDialogHeader>

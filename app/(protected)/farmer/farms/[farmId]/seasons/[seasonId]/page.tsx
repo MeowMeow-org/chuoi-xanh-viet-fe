@@ -303,7 +303,6 @@ export default function SeasonDetailPage() {
       {/* Yield summary + quick editor */}
       {season && (
         <YieldCard
-          seasonId={seasonId!}
           actualYield={actualYield}
           seasonYieldUnit={yieldUnitRaw}
           yieldMissing={yieldMissing}
@@ -361,8 +360,9 @@ export default function SeasonDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Neo mùa vụ lên blockchain?</AlertDialogTitle>
             <AlertDialogDescription>
-              Toàn bộ dữ liệu nhật ký đã được lưu và công khai minh bạch. Quá
-              trình mất vài giây.
+              Toàn bộ dữ liệu nhật ký sẽ được hash và ghi lên Sepolia testnet.
+              Sau khi neo, mùa vụ không thể chỉnh sửa thêm (trừ khi chuyển sang
+              trạng thái &quot;Đã chỉnh sửa&quot;). Quá trình có thể mất vài giây.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -479,7 +479,6 @@ function formatYieldUnitLabel(u: string): string {
 }
 
 function YieldCard({
-  seasonId: _seasonId,
   actualYield,
   seasonYieldUnit,
   yieldMissing,
@@ -488,7 +487,6 @@ function YieldCard({
   isSaving,
   onSave,
 }: {
-  seasonId: string;
   actualYield: number | null;
   /** Đơn vị đã lưu trên mùa vụ (tạo vụ / chỉnh sửa). Có giá trị → khóa, không đổi khi nhập actual. */
   seasonYieldUnit: string;
@@ -661,15 +659,15 @@ function YieldCard({
 
       {showWarning && !editing && (
         <p className="mt-3 text-xs text-amber-700">
-          Bạn cần nhập sản lượng thực tế trước khi hoàn thành thu hoạch hoặc neo
-          lên blockchain.
+          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái &quot;Sẵn
+          sàng neo&quot; hoặc neo lên blockchain.
         </p>
       )}
 
       {!editable && !editing && !yieldMissing && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang "Đã
-          chỉnh sửa".
+          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang &quot;Đã
+          chỉnh sửa&quot;.
         </p>
       )}
     </div>
