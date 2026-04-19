@@ -65,6 +65,7 @@ type RawProductRow = {
   } | null;
   average_rating?: number | null;
   review_count?: number;
+  rank_score?: number;
 };
 
 const parseCertifications = (raw: unknown): string[] => {
@@ -137,6 +138,7 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
     : null,
   averageRating: row.average_rating ?? null,
   reviewCount: row.review_count ?? 0,
+  rankScore: row.rank_score,
 });
 
 const mapProductDetail = (row: RawProductRow): PublicProductDetail => {
@@ -176,10 +178,13 @@ export const shopService = {
     return mapProductDetail(raw);
   },
 
+  /** GET /shop — BE: chỉ gian hàng mở cửa; lọc `province`; sắp xếp sao → số review → xác minh → mới → số SP. */
   getShops: async (query?: {
     page?: number;
     limit?: number;
     searchTerm?: string;
+    /** Lọc theo tỉnh/thành (farm), cùng ý nghĩa với tab sản phẩm */
+    province?: string;
   }): Promise<PaginatedResponse<ShopSummary>> => {
     const raw = await axiosInstance.get<
       PaginatedResponse<ShopSummary>,

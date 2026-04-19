@@ -18,6 +18,7 @@ import {
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { shopService } from "@/services/shop/shopService";
 import type { PublicProduct, ShopSummary } from "@/services/shop";
+import { getStoredMarketplaceProvinceForApi } from "@/lib/location/marketplaceRegions";
 
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
@@ -41,21 +42,25 @@ function pickFeaturedProducts(items: PublicProduct[], max: number): PublicProduc
 }
 
 export default function ConsumerHomePage() {
+  const province = getStoredMarketplaceProvinceForApi();
+
   const productsQuery = useQuery({
-    queryKey: ["consumer-home-products"],
+    queryKey: ["consumer-home-products", province ?? "all"],
     queryFn: () =>
       shopService.getPublicProducts({
         page: 1,
         limit: 24,
+        province,
       }),
   });
 
   const shopsQuery = useQuery({
-    queryKey: ["consumer-home-shops"],
+    queryKey: ["consumer-home-shops", province ?? "all"],
     queryFn: () =>
       shopService.getShops({
         page: 1,
         limit: 12,
+        province,
       }),
   });
 
@@ -63,9 +68,7 @@ export default function ConsumerHomePage() {
     productsQuery.data?.items ?? [],
     8,
   );
-  const featuredShops = (shopsQuery.data?.items ?? [])
-    .filter((s) => s.status === "open")
-    .slice(0, 3);
+  const featuredShops = (shopsQuery.data?.items ?? []).slice(0, 3);
 
   const loadingBlock = (
     <div className="flex justify-center py-12 text-muted-foreground">

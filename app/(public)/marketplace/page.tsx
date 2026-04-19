@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
@@ -8,18 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Leaf, ShieldCheck, MapPin, Search, Loader2 } from "lucide-react";
+import { Leaf, ShieldCheck, MapPin, Search, Loader2, Sparkles } from "lucide-react";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { shopService } from "@/services/shop/shopService";
-
-const REGIONS = [
-  "Tất cả",
-  "TP. Hồ Chí Minh",
-  "Hà Nội",
-  "Đà Nẵng",
-  "Đồng Nai",
-  "Long An",
-];
+import { useMarketplaceRegion } from "@/hooks/useMarketplaceRegion";
 
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
@@ -35,10 +27,10 @@ const formatStock = (stock: number | string | null) => {
 export default function MarketplacePage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [region, setRegion] = useState("Tất cả");
+  const { region, setRegion, regions, locationStatus } = useMarketplaceRegion();
   const [view, setView] = useState<"products" | "shops">("products");
 
-  useMemo(() => {
+  useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
     return () => clearTimeout(t);
   }, [search]);
@@ -56,12 +48,13 @@ export default function MarketplacePage() {
   });
 
   const shopsQuery = useQuery({
-    queryKey: ["public-shops", debouncedSearch],
+    queryKey: ["public-shops", debouncedSearch, region],
     queryFn: () =>
       shopService.getShops({
         page: 1,
         limit: 40,
         searchTerm: debouncedSearch || undefined,
+        province: region === "Tất cả" ? undefined : region,
       }),
     enabled: view === "shops",
   });
@@ -99,8 +92,27 @@ export default function MarketplacePage() {
           </Button>
         </div>
 
+        {locationStatus === "detecting" && (
+          <p className="text-xs text-muted-foreground flex items-center gap-2">
+            <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+            Đang xác định khu vực theo vị trí của bạn…
+          </p>
+        )}
+        {locationStatus === "detected" && region !== "Tất cả" && (
+          <p className="text-xs text-muted-foreground">
+            Đang ưu tiên khu vực gần bạn: <span className="font-medium text-foreground">{region}</span>
+          </p>
+        )}
+        {(locationStatus === "denied" || locationStatus === "unmapped") && (
+          <p className="text-xs text-muted-foreground">
+            {locationStatus === "denied"
+              ? "Không có quyền vị trí — chọn khu vực bên dưới hoặc để “Tất cả”."
+              : "Chưa nhận diện được tỉnh/thành — chọn khu vực thủ công nếu cần."}
+          </p>
+        )}
+
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {REGIONS.map((r) => (
+          {regions.map((r) => (
             <Button
               key={r}
               size="sm"
@@ -143,6 +155,18 @@ export default function MarketplacePage() {
                           ) : (
                             <Leaf className="h-10 w-10 text-primary/30" />
                           )}
+                          {typeof product.rankScore === "number" &&
+                            product.rankScore >= 0.55 && (
+                              <div className="absolute left-2 top-2">
+                                <Badge
+                                  variant="secondary"
+                                  className="gap-0.5 bg-amber-500/95 text-white border-0 text-[10px] px-1.5 py-0 shadow-sm"
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                  Nổi bật
+                                </Badge>
+                              </div>
+                            )}
                           {outOfStock && (
                             <div className="absolute inset-0 bg-background/60 flex items-center justify-center rounded-t-lg">
                               <span className="font-bold text-muted-foreground">
