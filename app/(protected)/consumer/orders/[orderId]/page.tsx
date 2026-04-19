@@ -150,7 +150,7 @@ export default function ConsumerOrderDetailPage() {
             </p>
             {order.shop && (
               <Link
-                href={`/consumer/shop/${order.shop.id}`}
+                href={`/shop/${order.shop.id}`}
                 className={cn(
                   buttonVariants({ variant: "link" }),
                   "h-auto p-0 text-sm",
@@ -211,7 +211,7 @@ export default function ConsumerOrderDetailPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <Link
-                        href={`/consumer/product/${item.productId}`}
+                        href={`/product/${item.productId}`}
                         className="font-medium hover:underline line-clamp-2"
                       >
                         {item.product.name}

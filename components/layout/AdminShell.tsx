@@ -20,10 +20,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       <header className="sticky top-0 z-50 border-b border-[hsl(142,14%,88%)] bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80">
         <div className="mx-auto flex h-14 w-full max-w-screen-2xl items-center justify-between px-4 sm:px-6 lg:px-10">
           <Link href="/admin" className="flex items-center gap-2">
-            <span className="rounded-lg bg-[hsl(142,71%,45%)] p-1.5">
+            <span className="gradient-green flex items-center justify-center rounded-lg p-1.5">
               <Leaf className="h-5 w-5 text-white" />
             </span>
-            <span className="text-lg font-semibold text-[hsl(150,10%,22%)]">
+            <span className="whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
+              Chuỗi Xanh Việt
+            </span>
+            <span className="hidden rounded-full border border-[hsl(142,14%,88%)] bg-[hsl(120,15%,96%)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[hsl(150,10%,35%)] sm:inline">
               Quản trị
             </span>
           </Link>

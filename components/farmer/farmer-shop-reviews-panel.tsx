@@ -103,7 +103,7 @@ export function FarmerShopReviewsPanel({
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
-                        href={`/consumer/product/${r.product.id}`}
+                        href={`/product/${r.product.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex max-w-full items-center gap-2 rounded-md border border-[hsl(142,14%,88%)] bg-[hsl(120,22%,97%)] px-2 py-1 text-xs font-medium text-[hsl(150,10%,18%)] hover:bg-[hsl(120,18%,94%)]"

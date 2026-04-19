@@ -17,16 +17,22 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
+import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { shopService } from "@/services/shop/shopService";
 import { chatService } from "@/services/chat/chatService";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useAuthStore } from "@/store/useAuthStore";
+
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
   return Number.isFinite(num) ? num.toLocaleString("vi-VN") : "0";
 };
 
-export default function ConsumerShopPage() {
+export default function PublicShopPage() {
   const { shopId } = useParams<{ shopId: string }>();
   const router = useRouter();
+  const requireAuth = useRequireAuth();
+  const role = useAuthStore((s) => s.user?.role);
 
   const shopQuery = useQuery({
     queryKey: ["shop", shopId],
@@ -44,7 +50,13 @@ export default function ConsumerShopPage() {
   const openChatMutation = useMutation({
     mutationFn: (peerUserId: string) => chatService.openConversation(peerUserId),
     onSuccess: (conversation) => {
-      router.push(`/consumer/messages?c=${conversation.id}`);
+      const msgRoute =
+        role === "farmer"
+          ? "/farmer/messages"
+          : role === "cooperative"
+            ? "/cooperative/messages"
+            : "/consumer/messages";
+      router.push(`${msgRoute}?c=${conversation.id}`);
     },
   });
 
@@ -64,7 +76,7 @@ export default function ConsumerShopPage() {
       <ConsumerLayout>
         <div className="container py-12 text-center">
           <p className="text-muted-foreground">Không tìm thấy gian hàng</p>
-          <Link href="/consumer/marketplace">
+          <Link href="/marketplace">
             <Button variant="outline" className="mt-4">
               Quay lại chợ
             </Button>
@@ -87,6 +99,7 @@ export default function ConsumerShopPage() {
       : null;
 
   const messageFarmer = () => {
+    if (!requireAuth({ guestMessage: "Đăng nhập để nhắn nông hộ" })) return;
     if (!farmer) {
       toast.error("Không tìm thấy nông hộ");
       return;
@@ -100,8 +113,13 @@ export default function ConsumerShopPage() {
         <Card>
           <CardContent className="p-5 space-y-3">
             <div className="flex items-start gap-4">
-              <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <div className="relative h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Leaf className="h-8 w-8 text-primary" />
+                <CertificateBadge
+                  badges={shop.badges}
+                  farmId={shop.farms?.id}
+                  variant="corner"
+                />
               </div>
               <div className="flex-1 min-w-0 space-y-1">
                 <h1 className="font-bold text-lg">{shop.name}</h1>
@@ -169,10 +187,7 @@ export default function ConsumerShopPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {products.map((product) => (
-              <Link
-                key={product.id}
-                href={`/consumer/product/${product.id}`}
-              >
+              <Link key={product.id} href={`/product/${product.id}`}>
                 <Card className="hover:border-primary/40 transition-colors h-full">
                   <div className="aspect-square bg-muted/50 rounded-t-lg overflow-hidden flex items-center justify-center">
                     {product.imageUrl ? (

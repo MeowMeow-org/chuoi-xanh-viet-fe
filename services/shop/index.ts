@@ -13,9 +13,13 @@ export interface ShopInfo {
   id: string;
   name: string;
   description?: string | null;
+  avatarUrl?: string | null;
   isVerified: boolean;
   certifications?: string[] | null;
+  /** Danh sách chứng chỉ còn hiệu lực (VietGAP…), BE tính sẵn */
+  badges?: import("@/services/certificate").CertificateBadge[];
   farm?: ShopFarmInfo | null;
+  farmId?: string;
   /** Tổng hợp mọi đánh giá SP thuộc gian hàng (BE) */
   averageRating?: number | null;
   reviewCount?: number;
@@ -89,6 +93,8 @@ export interface ShopSummary {
   status: string;
   is_verified: boolean;
   certifications: unknown;
+  /** Badge chứng chỉ còn hiệu lực (VietGAP…), BE tính sẵn */
+  badges?: import("@/services/certificate").CertificateBadge[];
   created_at: string;
   updated_at: string;
   /** Trung bình sao trên mọi đánh giá SP của gian hàng */

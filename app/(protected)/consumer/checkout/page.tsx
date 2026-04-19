@@ -180,7 +180,7 @@ export default function ConsumerCheckoutPage() {
             <Link href="/consumer/orders">
               <Button>Xem đơn hàng</Button>
             </Link>
-            <Link href="/consumer/marketplace">
+            <Link href="/marketplace">
               <Button variant="outline">Tiếp tục mua</Button>
             </Link>
           </div>
