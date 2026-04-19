@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Package, Truck } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { orderService } from "@/services/order/orderService";
 import type { Order, OrderStatus } from "@/services/order";
 
@@ -256,3 +256,4 @@ export default function FarmerOrdersPage() {
     </div>
   );
 }
+

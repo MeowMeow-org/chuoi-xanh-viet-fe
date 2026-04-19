@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Package, Phone, Store, User } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { orderService } from "@/services/order/orderService";
 import type { Order, OrderStatus } from "@/services/order";
 
@@ -337,3 +337,4 @@ export function FarmerShopOrdersPanel() {
     </div>
   );
 }
+

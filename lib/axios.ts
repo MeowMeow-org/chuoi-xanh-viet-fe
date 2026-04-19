@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { clearAuthCookies, saveAuthCookies } from "@/services/auth/storage";
 
 export const axiosInstance = axios.create({
@@ -107,3 +107,4 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+

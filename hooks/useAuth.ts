@@ -7,9 +7,9 @@ import {
 import { authService } from "@/services/auth/authService";
 import { clearAuthCookies, saveAuthCookies } from "@/services/auth/storage";
 import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "@/components/ui/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 
 const resolveRoleRoute = (role: string | undefined): string | null => {
   const normalizedRole = role?.trim().toLowerCase();
@@ -51,7 +51,7 @@ export const useRegisterMutation = () => {
         user: res.user,
       });
       saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
-      toast.success("Register successfully");
+      toast.success("Đăng ký thành công");
       const roleRoute = resolveRoleRoute(res.user.role);
       router.replace(roleRoute ?? "/");
     },
@@ -75,7 +75,7 @@ export const useLoginMutation = () => {
         user: res.user,
       });
       saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
-      toast.success("Login successfully");
+      toast.success("Đăng nhập thành công");
       const next = sanitizeNext(searchParams?.get("next") ?? null);
       const roleRoute = resolveRoleRoute(res.user.role);
       router.replace(next ?? roleRoute ?? "/");
@@ -100,7 +100,7 @@ export const useLogoutMutation = () => {
       clearAuthCookies();
       queryClient.removeQueries();
       router.replace("/login");
-      toast.success("Logout successfully");
+      toast.success("Đăng xuất thành công");
     },
     onError: (error) => {
       clearAuth();

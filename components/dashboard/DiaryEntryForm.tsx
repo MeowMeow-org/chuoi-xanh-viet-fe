@@ -12,7 +12,7 @@ import {
     WifiOff,
     X,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { useCreateDiaryMutation } from "@/hooks/useDiary";
 import { OfflineDiaryEntry, useOfflineStorage } from "@/hooks/useOfflineStorage";
@@ -463,3 +463,4 @@ export default function DiaryEntryForm({
         </Card>
     );
 }
+

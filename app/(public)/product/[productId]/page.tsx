@@ -21,7 +21,7 @@ import {
   Store,
   Star,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { shopService } from "@/services/shop/shopService";
 import { reviewService } from "@/services/review/reviewService";
 import { chatService } from "@/services/chat/chatService";
@@ -738,3 +738,4 @@ export default function PublicProductPage() {
     </ConsumerLayout>
   );
 }
+

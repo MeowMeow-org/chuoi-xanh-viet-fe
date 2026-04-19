@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -42,7 +42,7 @@ export function useRequireAuth(defaultOpts: RequireAuthOptions = {}) {
       if (merged.role && user.role !== merged.role) {
         toast.error(
           merged.wrongRoleMessage ??
-            `Chỉ tài khoản ${merged.role} mới có thể thực hiện thao tác này`,
+          `Chỉ tài khoản ${merged.role} mới có thể thực hiện thao tác này`,
         );
         return false;
       }
@@ -51,3 +51,4 @@ export function useRequireAuth(defaultOpts: RequireAuthOptions = {}) {
     [defaultOpts, pathname, router, searchParams, user],
   );
 }
+

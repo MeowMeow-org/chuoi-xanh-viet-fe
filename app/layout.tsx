@@ -41,7 +41,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <Toaster position="top-center" richColors />
+          <Toaster position="top-right" richColors />
           {children}
         </QueryProvider>
       </body>

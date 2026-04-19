@@ -18,7 +18,7 @@ import {
   Store,
   Loader2,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import {
   groupCartByShop,
   selectCartSubtotal,
@@ -345,3 +345,4 @@ export default function ConsumerCheckoutPage() {
     </ConsumerLayout>
   );
 }
+

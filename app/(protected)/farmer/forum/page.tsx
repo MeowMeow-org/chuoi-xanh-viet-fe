@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { ForumPostCard } from "@/components/forum/ForumPostCard";
 import { ForumPostImagePicker } from "@/components/forum/ForumPostImagePicker";
@@ -128,7 +128,7 @@ export default function FarmerForumPage() {
   const listFiltered = Boolean(labelFilter || searchTerm);
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6">
+    <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6 [&_button]:cursor-pointer [&_button:disabled]:cursor-not-allowed">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Diễn đàn kỹ thuật</h1>
 
@@ -257,12 +257,12 @@ export default function FarmerForumPage() {
             key={post.id}
             post={post}
             currentUserId={user?.id}
-            allowEditPost={false}
+            allowEditPost
           />
         ))}
       </div>
 
-      {pagination && pagination.totalPages > 1 && (
+      {pagination && (
         <div className="flex justify-center gap-2 pt-2">
           <Button
             variant="outline"
@@ -290,3 +290,4 @@ export default function FarmerForumPage() {
     </div>
   );
 }
+

@@ -20,7 +20,7 @@ import {
   Star,
   XCircle,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { orderService } from "@/services/order/orderService";
 import type { Order, OrderItem, OrderStatus } from "@/services/order";
 
@@ -307,3 +307,4 @@ export default function ConsumerOrderDetailPage() {
     </ConsumerLayout>
   );
 }
+

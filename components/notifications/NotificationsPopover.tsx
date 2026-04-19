@@ -152,7 +152,7 @@ export function NotificationsPopover({
       {open ? (
         <div
           className={cn(
-            "absolute right-0 z-[100] mt-1.5 flex max-h-[min(70vh,28rem)] w-[min(calc(100vw-1rem),24rem)] flex-col overflow-hidden rounded-xl border shadow-lg sm:w-[22.5rem]",
+            "absolute right-0 z-100 mt-1.5 flex max-h-[min(70vh,28rem)] w-[min(calc(100vw-1rem),24rem)] flex-col overflow-hidden rounded-xl border shadow-lg sm:w-90",
             isCoop || isFarmer || isAdmin
               ? "border-[hsl(142,14%,88%)] bg-white"
               : "border-border bg-popover text-popover-foreground",
