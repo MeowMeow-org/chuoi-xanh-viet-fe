@@ -54,7 +54,7 @@ function parseSeasonActualYield(value: unknown): number | null {
 }
 
 const STATUS_LABEL: Record<SeasonStatus, string> = {
-  draft: "Nháp",
+  draft: "Hiện hành",
   ready_to_anchor: "Hoàn thành thu hoạch",
   anchored: "Đã công khai",
   amended: "Đã chỉnh sửa",
@@ -78,7 +78,7 @@ const NEXT_STATUS: Partial<
   draft: { to: "ready_to_anchor", label: "Hoàn thành thu hoạch" },
   ready_to_anchor: { to: "anchored", label: "Đăng nhật ký" },
   amended: { to: "ready_to_anchor", label: "Hoàn thành thu hoạch lại" },
-  failed: { to: "draft", label: "Khôi phục nháp" },
+  failed: { to: "draft", label: "Khôi phục (Hiện hành)" },
 };
 
 export default function SeasonDetailPage() {

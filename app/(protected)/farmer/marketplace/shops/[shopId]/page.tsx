@@ -310,12 +310,20 @@ export default function FarmerShopDetailPage({
                           </p>
                           <Badge
                             variant="secondary"
-                            className="mt-2 text-[10px]"
+                            className="mt-2 gap-1 text-[10px]"
                           >
-                            {p.saleUnit?.shortCode ??
-                              p.saleUnit?.code ??
-                              p.season?.code ??
-                              "—"}
+                            <span>
+                              {p.saleUnit?.shortCode ??
+                                p.saleUnit?.code ??
+                                p.season?.code ??
+                                "—"}
+                            </span>
+                            {p.stockQty != null && (
+                              <span className="text-muted-foreground">
+                                · Còn {Number(p.stockQty).toLocaleString("vi-VN")}
+                                {p.unit ? ` ${p.unit}` : ""}
+                              </span>
+                            )}
                           </Badge>
                         </div>
                       </Link>

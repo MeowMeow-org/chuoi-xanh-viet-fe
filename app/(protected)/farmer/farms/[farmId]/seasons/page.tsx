@@ -38,7 +38,7 @@ import {
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
 
 const getStatusLabel = (status: SeasonStatus) => {
-  if (status === "draft") return "Nháp";
+  if (status === "draft") return "Hiện hành";
   if (status === "ready_to_anchor") return "Hoàn thành";
   if (status === "anchored") return "Đã công khai";
   if (status === "amended") return "Đã chỉnh sửa";
@@ -52,7 +52,10 @@ const getStatusClass = (status: SeasonStatus) => {
   if (status === "ready_to_anchor") {
     return "bg-[hsl(142,71%,45%)]/10 text-[hsl(142,71%,35%)]";
   }
-  if (status === "draft" || status === "amended") {
+  if (status === "draft") {
+    return "bg-[hsl(142,71%,45%)]/12 text-[hsl(142,71%,32%)]";
+  }
+  if (status === "amended") {
     return "bg-[hsl(120,20%,94%)] text-[hsl(150,10%,22%)]";
   }
   return "bg-red-100 text-red-700";
@@ -114,6 +117,14 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
     limit: 50,
   });
   const allCerts = certsQuery.data?.items ?? [];
+  const approvedCertCount = useMemo(
+    () => allCerts.filter((c) => c.status === "approved").length,
+    [allCerts],
+  );
+  const pendingCertCount = useMemo(
+    () => allCerts.filter((c) => c.status === "pending").length,
+    [allCerts],
+  );
   const archivedCertCount = useMemo(
     () =>
       allCerts.filter(
@@ -229,14 +240,19 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h2 className="text-lg font-bold">Chứng chỉ nông trại</h2>
-            <Badge className="bg-secondary text-secondary-foreground hover:bg-secondary">
-              {
-                allCerts.filter(
-                  (c) => c.status !== "expired" && c.status !== "revoked",
-                ).length
-              }{" "}
-              còn hiệu lực
-            </Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="bg-[hsl(142,71%,45%)]/15 text-[hsl(142,71%,32%)] hover:bg-[hsl(142,71%,45%)]/20">
+                {approvedCertCount} đã duyệt
+              </Badge>
+              {pendingCertCount > 0 ? (
+                <Badge
+                  variant="outline"
+                  className="border-amber-300/80 bg-amber-50 text-amber-900"
+                >
+                  {pendingCertCount} chờ duyệt
+                </Badge>
+              ) : null}
+            </div>
           </div>
           {farm != null && (
             <Button
@@ -263,7 +279,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           ) : certs.length === 0 ? (
             <div className="rounded-lg border border-dashed border-[hsl(142,15%,85%)] bg-[hsl(120,20%,98%)] p-4 text-sm text-muted-foreground">
               {archivedCertCount > 0 && !showArchivedCerts
-                ? `Nông trại hiện không có chứng chỉ còn hiệu lực. Có ${archivedCertCount} chứng chỉ đã hết hạn/vô hiệu.`
+                ? `Không có chứng chỉ đang hiển thị (đang ẩn ${archivedCertCount} bản hết hạn/vô hiệu).`
                 : "Nông trại này chưa có chứng chỉ nào."}
             </div>
           ) : (
@@ -282,10 +298,14 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                       <Badge className={getCertStatusClass(c.status)}>
                         {getCertStatusLabel(c.status)}
                       </Badge>
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px]"
+                        title="Ai chịu trách nhiệm xét duyệt hồ sơ này (chưa phải trạng thái đã duyệt)"
+                      >
                         {c.approver_scope === "cooperative"
-                          ? "HTX duyệt"
-                          : "Admin duyệt"}
+                          ? "HTX xét duyệt"
+                          : "Admin xét duyệt"}
                       </Badge>
                     </div>
                     <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-xs text-muted-foreground">

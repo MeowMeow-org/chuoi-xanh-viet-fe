@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
 /**
  * Các path PUBLIC (không cần login) — không đưa vào matcher:
  * - "/" (landing), "/login", "/register"
- * - "/marketplace", "/shop/:id", "/product/:id", "/forum"
+ * - "/marketplace", "/shop/:id", "/product/:id", "/forum", "/truy-xuat", "/truy-xuat/:code"
  *
  * Các path còn lại dưới đây bắt buộc login. Role check được thực hiện ở từng
  * layout.tsx tương ứng (vd `(protected)/farmer/layout.tsx`).
