@@ -121,11 +121,6 @@ export default function FarmerShopDetailPage({
                     ) : (
                       <Store className="h-7 w-7 text-muted-foreground" />
                     )}
-                    <CertificateBadge
-                      badges={shop.badges}
-                      farmId={shop.farms?.id}
-                      variant="corner"
-                    />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h1 className="truncate text-xl font-bold">
@@ -174,16 +169,26 @@ export default function FarmerShopDetailPage({
                   </Link>
                 </div>
               </div>
-              {shop.description ? (
-                <div className="border-t pt-3">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Giới thiệu gian hàng
-                  </p>
-                  <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground wrap-break-word">
-                    {shop.description}
-                  </p>
+              {(shop.badges?.some((b) => b.active && b.sources.length > 0) ||
+                shop.description) && (
+                <div className="border-t pt-3 space-y-3">
+                  <CertificateBadge
+                    badges={shop.badges}
+                    farmId={shop.farms?.id}
+                    variant="row"
+                  />
+                  {shop.description ? (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Giới thiệu gian hàng
+                      </p>
+                      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground wrap-break-word">
+                        {shop.description}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
+              )}
             </CardContent>
           </Card>
 
