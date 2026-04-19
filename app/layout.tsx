@@ -35,7 +35,7 @@ export default function RootLayout({
         "h-full",
         "antialiased",
         beVietnamPro.variable,
-        geistMono.variable,
+        geistMono.variable, 
         "font-sans",
       )}
     >

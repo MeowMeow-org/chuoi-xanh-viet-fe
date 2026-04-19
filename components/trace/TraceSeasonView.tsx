@@ -51,15 +51,22 @@ export interface TraceSeasonViewProps {
   seasonId: string;
   headerTitle?: string;
   headerSubtitle?: string;
+  /** Dùng endpoint /trace/public/* (không cần đăng nhập). */
+  publicAccess?: boolean;
 }
 
 export default function TraceSeasonView({
   seasonId,
   headerTitle,
   headerSubtitle,
+  publicAccess = false,
 }: TraceSeasonViewProps) {
-  const { data, isLoading, isError, error } = useTraceSeasonQuery(seasonId);
-  const { data: verify, isLoading: verifying } = useTraceVerifyQuery(seasonId);
+  const { data, isLoading, isError, error } = useTraceSeasonQuery(seasonId, true, {
+    publicAccess,
+  });
+  const { data: verify, isLoading: verifying } = useTraceVerifyQuery(seasonId, true, {
+    publicAccess,
+  });
 
   if (isLoading) {
     return (

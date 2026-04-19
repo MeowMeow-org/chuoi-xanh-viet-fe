@@ -7,8 +7,10 @@ import {
   Building2,
   Calendar,
   ChevronRight,
+  FileText,
   Pencil,
   Plus,
+  ShieldCheck,
   Sprout,
   Trash2,
 } from "lucide-react";
@@ -27,10 +29,13 @@ import {
 import { Pagination } from "@/components/shared/Pagination";
 import { useDeleteFarmMutation, useMyFarmsQuery } from "@/hooks/useFarm";
 import { useSeasonsQuery } from "@/hooks/useSeason";
+import { useMyFarmCertsQuery } from "@/hooks/useCertificate";
 import type { SeasonStatus } from "@/services/season";
+import { CERT_TYPE_LABEL, type FarmCertStatus } from "@/services/certificate";
+import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
 
 const getStatusLabel = (status: SeasonStatus) => {
-  if (status === "draft") return "Nháp";
+  if (status === "draft") return "Hiện hành";
   if (status === "ready_to_anchor") return "Hoàn thành";
   if (status === "anchored") return "Đã công khai";
   if (status === "amended") return "Đã chỉnh sửa";
@@ -44,19 +49,54 @@ const getStatusClass = (status: SeasonStatus) => {
   if (status === "ready_to_anchor") {
     return "bg-[hsl(142,71%,45%)]/10 text-[hsl(142,71%,35%)]";
   }
-  if (status === "draft" || status === "amended") {
+  if (status === "draft") {
+    return "bg-[hsl(142,71%,45%)]/12 text-[hsl(142,71%,32%)]";
+  }
+  if (status === "amended") {
     return "bg-[hsl(120,20%,94%)] text-[hsl(150,10%,22%)]";
   }
   return "bg-red-100 text-red-700";
 };
 
+const getCertStatusLabel = (status: FarmCertStatus) => {
+  if (status === "pending") return "Chờ duyệt";
+  if (status === "approved") return "Đã duyệt";
+  if (status === "rejected") return "Bị từ chối";
+  if (status === "expired") return "Hết hạn";
+  return "Đã vô hiệu";
+};
+
+const getCertStatusClass = (status: FarmCertStatus) => {
+  if (status === "approved") return "bg-[hsl(142,71%,45%)] text-white";
+  if (status === "pending") return "bg-amber-100 text-amber-800";
+  if (status === "rejected") return "bg-red-100 text-red-700";
+  if (status === "expired")
+    return "bg-[hsl(35,80%,92%)] text-[hsl(32,90%,38%)]";
+  return "bg-[hsl(120,10%,92%)] text-[hsl(150,10%,25%)]";
+};
+
+const formatCertDate = (value: string | null | undefined) => {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("vi-VN");
+};
+
 function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
   const [page, setPage] = useState(1);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [certDialogOpen, setCertDialogOpen] = useState(false);
+  const [showArchivedCerts, setShowArchivedCerts] = useState(false);
   const deleteFarmMutation = useDeleteFarmMutation();
 
-  const { farms, isLoading: isFarmLoading } = useMyFarmsQuery({ page: 1, limit: 100 });
-  const farm = useMemo(() => farms.find((item) => item.id === farmId), [farms, farmId]);
+  const { farms, isLoading: isFarmLoading } = useMyFarmsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const farm = useMemo(
+    () => farms.find((item) => item.id === farmId),
+    [farms, farmId],
+  );
 
   const {
     seasons,
@@ -68,6 +108,36 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
     page,
     limit: 6,
   });
+
+  const certsQuery = useMyFarmCertsQuery({
+    farmId,
+    page: 1,
+    limit: 50,
+  });
+  const allCerts = certsQuery.data?.items ?? [];
+  const approvedCertCount = useMemo(
+    () => allCerts.filter((c) => c.status === "approved").length,
+    [allCerts],
+  );
+  const pendingCertCount = useMemo(
+    () => allCerts.filter((c) => c.status === "pending").length,
+    [allCerts],
+  );
+  const archivedCertCount = useMemo(
+    () =>
+      allCerts.filter((c) => c.status === "expired" || c.status === "revoked")
+        .length,
+    [allCerts],
+  );
+  const certs = useMemo(
+    () =>
+      showArchivedCerts
+        ? allCerts
+        : allCerts.filter(
+            (c) => c.status !== "expired" && c.status !== "revoked",
+          ),
+    [allCerts, showArchivedCerts],
+  );
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
@@ -84,7 +154,9 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold">{farm?.name ?? "Nông trại"}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {[farm?.ward, farm?.district, farm?.province].filter(Boolean).join(", ") ||
+              {[farm?.ward, farm?.district, farm?.province]
+                .filter(Boolean)
+                .join(", ") ||
                 farm?.address ||
                 "Đang tải thông tin nông trại..."}
             </p>
@@ -132,34 +204,166 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
         {farm != null &&
           !farm.inCooperative &&
           farm.cooperativeMembershipStatus !== "approved" && (
-          <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
-            {farm.cooperativeMembershipStatus === "pending" ? (
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-[hsl(210,75%,38%)]">
-                  Đang chờ hợp tác xã duyệt yêu cầu
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Bạn đã gửi đơn tham gia. Khi được duyệt, nông trại sẽ gắn với
-                  hợp tác xã.
-                </p>
-              </div>
-            ) : (
-              <>
-                <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
-                  Nông trại chưa gắn với hợp tác xã.
-                </p>
-                <Link
-                  href={`/farmer/farms/${farmId}/join-cooperative`}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
-                >
-                  <Building2 className="h-4 w-4 shrink-0" aria-hidden />
-                  Tham gia hợp tác xã
-                </Link>
-              </>
-            )}
-          </div>
-        )}
+            <div className="mt-3 border-t border-[hsl(142,15%,92%)] pt-3">
+              {farm.cooperativeMembershipStatus === "pending" ? (
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-[hsl(210,75%,38%)]">
+                    Đang chờ hợp tác xã duyệt yêu cầu
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Bạn đã gửi đơn tham gia. Khi được duyệt, nông trại sẽ gắn
+                    với hợp tác xã.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
+                    Nông trại chưa gắn với hợp tác xã.
+                  </p>
+                  <Link
+                    href={`/farmer/farms/${farmId}/join-cooperative`}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
+                  >
+                    <Building2 className="h-4 w-4 shrink-0" aria-hidden />
+                    Tham gia hợp tác xã
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
       </div>
+
+      <div className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h2 className="text-lg font-bold">Chứng chỉ nông trại</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="bg-[hsl(142,71%,45%)]/15 text-[hsl(142,71%,32%)] hover:bg-[hsl(142,71%,45%)]/20">
+                {approvedCertCount} đã duyệt
+              </Badge>
+              {pendingCertCount > 0 ? (
+                <Badge
+                  variant="outline"
+                  className="border-amber-300/80 bg-amber-50 text-amber-900"
+                >
+                  {pendingCertCount} chờ duyệt
+                </Badge>
+              ) : null}
+            </div>
+          </div>
+          {farm != null && (
+            <Button
+              type="button"
+              className="h-9 shrink-0 gap-2 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]"
+              onClick={() => setCertDialogOpen(true)}
+            >
+              <Plus className="h-4 w-4 shrink-0" aria-hidden />
+              Thêm chứng chỉ
+            </Button>
+          )}
+        </div>
+
+        <div className="mt-3">
+          {certsQuery.isLoading ? (
+            <div className="grid gap-2">
+              {Array.from({ length: 2 }).map((_, index) => (
+                <div
+                  key={`cert-skeleton-${index}`}
+                  className="h-16 animate-pulse rounded-lg bg-[hsl(120,20%,94%)]"
+                />
+              ))}
+            </div>
+          ) : certs.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-[hsl(142,15%,85%)] bg-[hsl(120,20%,98%)] p-4 text-sm text-muted-foreground">
+              {archivedCertCount > 0 && !showArchivedCerts
+                ? `Không có chứng chỉ đang hiển thị (đang ẩn ${archivedCertCount} bản hết hạn/vô hiệu).`
+                : "Nông trại này chưa có chứng chỉ nào."}
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              {certs.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex flex-col gap-2 rounded-lg border border-[hsl(142,15%,90%)] bg-white p-3 sm:flex-row sm:items-start sm:justify-between"
+                >
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-[hsl(142,71%,45%)]" />
+                      <span className="font-semibold">
+                        {CERT_TYPE_LABEL[c.type]}
+                      </span>
+                      <Badge className={getCertStatusClass(c.status)}>
+                        {getCertStatusLabel(c.status)}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px]"
+                        title="Ai chịu trách nhiệm xét duyệt hồ sơ này (chưa phải trạng thái đã duyệt)"
+                      >
+                        {c.approver_scope === "cooperative"
+                          ? "HTX xét duyệt"
+                          : "Admin xét duyệt"}
+                      </Badge>
+                    </div>
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-xs text-muted-foreground">
+                      <dt>Số giấy:</dt>
+                      <dd className="text-foreground">
+                        {c.certificate_no ?? "—"}
+                      </dd>
+                      <dt>Đơn vị cấp:</dt>
+                      <dd className="text-foreground">{c.issuer ?? "—"}</dd>
+                      <dt>Hiệu lực:</dt>
+                      <dd className="text-foreground">
+                        {formatCertDate(c.issued_at)} →{" "}
+                        {formatCertDate(c.expires_at)}
+                      </dd>
+                    </dl>
+                    {c.reject_reason && c.status === "rejected" && (
+                      <p className="text-xs text-red-600">
+                        Lý do từ chối: {c.reject_reason}
+                      </p>
+                    )}
+                  </div>
+                  {c.file_url && (
+                    <a
+                      href={c.file_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1 self-start text-xs text-primary hover:underline"
+                    >
+                      <FileText className="h-3 w-3" />
+                      Xem file
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {archivedCertCount > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mt-2 h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setShowArchivedCerts((v) => !v)}
+            >
+              {showArchivedCerts
+                ? `Ẩn chứng chỉ đã hết hạn / vô hiệu (${archivedCertCount})`
+                : `Hiển thị chứng chỉ đã hết hạn / vô hiệu (${archivedCertCount})`}
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {farm != null && (
+        <FarmCertUploadDialog
+          open={certDialogOpen}
+          onOpenChange={setCertDialogOpen}
+          fixedFarmId={farmId}
+          fixedFarmName={farm.name}
+        />
+      )}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">
@@ -169,9 +373,9 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
               Hành động này không thể hoàn tác. Chỉ xóa được khi trại{" "}
               <strong>chưa có mùa vụ</strong>, <strong>chưa có nhật ký</strong>,{" "}
               <strong>chưa có hồ sơ HTX</strong> (kể cả chờ duyệt) và{" "}
-              <strong>chưa tạo gian hàng</strong>. Trang này chỉ liệt kê mùa vụ —
-              nếu bạn đã mở Gian hàng hoặc gửi đơn vào hợp tác xã, vẫn không xóa
-              được dù chưa có vụ.
+              <strong>chưa tạo gian hàng</strong>. Trang này chỉ liệt kê mùa vụ
+              — nếu bạn đã mở Gian hàng hoặc gửi đơn vào hợp tác xã, vẫn không
+              xóa được dù chưa có vụ.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -269,7 +473,9 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/10">
                               <Sprout className="h-4 w-4 text-[hsl(142,71%,45%)]" />
                             </span>
-                            <h3 className="text-base font-semibold">{season.code}</h3>
+                            <h3 className="text-base font-semibold">
+                              {season.code}
+                            </h3>
                             <Badge className={getStatusClass(season.status)}>
                               {getStatusLabel(season.status)}
                             </Badge>
@@ -280,7 +486,9 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                           <p className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
                             Bắt đầu:{" "}
-                            {new Date(season.startDate).toLocaleDateString("vi-VN")}
+                            {new Date(season.startDate).toLocaleDateString(
+                              "vi-VN",
+                            )}
                           </p>
                         </div>
 
@@ -310,7 +518,9 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
 
 export default function FarmSeasonsPage() {
   const params = useParams<{ farmId: string }>();
-  const farmId = Array.isArray(params.farmId) ? params.farmId[0] : params.farmId;
+  const farmId = Array.isArray(params.farmId)
+    ? params.farmId[0]
+    : params.farmId;
   if (!farmId) return null;
   // Re-mount content when farm changes to naturally reset local pagination.
   return <FarmSeasonsPageContent key={farmId} farmId={farmId} />;

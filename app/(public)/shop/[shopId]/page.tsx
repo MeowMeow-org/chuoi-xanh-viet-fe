@@ -115,11 +115,6 @@ export default function PublicShopPage() {
             <div className="flex items-start gap-4">
               <div className="relative h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Leaf className="h-8 w-8 text-primary" />
-                <CertificateBadge
-                  badges={shop.badges}
-                  farmId={shop.farms?.id}
-                  variant="corner"
-                />
               </div>
               <div className="flex-1 min-w-0 space-y-1">
                 <h1 className="font-bold text-lg">{shop.name}</h1>
@@ -141,6 +136,11 @@ export default function PublicShopPage() {
                 )}
               </div>
             </div>
+            <CertificateBadge
+              badges={shop.badges}
+              farmId={shop.farms?.id}
+              variant="row"
+            />
             {shop.description && (
               <p className="line-clamp-2 min-w-0 w-full break-words text-sm text-muted-foreground">
                 {shop.description}
@@ -166,7 +166,7 @@ export default function PublicShopPage() {
                 <MessageSquare className="h-3.5 w-3.5" />
                 Nhắn nông hộ
               </Button>
-              <Link href={`/consumer/trace`}>
+              <Link href="/truy-xuat">
                 <Button variant="outline" size="sm" className="gap-1">
                   <QrCode className="h-3.5 w-3.5" /> Truy xuất
                 </Button>
@@ -214,6 +214,22 @@ export default function PublicShopPage() {
                     <p className="text-primary font-bold text-sm">
                       {formatPrice(product.price)}đ/{product.unit ?? "đơn vị"}
                     </p>
+                    {(product.saleUnit || product.stockQty != null) && (
+                      <p className="text-[11px] text-muted-foreground">
+                        {product.saleUnit && (
+                          <span className="font-medium text-foreground/80">
+                            {product.saleUnit.shortCode ?? product.saleUnit.code}
+                          </span>
+                        )}
+                        {product.saleUnit && product.stockQty != null && " · "}
+                        {product.stockQty != null && (
+                          <span>
+                            Còn {Number(product.stockQty).toLocaleString("vi-VN")}
+                            {product.unit ? ` ${product.unit}` : ""}
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </Link>

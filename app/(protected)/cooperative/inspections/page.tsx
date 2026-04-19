@@ -37,7 +37,7 @@ function getDeviceLocalDateInputValue(date = new Date()): string {
 }
 
 const SEASON_STATUS_LABEL: Record<SeasonStatus, string> = {
-  draft: "Nháp",
+  draft: "Hiện hành",
   ready_to_anchor: "Hoàn thành thu hoạch",
   anchored: "Đã công khai",
   amended: "Đã chỉnh sửa",

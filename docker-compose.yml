@@ -1,0 +1,34 @@
+# Portainer / Git stack: KHÔNG đặt `image: tên-local` nếu chưa push lên registry —
+# `docker compose pull` sẽ cố kéo image đó từ Docker Hub và báo "pull access denied".
+# Chỉ `build` → Compose tự gắn tag (vd. project_web). Bật "Build" khi deploy stack.
+services:
+  web:
+    container_name: chuoi-xanh-viet-fe
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* được inline lúc build — đổi giá trị phải rebuild image.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/v1/api}
+    # Luôn build từ Dockerfile, không cố pull image có sẵn trên registry.
+    pull_policy: build
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: "1"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - chuoi-xanh-viet
+
+networks:
+  chuoi-xanh-viet:
+    driver: bridge

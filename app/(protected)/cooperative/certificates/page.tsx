@@ -201,7 +201,11 @@ function CoopCertsSection() {
                           }
                           className="h-6 px-2 text-[11px] font-medium"
                         >
-                          {c.status === "active" ? "Hiệu lực" : "Đã thu hồi"}
+                          {c.status === "active"
+                            ? "Hiệu lực"
+                            : c.status === "expired"
+                              ? "Hết hạn"
+                              : "Đã thu hồi"}
                         </Badge>
                         <span className="inline-flex items-center rounded-full border border-[hsl(142,18%,88%)] bg-[hsl(120,25%,97%)] px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground">
                           {c._count?.scope ?? 0} nông hộ

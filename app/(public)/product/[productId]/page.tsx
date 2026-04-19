@@ -11,7 +11,6 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Leaf,
   ShieldCheck,
-  QrCode,
   Minus,
   Plus,
   ShoppingCart,
@@ -29,7 +28,6 @@ import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
 import type { ShopReview } from "@/services/review";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
-import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -342,22 +340,6 @@ export default function PublicProductPage() {
     </div>
   );
 
-  const traceCard = (
-    <Link href="/consumer/trace" className="block">
-      <Card className="border-primary/30 transition-colors hover:border-primary/50">
-        <CardContent className="flex items-center gap-3 p-3">
-          <QrCode className="h-8 w-8 shrink-0 text-primary" />
-          <div>
-            <p className="text-sm font-bold">Truy xuất nguồn gốc</p>
-            <p className="text-xs text-muted-foreground">
-              Xem nhật ký canh tác, vị trí, chứng nhận
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-
   // Non-consumer đã login: ẩn nút mua (vì vô nghĩa với họ), vẫn hiện "Nhắn nông hộ".
   const showBuyingActions = isConsumer || !role; // guest: hiện để dẫn login
 
@@ -397,9 +379,9 @@ export default function PublicProductPage() {
               {product.season && (
                 <Card>
                   <CardContent className="space-y-1 p-4">
-                    <h3 className="text-sm font-bold">Thông tin mùa vụ</h3>
+                    <h3 className="text-sm font-bold">Thông tin mùa vụ &amp; lô</h3>
                     <p className="text-xs text-muted-foreground">
-                      Mã:{" "}
+                      Mã mùa:{" "}
                       <span className="font-medium text-foreground">
                         {product.season.code}
                       </span>
@@ -410,6 +392,20 @@ export default function PublicProductPage() {
                         {product.season.cropName}
                       </span>
                     </p>
+                    {product.saleUnit && (
+                      <p className="text-xs text-muted-foreground">
+                        Lô bán:{" "}
+                        <span className="font-semibold text-primary">
+                          {product.saleUnit.shortCode ?? product.saleUnit.code}
+                        </span>{" "}
+                        ·{" "}
+                        <span className="font-medium text-foreground">
+                          {outOfStock
+                            ? "đã bán hết"
+                            : `còn ${stock.toLocaleString("vi-VN")} ${unitLabel}`}
+                        </span>
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -438,8 +434,6 @@ export default function PublicProductPage() {
                 </Button>
               )}
             </div>
-
-            {traceCard}
 
             {showBuyingActions && (
               <div className="hidden space-y-4 pt-4 lg:block">
@@ -479,11 +473,6 @@ export default function PublicProductPage() {
                   >
                     {shopInitials(product.shop.name)}
                   </div>
-                  <CertificateBadge
-                    badges={product.shop.badges}
-                    farmId={product.shop.farm?.id ?? product.shop.farmId}
-                    variant="corner"
-                  />
                 </div>
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <Link
