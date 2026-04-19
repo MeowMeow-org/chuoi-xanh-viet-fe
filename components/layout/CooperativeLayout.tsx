@@ -5,12 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  CircleUser,
   ClipboardCheck,
   Inbox,
   LayoutDashboard,
   Leaf,
   LogOut,
   Menu,
+  ShieldCheck,
   User,
   Users,
   X,
@@ -21,20 +23,22 @@ import { NotificationsPopover } from "@/components/notifications/NotificationsPo
 import { useLogoutMutation } from "@/hooks/useAuth";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/cooperative", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/cooperative/households", label: "Nông hộ", icon: Users },
   { href: "/cooperative/inspections", label: "Kiểm tra", icon: ClipboardCheck },
+  { href: "/cooperative/certificates", label: "Chứng chỉ", icon: ShieldCheck },
   { href: "/cooperative/requests", label: "Yêu cầu", icon: Inbox },
 ];
 
 const mobileNavItems = [
   { href: "/cooperative/households", label: "Nông hộ", icon: Users },
+  { href: "/cooperative/certificates", label: "Chứng chỉ", icon: ShieldCheck },
   { href: "/cooperative", label: "Tổng quan", icon: LayoutDashboard },
-  { href: "/cooperative/inspections", label: "Kiểm tra", icon: ClipboardCheck },
   { href: "/cooperative/requests", label: "Yêu cầu", icon: Inbox },
-  { href: "/cooperative/notifications", label: "Thông báo", icon: Bell },
+  { href: "/cooperative/profile", label: "Hồ sơ", icon: CircleUser },
 ];
 
 const secondaryNav = [
@@ -69,10 +73,10 @@ export default function CooperativeLayout({
             href="/cooperative"
             className="flex w-max shrink-0 items-center gap-2 justify-self-start pl-9 md:pl-0"
           >
-            <span className="rounded-lg bg-[hsl(142,71%,45%)] p-1.5">
+            <span className="gradient-green flex items-center justify-center rounded-lg p-1.5">
               <Leaf className="h-5 w-5 text-white" />
             </span>
-            <span className="whitespace-nowrap text-lg font-semibold leading-none text-[hsl(150,10%,22%)]">
+            <span className="whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
               Chuỗi Xanh Việt
             </span>
           </Link>
@@ -270,14 +274,28 @@ export default function CooperativeLayout({
               <Link
                 key={`${item.href}-bottom`}
                 href={item.href}
-                className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-center transition-colors ${
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-center transition-colors",
                   active
-                    ? "text-[hsl(142,71%,35%)]"
-                    : "text-[hsl(150,7%,45%)]"
-                }`}
+                    ? "bg-[hsl(142,71%,45%)]/18 text-[hsl(142,71%,30%)] shadow-[inset_0_0_0_1px_hsl(142,50%,80%)]"
+                    : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,12%,96%)]",
+                )}
               >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="w-full text-[10px] font-medium leading-tight whitespace-normal">
+                <Icon
+                  className={cn(
+                    "h-5 w-5 shrink-0 transition-colors",
+                    active && "text-[hsl(142,71%,34%)]",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "w-full text-[10px] leading-tight whitespace-normal",
+                    active
+                      ? "font-semibold text-[hsl(142,71%,28%)]"
+                      : "font-medium",
+                  )}
+                >
                   {item.label}
                 </span>
                 {showUnread && (

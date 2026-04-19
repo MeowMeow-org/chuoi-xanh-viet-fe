@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
+import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { shopService } from "@/services/shop/shopService";
 import type { PublicProduct, ShopSummary } from "@/services/shop";
 
@@ -88,7 +89,7 @@ export default function ConsumerHomePage() {
               Minh bạch từ ruộng đến bàn ăn.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/consumer/marketplace">
+              <Link href="/marketplace">
                 <Button
                   size="lg"
                   className="h-13 px-6 text-base font-bold gap-2 w-full sm:w-auto"
@@ -135,7 +136,7 @@ export default function ConsumerHomePage() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Sản phẩm nổi bật</h2>
             <Link
-              href="/consumer/marketplace"
+              href="/marketplace"
               className="text-sm text-primary font-medium flex items-center gap-1"
             >
               Xem tất cả <ArrowRight className="h-3.5 w-3.5" />
@@ -155,7 +156,7 @@ export default function ConsumerHomePage() {
                 return (
                   <Link
                     key={product.id}
-                    href={`/consumer/product/${product.id}`}
+                    href={`/product/${product.id}`}
                   >
                     <Card className="hover:border-primary/40 transition-colors h-full">
                       <div className="aspect-square bg-muted/50 rounded-t-lg overflow-hidden flex items-center justify-center relative">
@@ -227,7 +228,7 @@ export default function ConsumerHomePage() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Gian hàng gợi ý</h2>
             <Link
-              href="/consumer/marketplace"
+              href="/marketplace"
               className="text-sm text-primary font-medium flex items-center gap-1"
             >
               Xem tất cả <ArrowRight className="h-3.5 w-3.5" />
@@ -248,11 +249,16 @@ export default function ConsumerHomePage() {
                     )
                   : [];
                 return (
-                  <Link key={shop.id} href={`/consumer/shop/${shop.id}`}>
+                  <Link key={shop.id} href={`/shop/${shop.id}`}>
                     <Card className="hover:border-primary/40 transition-colors mb-3">
                       <CardContent className="p-4 flex items-start gap-4">
-                        <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <div className="relative h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                           <Leaf className="h-7 w-7 text-primary" />
+                          <CertificateBadge
+                            badges={shop.badges}
+                            farmId={shop.farm_id}
+                            variant="corner"
+                          />
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
                           <p className="font-bold text-sm">{shop.name}</p>

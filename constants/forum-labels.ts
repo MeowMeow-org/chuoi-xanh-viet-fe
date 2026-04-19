@@ -1,4 +1,4 @@
-/** Khớp whitelist BE `ALLOWED_FORUM_LABELS` — dùng slug khi gọi API */
+/** Khớp danh sách nhãn cho phép trên BE `ALLOWED_FORUM_LABELS` — dùng slug khi gọi API */
 export const FORUM_LABEL_SLUGS = [
   "ky-thuat-trong",
   "phan-bon",

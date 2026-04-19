@@ -8,6 +8,7 @@ export const authService = {
       "/auth/login",
       payload,
     );
+    console.log(response);
     return response;
   },
 

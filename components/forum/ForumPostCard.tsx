@@ -38,10 +38,16 @@ export function ForumPostCard({
   post,
   currentUserId,
   allowEditPost = false,
+  readOnly = false,
+  onRequireAuth,
 }: {
   post: ForumPost;
   currentUserId?: string;
   allowEditPost?: boolean;
+  /** Guest mode: ẩn form bình luận, gắn link "Đăng nhập để bình luận". */
+  readOnly?: boolean;
+  /** Khi readOnly, bấm vào link sẽ gọi hàm này (toast + redirect login) */
+  onRequireAuth?: () => void;
 }) {
   const [commentDraft, setCommentDraft] = useState("");
   const [editingPost, setEditingPost] = useState(false);
@@ -357,30 +363,41 @@ export function ForumPostCard({
           </div>
         )}
 
-        <div className="flex gap-2">
-          <Input
-            placeholder="Viết bình luận..."
-            className="h-9 text-sm"
-            value={commentDraft}
-            onChange={(e) => setCommentDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                submitComment();
-              }
-            }}
-          />
-          <Button
+        {readOnly ? (
+          <button
             type="button"
-            size="sm"
-            variant="secondary"
-            className="h-9 shrink-0 px-3"
-            onClick={() => submitComment()}
-            disabled={createComment.isPending || !commentDraft.trim()}
+            onClick={() => onRequireAuth?.()}
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 text-xs font-semibold text-primary hover:bg-primary/10"
           >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+            <MessageCircle className="h-4 w-4" />
+            Đăng nhập để bình luận
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <Input
+              placeholder="Viết bình luận..."
+              className="h-9 text-sm"
+              value={commentDraft}
+              onChange={(e) => setCommentDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  submitComment();
+                }
+              }}
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="h-9 shrink-0 px-3"
+              onClick={() => submitComment()}
+              disabled={createComment.isPending || !commentDraft.trim()}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

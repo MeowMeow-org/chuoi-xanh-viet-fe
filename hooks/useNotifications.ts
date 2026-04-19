@@ -19,13 +19,15 @@ export const notificationQueryKeys = {
 };
 
 /** Số thông báo chưa đọc (dùng cho icon chuông trên layout) */
-export function useNotificationUnreadCount() {
+export function useNotificationUnreadCount(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   return useQuery({
     queryKey: notificationQueryKeys.unreadSummary(),
     queryFn: () => notificationService.list({ page: 1, limit: 1 }),
     select: (res) => res.meta.unreadTotal,
     staleTime: 15_000,
-    refetchInterval: 120_000,
+    refetchInterval: enabled ? 120_000 : false,
+    enabled,
   });
 }
 

@@ -1,5 +1,8 @@
 import { axiosInstance } from "@/lib/axios";
-import type { UploadImagesResponse } from "./index";
+import type {
+  UploadDocumentsResponse,
+  UploadImagesResponse,
+} from "./index";
 
 export const uploadService = {
   uploadImages: async (files: File[]): Promise<UploadImagesResponse> => {
@@ -9,6 +12,24 @@ export const uploadService = {
     });
     return axiosInstance.post<UploadImagesResponse, UploadImagesResponse>(
       "/upload",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+  },
+
+  uploadDocuments: async (
+    files: File[],
+  ): Promise<UploadDocumentsResponse> => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("documents", file);
+    });
+    return axiosInstance.post<UploadDocumentsResponse, UploadDocumentsResponse>(
+      "/upload/documents",
       formData,
       {
         headers: {

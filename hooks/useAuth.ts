@@ -1,9 +1,14 @@
-import { AuthResponse, LoginPayload, RegisterPayload, User } from "@/services/auth";
+import {
+  AuthResponse,
+  LoginPayload,
+  RegisterPayload,
+  User,
+} from "@/services/auth";
 import { authService } from "@/services/auth/authService";
 import { clearAuthCookies, saveAuthCookies } from "@/services/auth/storage";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 const resolveRoleRoute = (role: string | undefined): string | null => {
@@ -17,6 +22,19 @@ const resolveRoleRoute = (role: string | undefined): string | null => {
   }
 
   return null;
+};
+
+/** Chỉ cho phép redirect về path nội bộ (không host ngoài) để tránh open redirect. */
+const sanitizeNext = (value: string | null): string | null => {
+  if (!value) return null;
+  try {
+    const decoded = decodeURIComponent(value);
+    if (!decoded.startsWith("/")) return null;
+    if (decoded.startsWith("//")) return null;
+    return decoded;
+  } catch {
+    return null;
+  }
 };
 
 export const useRegisterMutation = () => {
@@ -45,6 +63,7 @@ export const useRegisterMutation = () => {
 
 export const useLoginMutation = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
 
   return useMutation<AuthResponse, Error, LoginPayload>({
@@ -57,11 +76,12 @@ export const useLoginMutation = () => {
       });
       saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
       toast.success("Login successfully");
+      const next = sanitizeNext(searchParams?.get("next") ?? null);
       const roleRoute = resolveRoleRoute(res.user.role);
-      router.replace(roleRoute ?? "/");
+      router.replace(next ?? roleRoute ?? "/");
     },
-    onError: (error) => {
-      toast.error(error.message);
+    onError: () => {
+      // error toast handled globally
     },
   });
 };

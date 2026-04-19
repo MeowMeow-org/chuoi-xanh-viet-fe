@@ -10,6 +10,7 @@ import {
   Leaf,
   LogOut,
   MessageCircle,
+  ShieldCheck,
   ShoppingBag,
   Sprout,
   User,
@@ -22,6 +23,7 @@ import { NotificationsPopover } from "@/components/notifications/NotificationsPo
 import { useLogoutMutation } from "@/hooks/useAuth";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/farmer", label: "Tổng quan", icon: Home },
@@ -36,13 +38,13 @@ const mobileNavItems = [
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
   { href: "/farmer", label: "Tổng quan", icon: Home },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
-  { href: "/farmer/notifications", label: "Thông báo", icon: Bell },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
 ];
 
 const secondaryNav = [
   { href: "/farmer/messages", label: "Tin nhắn", icon: MessageCircle },
   { href: "/farmer/notifications", label: "Thông báo", icon: Bell },
+  { href: "/farmer/certificates", label: "Chứng chỉ", icon: ShieldCheck },
   { href: "/farmer/profile", label: "Hồ sơ nông trại", icon: User },
 ];
 
@@ -77,13 +79,13 @@ export default function FarmerLayout({
           <header className="sticky top-0 z-50 border-b border-[hsl(142,14%,88%)] bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80">
             <div className="relative mx-auto grid h-14 w-full max-w-screen-2xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6 lg:px-10">
               <Link
-                href="/"
+                href="/farmer"
                 className="flex w-max shrink-0 items-center gap-2 justify-self-start pl-9 md:pl-0"
               >
-                <span className="rounded-lg bg-[hsl(142,71%,45%)] p-1.5">
+                <span className="gradient-green flex items-center justify-center rounded-lg p-1.5">
                   <Leaf className="h-5 w-5 text-white" />
                 </span>
-                <span className="text-lg font-semibold leading-none whitespace-nowrap text-[hsl(150,10%,22%)]">
+                <span className="whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
                   Chuỗi Xanh Việt
                 </span>
               </Link>
@@ -157,6 +159,14 @@ export default function FarmerLayout({
                       >
                         <User className="h-4 w-4 shrink-0" />
                         Hồ sơ tài khoản
+                      </Link>
+                      <Link
+                        href="/farmer/certificates"
+                        role="menuitem"
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm text-[hsl(150,10%,22%)] hover:bg-[hsl(120,10%,96%)]"
+                      >
+                        <ShieldCheck className="h-4 w-4 shrink-0" />
+                        Chứng chỉ nông trại
                       </Link>
                       <button
                         type="button"
@@ -297,14 +307,28 @@ export default function FarmerLayout({
                   <Link
                     key={`${item.href}-bottom`}
                     href={item.href}
-                    className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium leading-tight transition-colors sm:text-xs ${
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] leading-tight transition-colors sm:text-xs",
                       active
-                        ? "text-[hsl(142,71%,35%)]"
-                        : "text-[hsl(150,7%,45%)]"
-                    }`}
+                        ? "bg-[hsl(142,71%,45%)]/18 text-[hsl(142,71%,30%)] shadow-[inset_0_0_0_1px_hsl(142,50%,80%)]"
+                        : "font-medium text-[hsl(150,7%,45%)] hover:bg-[hsl(120,12%,96%)]",
+                    )}
                   >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span className="line-clamp-2 w-full min-w-0 text-center wrap-break-word">
+                    <Icon
+                      className={cn(
+                        "h-5 w-5 shrink-0 transition-colors",
+                        active && "text-[hsl(142,71%,34%)]",
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "line-clamp-2 w-full min-w-0 text-center wrap-break-word",
+                        active
+                          ? "font-semibold text-[hsl(142,71%,28%)]"
+                          : "font-medium",
+                      )}
+                    >
                       {item.label}
                     </span>
                     {showUnread && (

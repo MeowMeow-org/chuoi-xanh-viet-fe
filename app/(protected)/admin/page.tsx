@@ -14,12 +14,18 @@ export default function AdminPage() {
           <p className="mt-3 text-sm text-[hsl(150,5%,45%)]">
             Trang tạm để kiểm tra điều hướng theo vai trò admin sau khi đăng nhập.
           </p>
-          <p className="mt-3 text-sm">
+          <p className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
             <Link
               href="/admin/notifications"
               className="font-medium text-[hsl(142,71%,38%)] underline-offset-2 hover:underline"
             >
               Xem thông báo
+            </Link>
+            <Link
+              href="/admin/certificates"
+              className="font-medium text-[hsl(142,71%,38%)] underline-offset-2 hover:underline"
+            >
+              Duyệt chứng chỉ nông hộ độc lập
             </Link>
           </p>
         </header>

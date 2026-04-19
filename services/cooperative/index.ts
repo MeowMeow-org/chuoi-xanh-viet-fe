@@ -48,5 +48,7 @@ export interface GetCooperativeMembershipsQuery {
   page?: number;
   limit?: number;
   status?: CooperativeMembershipStatus;
+  /** Tìm theo tên trại, địa chỉ, chủ hộ, email */
+  searchTerm?: string;
 }
 
