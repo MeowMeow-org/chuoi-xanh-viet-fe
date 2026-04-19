@@ -54,8 +54,18 @@ type MobileNavItem = {
 const mobileNavAuthed: MobileNavItem[] = [
   { to: "/consumer", label: "Trang chủ", icon: Home },
   { to: "/marketplace", label: "Chợ", icon: Store },
-  { to: "/consumer/cart", label: "Giỏ hàng", icon: ShoppingCart, requireConsumer: true },
-  { to: "/consumer/orders", label: "Đơn hàng", icon: Package, requireConsumer: true },
+  {
+    to: "/consumer/cart",
+    label: "Giỏ hàng",
+    icon: ShoppingCart,
+    requireConsumer: true,
+  },
+  {
+    to: "/consumer/orders",
+    label: "Đơn hàng",
+    icon: Package,
+    requireConsumer: true,
+  },
   { to: "/consumer/profile", label: "Tôi", icon: User, requireAuth: true },
 ];
 
@@ -147,7 +157,8 @@ export default function ConsumerLayout({
     if (path === "/") return pathname === "/";
     if (path === "/farmer") return pathname === "/farmer";
     if (path === "/cooperative") return pathname === "/cooperative";
-    if (path === "/admin") return pathname === "/admin" || pathname.startsWith("/admin/");
+    if (path === "/admin")
+      return pathname === "/admin" || pathname.startsWith("/admin/");
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
@@ -223,7 +234,8 @@ export default function ConsumerLayout({
             {navItems
               .filter((it) => !it.requireConsumer || isConsumer)
               .map((item) => {
-                const to = item.publicHome && isConsumer ? "/consumer" : item.to;
+                const to =
+                  item.publicHome && isConsumer ? "/consumer" : item.to;
                 return (
                   <Link
                     key={item.to}
@@ -439,112 +451,113 @@ export default function ConsumerLayout({
           onClick={(event) => event.stopPropagation()}
         >
           <div className="space-y-1">
-              {navItems
-                .filter((it) => !it.requireConsumer || isConsumer)
-                .map((item) => {
-                  const to = item.publicHome && isConsumer ? "/consumer" : item.to;
-                  return (
-                    <Link
-                      key={item.to}
-                      href={to}
-                      onClick={() => setMenuOpen(false)}
-                      className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
-                        isActive(to)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent"
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              {isConsumer && (
-                <div className="my-2 border-t pt-2">
-                  {sideNav.map((item) => (
-                    <Link
-                      key={item.to}
-                      href={item.to}
-                      onClick={() => setMenuOpen(false)}
-                      className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
-                        isActive(item.to)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent"
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
-                      {item.to === "/consumer/notifications" &&
-                        unreadNotifs > 0 && (
-                          <span
-                            className={`ml-auto rounded-none px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${
-                              isActive(item.to)
-                                ? "bg-primary-foreground/20 text-primary-foreground"
-                                : "bg-primary/15 text-primary"
-                            }`}
-                          >
-                            {unreadNotifs > 99 ? "99+" : unreadNotifs}
-                          </span>
-                        )}
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {user && !isConsumer && role && (
-                <Link
-                  href={ROLE_HOME[role]}
-                  onClick={() => setMenuOpen(false)}
-                  className="mt-2 flex items-center gap-3 rounded-none border-t px-4 py-3 text-base font-medium text-foreground hover:bg-accent"
-                >
-                  <ArrowLeftRight className="h-5 w-5" />
-                  Về trang {ROLE_LABEL[role]}
-                </Link>
-              )}
-              {user && (
-                <>
-                  <div className="mt-2 flex items-center gap-3 border-t px-4 py-3 pt-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-none bg-primary/10">
-                      <User className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">{consumerName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {consumerEmail}
-                      </p>
-                    </div>
+            {navItems
+              .filter((it) => !it.requireConsumer || isConsumer)
+              .map((item) => {
+                const to =
+                  item.publicHome && isConsumer ? "/consumer" : item.to;
+                return (
+                  <Link
+                    key={item.to}
+                    href={to}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
+                      isActive(to)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            {isConsumer && (
+              <div className="my-2 border-t pt-2">
+                {sideNav.map((item) => (
+                  <Link
+                    key={item.to}
+                    href={item.to}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
+                      isActive(item.to)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                    {item.to === "/consumer/notifications" &&
+                      unreadNotifs > 0 && (
+                        <span
+                          className={`ml-auto rounded-none px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${
+                            isActive(item.to)
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : "bg-primary/15 text-primary"
+                          }`}
+                        >
+                          {unreadNotifs > 99 ? "99+" : unreadNotifs}
+                        </span>
+                      )}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {user && !isConsumer && role && (
+              <Link
+                href={ROLE_HOME[role]}
+                onClick={() => setMenuOpen(false)}
+                className="mt-2 flex items-center gap-3 rounded-none border-t px-4 py-3 text-base font-medium text-foreground hover:bg-accent"
+              >
+                <ArrowLeftRight className="h-5 w-5" />
+                Về trang {ROLE_LABEL[role]}
+              </Link>
+            )}
+            {user && (
+              <>
+                <div className="mt-2 flex items-center gap-3 border-t px-4 py-3 pt-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-none bg-primary/10">
+                    <User className="h-5 w-5 text-primary" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      logout();
-                    }}
-                    disabled={isLoggingOut}
-                    className="flex w-full items-center gap-3 rounded-none border-t px-4 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 hover:text-destructive/80 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
-                  </button>
-                </>
-              )}
-              {isGuest && (
-                <div className="mt-2 grid grid-cols-2 gap-2 border-t pt-3">
-                  <Link
-                    href={withNext("/login")}
-                    onClick={() => setMenuOpen(false)}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-none border px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
-                  >
-                    <LogIn className="h-4 w-4" /> Đăng nhập
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMenuOpen(false)}
-                    className="inline-flex items-center justify-center rounded-none bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    Đăng ký
-                  </Link>
+                  <div>
+                    <p className="font-semibold">{consumerName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {consumerEmail}
+                    </p>
+                  </div>
                 </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                  }}
+                  disabled={isLoggingOut}
+                  className="flex w-full items-center gap-3 rounded-none border-t px-4 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 hover:text-destructive/80 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <LogOut className="h-5 w-5" />
+                  {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+                </button>
+              </>
+            )}
+            {isGuest && (
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t pt-3">
+                <Link
+                  href={withNext("/login")}
+                  onClick={() => setMenuOpen(false)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-none border px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
+                >
+                  <LogIn className="h-4 w-4" /> Đăng nhập
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="inline-flex items-center justify-center rounded-none bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  Đăng ký
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

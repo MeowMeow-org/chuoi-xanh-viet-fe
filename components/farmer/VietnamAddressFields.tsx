@@ -128,7 +128,9 @@ export function VietnamAddressFields({
             placeholder={
               loadingProvinces ? "Đang tải danh mục…" : "Chọn tỉnh / thành phố"
             }
-            value={selectedProvinceCode != null ? String(selectedProvinceCode) : ""}
+            value={
+              selectedProvinceCode != null ? String(selectedProvinceCode) : ""
+            }
             options={provinceOptions}
             onChange={(v) => {
               if (!v) {
@@ -161,7 +163,9 @@ export function VietnamAddressFields({
                   ? "Đang tải quận/huyện…"
                   : "Chọn quận / huyện"
             }
-            value={selectedDistrictCode != null ? String(selectedDistrictCode) : ""}
+            value={
+              selectedDistrictCode != null ? String(selectedDistrictCode) : ""
+            }
             options={districtOptions}
             onChange={(v) => {
               if (!v) {
