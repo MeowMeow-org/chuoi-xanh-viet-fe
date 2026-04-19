@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -29,7 +30,15 @@ export default function LoginPage() {
         </p>
 
         <div className="mt-8">
-          <LoginForm />
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-10 text-sm text-[hsl(150,8%,45%)]">
+                Đang tải biểu mẫu…
+              </div>
+            }
+          >
+            <LoginForm />
+          </Suspense>
         </div>
 
         <p className="mt-16 pt-1 text-center text-sm text-[hsl(150,8%,34%)] sm:mt-20">

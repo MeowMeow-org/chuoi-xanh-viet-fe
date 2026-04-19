@@ -4,6 +4,9 @@ import Link from "next/link";
 
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
 
+// ConsumerLayout dùng useSearchParams → không prerender được ở build time.
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <ConsumerLayout>
