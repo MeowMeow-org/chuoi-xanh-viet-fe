@@ -28,10 +28,13 @@ type RawProductRow = {
   updated_at: string;
   shops?: {
     id: string;
+    farm_id?: string;
     name: string;
     description?: string | null;
+    avatar_url?: string | null;
     is_verified: boolean;
     certifications: unknown;
+    badges?: import("@/services/certificate").CertificateBadge[];
     average_rating?: number | null;
     review_count?: number;
     farms?: {
@@ -96,8 +99,11 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
         id: row.shops.id,
         name: row.shops.name,
         description: row.shops.description ?? null,
+        avatarUrl: row.shops.avatar_url ?? null,
         isVerified: row.shops.is_verified,
         certifications: parseCertifications(row.shops.certifications),
+        badges: row.shops.badges ?? [],
+        farmId: row.shops.farm_id,
         farm: row.shops.farms
           ? {
               id: row.shops.farms.id,

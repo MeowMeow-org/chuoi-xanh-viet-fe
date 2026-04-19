@@ -444,7 +444,7 @@ export const consumerForumPosts: ForumPostConsumer[] = [
   },
 ];
 
-// Whitelist tags for consumer forum
+// Nhãn gợi ý cho diễn đàn (consumer)
 export const CONSUMER_FORUM_TAGS = [
   'Rau muống', 'Cà chua', 'Dưa leo', 'Rau ăn lá', 'Rau gia vị',
   'Hữu cơ', 'VietGAP', 'Review', 'Mẹo mua hàng', 'Truy xuất',

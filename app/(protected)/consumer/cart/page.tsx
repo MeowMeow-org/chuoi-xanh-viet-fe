@@ -36,7 +36,7 @@ export default function ConsumerCartPage() {
         <div className="container py-12 text-center space-y-3 max-w-md mx-auto">
           <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto" />
           <p className="text-muted-foreground">Giỏ hàng trống</p>
-          <Link href="/consumer/marketplace">
+          <Link href="/marketplace">
             <Button variant="outline">Đến chợ mua sắm</Button>
           </Link>
         </div>
@@ -69,7 +69,7 @@ export default function ConsumerCartPage() {
                 <div className="flex items-center gap-2 px-1">
                   <Store className="h-4 w-4 text-primary" />
                   <Link
-                    href={`/consumer/shop/${group.shopId}`}
+                    href={`/shop/${group.shopId}`}
                     className="font-semibold text-sm hover:underline"
                   >
                     {group.shopName}
@@ -92,7 +92,7 @@ export default function ConsumerCartPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <Link
-                            href={`/consumer/product/${item.productId}`}
+                            href={`/product/${item.productId}`}
                             className="font-semibold text-sm truncate hover:underline block"
                           >
                             {item.productName}

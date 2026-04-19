@@ -29,6 +29,9 @@ import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
 import type { ShopReview } from "@/services/review";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
+import { CertificateBadge } from "@/components/certificate/CertificateBadge";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
@@ -151,11 +154,14 @@ function ProductImageGallery({
   );
 }
 
-export default function ConsumerProductPage() {
+export default function PublicProductPage() {
   const { productId } = useParams<{ productId: string }>();
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
+  const requireAuth = useRequireAuth();
+  const role = useAuthStore((s) => s.user?.role);
+  const isConsumer = role === "consumer";
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["public-product", productId],
@@ -187,7 +193,13 @@ export default function ConsumerProductPage() {
   const openChatMutation = useMutation({
     mutationFn: (peerUserId: string) => chatService.openConversation(peerUserId),
     onSuccess: (conversation) => {
-      router.push(`/consumer/messages?c=${conversation.id}`);
+      const msgRoute =
+        role === "farmer"
+          ? "/farmer/messages"
+          : role === "cooperative"
+            ? "/cooperative/messages"
+            : "/consumer/messages";
+      router.push(`${msgRoute}?c=${conversation.id}`);
     },
   });
 
@@ -206,7 +218,7 @@ export default function ConsumerProductPage() {
       <ConsumerLayout>
         <div className="container py-12 text-center">
           <p className="text-muted-foreground">Không tìm thấy sản phẩm</p>
-          <Link href="/consumer/marketplace">
+          <Link href="/marketplace">
             <Button variant="outline" className="mt-4">
               Quay lại chợ
             </Button>
@@ -227,6 +239,14 @@ export default function ConsumerProductPage() {
   const chatPeerId = product.shop.farm?.ownerUserId;
 
   const addToCart = () => {
+    if (
+      !requireAuth({
+        role: "consumer",
+        guestMessage: "Đăng nhập để thêm vào giỏ hàng",
+        wrongRoleMessage: "Chỉ tài khoản người mua mới có thể đặt hàng",
+      })
+    )
+      return;
     if (!product.shop) return;
     addItem(
       {
@@ -247,6 +267,14 @@ export default function ConsumerProductPage() {
   };
 
   const buyNow = () => {
+    if (
+      !requireAuth({
+        role: "consumer",
+        guestMessage: "Đăng nhập để mua hàng",
+        wrongRoleMessage: "Chỉ tài khoản người mua mới có thể mua hàng",
+      })
+    )
+      return;
     if (!product.shop || outOfStock) return;
     addItem(
       {
@@ -268,6 +296,7 @@ export default function ConsumerProductPage() {
   };
 
   const messageFarmer = () => {
+    if (!requireAuth({ guestMessage: "Đăng nhập để nhắn nông hộ" })) return;
     const peerUserId = product.shop.farm?.ownerUserId;
     if (!peerUserId) {
       toast.error("Không tìm thấy nông hộ của gian hàng này");
@@ -329,11 +358,13 @@ export default function ConsumerProductPage() {
     </Link>
   );
 
+  // Non-consumer đã login: ẩn nút mua (vì vô nghĩa với họ), vẫn hiện "Nhắn nông hộ".
+  const showBuyingActions = isConsumer || !role; // guest: hiện để dẫn login
+
   return (
     <ConsumerLayout>
       <div className="container max-w-2xl py-4 pb-24 lg:max-w-6xl lg:pb-8">
         <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-10">
-          {/* Gallery — mobile: full width; desktop: cột trái */}
           <div className="lg:col-span-5 lg:sticky lg:top-20 lg:self-start">
             <ProductImageGallery
               key={String(productId)}
@@ -343,7 +374,6 @@ export default function ConsumerProductPage() {
             />
           </div>
 
-          {/* Nội dung mua & mô tả — desktop: cột phải */}
           <div className="mt-4 space-y-4 lg:col-span-7 lg:mt-0">
             <div className="space-y-3">
               <div className="space-y-1.5">
@@ -411,46 +441,53 @@ export default function ConsumerProductPage() {
 
             {traceCard}
 
-            {/* Desktop: số lượng + CTA (kiểu sàn TMĐT) */}
-            <div className="hidden space-y-4 pt-4 lg:block">
-              {quantityRowDesktop}
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="h-12 flex-1 gap-2 border-primary text-primary hover:bg-primary/5"
-                  onClick={addToCart}
-                  disabled={outOfStock}
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                  Thêm vào giỏ
-                </Button>
-                <Button
-                  className="h-12 flex-1 gap-2 text-base font-bold"
-                  onClick={buyNow}
-                  disabled={outOfStock}
-                >
-                  <Zap className="h-5 w-5" />
-                  Mua ngay
-                </Button>
+            {showBuyingActions && (
+              <div className="hidden space-y-4 pt-4 lg:block">
+                {quantityRowDesktop}
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-12 flex-1 gap-2 border-primary text-primary hover:bg-primary/5"
+                    onClick={addToCart}
+                    disabled={outOfStock}
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    Thêm vào giỏ
+                  </Button>
+                  <Button
+                    className="h-12 flex-1 gap-2 text-base font-bold"
+                    onClick={buyNow}
+                    disabled={outOfStock}
+                  >
+                    <Zap className="h-5 w-5" />
+                    Mua ngay
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Box thông tin gian hàng — hai cột đều nhau (50/50) trên desktop */}
         <div className="mt-6 rounded-lg border border-[hsl(142,18%,88%)] bg-[hsl(120,18%,98%)] p-3 lg:p-4">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-center lg:gap-8">
             <div className="flex min-w-0 flex-col gap-2.5 lg:min-w-0 lg:pr-2">
               <div className="flex items-start gap-2.5">
-                <div
-                  className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
-                  aria-hidden
-                >
-                  {shopInitials(product.shop.name)}
+                <div className="relative mt-0.5 shrink-0">
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+                    aria-hidden
+                  >
+                    {shopInitials(product.shop.name)}
+                  </div>
+                  <CertificateBadge
+                    badges={product.shop.badges}
+                    farmId={product.shop.farm?.id ?? product.shop.farmId}
+                    variant="corner"
+                  />
                 </div>
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <Link
-                    href={`/consumer/shop/${product.shop.id}`}
+                    href={`/shop/${product.shop.id}`}
                     className="text-sm font-bold leading-tight text-foreground underline-offset-2 hover:text-primary hover:underline"
                   >
                     {product.shop.name}
@@ -518,7 +555,7 @@ export default function ConsumerProductPage() {
                   </span>
                 </Button>
                 <Link
-                  href={`/consumer/shop/${product.shop.id}`}
+                  href={`/shop/${product.shop.id}`}
                   className={cn(
                     buttonVariants({ variant: "outline", size: "sm" }),
                     "inline-flex h-8 flex-row items-center justify-center gap-2 px-3 text-xs leading-none no-underline",
@@ -585,7 +622,6 @@ export default function ConsumerProductPage() {
           </div>
         </div>
 
-        {/* Đánh giá từ người mua */}
         <section
           className="mt-8 space-y-3 border-t border-[hsl(142,18%,88%)] pt-6"
           aria-labelledby="product-reviews-heading"
@@ -684,20 +720,21 @@ export default function ConsumerProductPage() {
         </section>
       </div>
 
-      {/* Mobile: thanh hành động cố định */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-card p-3 md:bottom-0 lg:hidden">
-        <div className="container flex max-w-2xl items-center gap-3">
-          {quantityStepper}
-          <Button
-            className="h-12 flex-1 gap-2 text-base font-bold"
-            onClick={addToCart}
-            disabled={outOfStock}
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {outOfStock ? "Hết hàng" : "Thêm vào giỏ"}
-          </Button>
+      {showBuyingActions && (
+        <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-card p-3 md:bottom-0 lg:hidden">
+          <div className="container flex max-w-2xl items-center gap-3">
+            {quantityStepper}
+            <Button
+              className="h-12 flex-1 gap-2 text-base font-bold"
+              onClick={addToCart}
+              disabled={outOfStock}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {outOfStock ? "Hết hàng" : "Thêm vào giỏ"}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </ConsumerLayout>
   );
 }

@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { FarmerShopOrdersPanel } from "@/components/farmer/farmer-shop-orders-panel";
 import { FarmerShopReviewsPanel } from "@/components/farmer/farmer-shop-reviews-panel";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
@@ -109,7 +110,7 @@ export default function FarmerShopDetailPage({
             <CardContent className="flex flex-col gap-4 p-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted">
+                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted">
                     {shop.avatar_url ? (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
@@ -120,6 +121,11 @@ export default function FarmerShopDetailPage({
                     ) : (
                       <Store className="h-7 w-7 text-muted-foreground" />
                     )}
+                    <CertificateBadge
+                      badges={shop.badges}
+                      farmId={shop.farms?.id}
+                      variant="corner"
+                    />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h1 className="truncate text-xl font-bold">
@@ -145,7 +151,7 @@ export default function FarmerShopDetailPage({
                 </div>
                 <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                   <Link
-                    href={`/consumer/shop/${shop.id}`}
+                    href={`/shop/${shop.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(

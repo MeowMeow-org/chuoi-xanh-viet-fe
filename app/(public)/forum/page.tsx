@@ -18,14 +18,18 @@ import {
   useCreateForumPostMutation,
   useForumPostsQuery,
 } from "@/hooks/useForum";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { uploadService } from "@/services/upload/uploadService";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export default function ConsumerForumPage() {
+export default function PublicForumPage() {
   const user = useAuthStore((s) => s.user);
+  const requireAuth = useRequireAuth();
+  const isGuest = !user;
+
   const [page, setPage] = useState(1);
   const [filterTag, setFilterTag] = useState<ForumLabelSlug | undefined>();
   const [showCreate, setShowCreate] = useState(false);
@@ -71,7 +75,15 @@ export default function ConsumerForumPage() {
     });
   };
 
+  const handleToggleCreate = () => {
+    if (!showCreate) {
+      if (!requireAuth({ guestMessage: "Đăng nhập để tạo bài viết" })) return;
+    }
+    setShowCreate((v) => !v);
+  };
+
   const createPostSubmit = async () => {
+    if (!requireAuth({ guestMessage: "Đăng nhập để tạo bài viết" })) return;
     if (!title.trim() || !content.trim()) {
       toast.error("Vui lòng nhập tiêu đề và nội dung");
       return;
@@ -124,7 +136,7 @@ export default function ConsumerForumPage() {
       <div className="container max-w-2xl space-y-4 py-4 pb-20 md:pb-8">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">Diễn đàn</h1>
-          <Button size="sm" onClick={() => setShowCreate(!showCreate)}>
+          <Button size="sm" onClick={handleToggleCreate}>
             {showCreate ? "Hủy" : "Tạo bài viết"}
           </Button>
         </div>
@@ -136,7 +148,7 @@ export default function ConsumerForumPage() {
           onSearchDraftChange={setSearchDraft}
         />
 
-        {showCreate && (
+        {showCreate && !isGuest && (
           <Card>
             <CardContent className="space-y-3 p-4">
               <Input
@@ -237,6 +249,10 @@ export default function ConsumerForumPage() {
               post={post}
               currentUserId={user?.id}
               allowEditPost
+              readOnly={isGuest}
+              onRequireAuth={() => {
+                requireAuth({ guestMessage: "Đăng nhập để bình luận" });
+              }}
             />
           ))}
         </div>

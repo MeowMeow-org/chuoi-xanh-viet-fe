@@ -14,3 +14,16 @@ export interface UploadedImageItem {
 export interface UploadImagesResponse {
   items: UploadedImageItem[];
 }
+
+export interface UploadedDocumentItem {
+  success: boolean;
+  url: string;
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string;
+}
+
+export interface UploadDocumentsResponse {
+  items: UploadedDocumentItem[];
+}

@@ -139,7 +139,7 @@ export default function FarmerProductDetailPage({
 
       <div className="flex flex-wrap gap-2">
         <Link
-          href={`/consumer/product/${p.id}`}
+          href={`/product/${p.id}`}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
@@ -152,7 +152,7 @@ export default function FarmerProductDetailPage({
         </Link>
         {p.shop && (
           <Link
-            href={`/consumer/shop/${p.shop.id}`}
+            href={`/shop/${p.shop.id}`}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
