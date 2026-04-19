@@ -113,7 +113,6 @@ export default function FarmerProductDetailPage({
             averageRating={p.averageRating}
             reviewCount={p.reviewCount}
             size="sm"
-            emptyLabel="Chưa có đánh giá"
           />
         </div>
         <p className="mt-2 text-2xl font-semibold text-primary">

@@ -66,6 +66,7 @@ type RawProductRow = {
   } | null;
   average_rating?: number | null;
   review_count?: number;
+  rank_score?: number;
 };
 
 const parseCertifications = (raw: unknown): string[] => {
@@ -138,6 +139,7 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
     : null,
   averageRating: row.average_rating ?? null,
   reviewCount: row.review_count ?? 0,
+  rankScore: row.rank_score,
 });
 
 const mapProductDetail = (row: RawProductRow): PublicProductDetail => {
@@ -177,6 +179,7 @@ export const shopService = {
     return mapProductDetail(raw);
   },
 
+  /** GET /shop — BE: chỉ gian hàng mở cửa; lọc province/district/ward; sắp xếp sao → review → xác minh → mới → số SP. */
   getShops: async (
     query?: GetShopsQuery,
   ): Promise<PaginatedResponse<ShopSummary>> => {

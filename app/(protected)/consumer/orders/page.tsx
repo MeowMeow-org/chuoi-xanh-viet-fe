@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Package, Loader2, XCircle, Star, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { orderService } from "@/services/order/orderService";
 import type { Order, OrderStatus } from "@/services/order";
 
@@ -270,3 +270,4 @@ export default function ConsumerOrdersPage() {
     </ConsumerLayout>
   );
 }
+

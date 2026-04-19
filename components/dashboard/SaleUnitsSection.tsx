@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import {
   AlertDialog,
@@ -462,3 +462,4 @@ export default function SaleUnitsSection({
     </div>
   );
 }
+

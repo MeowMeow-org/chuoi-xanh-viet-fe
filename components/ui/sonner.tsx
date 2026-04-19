@@ -5,7 +5,7 @@ import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
 const Toaster = ({
-  position = "top-center",
+  position = "top-right",
   ...props
 }: ToasterProps) => {
   const { theme = "system" } = useTheme()

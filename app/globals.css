@@ -199,6 +199,129 @@ textarea {
   opacity: 0.92 !important;
 }
 
+[data-sonner-toast].ui-toast-shell,
+.cn-toast.ui-toast-shell {
+  width: fit-content !important;
+  max-width: min(calc(100vw - 1rem), 24rem) !important;
+  margin-left: auto !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-sonner-toaster][data-x-position="right"] {
+  right: 0.75rem !important;
+  left: auto !important;
+  align-items: flex-end !important;
+}
+
+.ui-toast {
+  width: max-content;
+  max-width: min(calc(100vw - 1rem), 24rem);
+  border-radius: 0.5rem !important;
+  border: 1px solid hsl(142, 15%, 86%);
+  background: hsl(0, 0%, 100%);
+  box-shadow:
+    0 10px 18px -8px rgba(13, 42, 28, 0.16),
+    0 6px 10px -8px rgba(13, 42, 28, 0.12);
+  overflow: hidden;
+}
+
+.ui-toast-body {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem 0.625rem;
+}
+
+.ui-toast-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ui-toast-icon-text {
+  display: inline-block;
+  transform: translateY(-0.5px);
+}
+
+.ui-toast-icon--success {
+  color: hsl(142, 71%, 32%);
+  background: hsl(142, 36%, 90%);
+}
+
+.ui-toast-icon--error {
+  color: hsl(0, 72%, 42%);
+  background: hsl(0, 70%, 92%);
+}
+
+.ui-toast-icon--info {
+  color: hsl(210, 82%, 40%);
+  background: hsl(210, 72%, 92%);
+}
+
+.ui-toast-message {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-weight: 500;
+  color: hsl(150, 10%, 18%);
+}
+
+.ui-toast-description {
+  padding: 0 0.875rem 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: hsl(150, 5%, 42%);
+}
+
+.ui-toast-progress {
+  height: 3px;
+  width: 100%;
+  background: hsl(142, 15%, 93%);
+}
+
+.ui-toast-progress-bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  animation-name: ui-toast-progress-shrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.ui-toast-progress-bar--success {
+  background: linear-gradient(90deg, hsl(142, 71%, 45%), hsl(160, 60%, 40%));
+}
+
+.ui-toast-progress-bar--error {
+  background: linear-gradient(90deg, hsl(0, 84%, 60%), hsl(0, 78%, 48%));
+}
+
+.ui-toast-progress-bar--info {
+  background: linear-gradient(90deg, hsl(210, 85%, 58%), hsl(198, 85%, 48%));
+}
+
+.ui-toast-icon--warning {
+  color: hsl(38, 92%, 36%);
+  background: hsl(38, 90%, 90%);
+}
+
+.ui-toast-progress-bar--warning {
+  background: linear-gradient(90deg, hsl(38, 92%, 50%), hsl(28, 90%, 52%));
+}
+
+.ui-toast:hover .ui-toast-progress-bar {
+  animation-play-state: paused;
+}
+
 .forum-ant-image {
   width: 100%;
 }
@@ -230,6 +353,15 @@ textarea {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ui-toast-progress-shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
   }
 }
 

@@ -20,7 +20,7 @@ import {
   Store,
   Star,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { shopService } from "@/services/shop/shopService";
 import { reviewService } from "@/services/review/reviewService";
 import { chatService } from "@/services/chat/chatService";
@@ -366,6 +366,7 @@ export default function PublicProductPage() {
                   averageRating={product.averageRating}
                   reviewCount={product.reviewCount}
                   size="sm"
+                  emptyLabel="Sản phẩm này chưa có đánh giá"
                 />
               </div>
               <Card>
@@ -555,7 +556,7 @@ export default function PublicProductPage() {
                     {product.shop.reviewCount != null &&
                     product.shop.reviewCount > 0
                       ? product.shop.reviewCount.toLocaleString("vi-VN")
-                      : "—"}
+                      : "0"}
                   </p>
                 </div>
                 <div className="min-w-0">
@@ -567,7 +568,7 @@ export default function PublicProductPage() {
                     product.shop.reviewCount > 0 &&
                     product.shop.averageRating != null
                       ? product.shop.averageRating.toFixed(1)
-                      : "—"}
+                      : "0.0"}
                   </p>
                 </div>
                 <div className="min-w-0">
@@ -614,14 +615,19 @@ export default function PublicProductPage() {
             </h2>
             {productReviewsQuery.isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            ) : reviewMeta && reviewMeta.reviewCount > 0 ? (
+            ) : productReviewsQuery.isError ? null : reviewMeta &&
+              reviewMeta.reviewCount > 0 ? (
               <span className="text-xs text-muted-foreground">
                 {reviewMeta.averageRating != null
                   ? `${reviewMeta.averageRating.toFixed(1)} sao · `
                   : ""}
                 {reviewMeta.reviewCount.toLocaleString("vi-VN")} nhận xét
               </span>
-            ) : null}
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                Sản phẩm này chưa có đánh giá
+              </span>
+            )}
           </div>
 
           {productReviewsQuery.isError && (
@@ -634,8 +640,8 @@ export default function PublicProductPage() {
             !productReviewsQuery.isError &&
             reviewItems.length === 0 && (
               <p className="text-sm text-muted-foreground py-2 rounded-lg border border-dashed bg-muted/20 px-3">
-                Chưa có đánh giá nào. Sau khi mua và nhận hàng, bạn có thể đánh
-                giá sản phẩm này trong mục đơn hàng.
+                Sản phẩm này chưa có đánh giá. Sau khi mua và nhận hàng, bạn có
+                thể đánh giá trong mục đơn hàng.
               </p>
             )}
 
@@ -716,3 +722,4 @@ export default function PublicProductPage() {
     </ConsumerLayout>
   );
 }
+

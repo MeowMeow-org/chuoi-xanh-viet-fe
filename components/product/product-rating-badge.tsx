@@ -8,7 +8,7 @@ export function ProductRatingBadge({
   reviewCount,
   className,
   size = "sm",
-  emptyLabel = "—",
+  emptyLabel = "Chưa có đánh giá",
 }: {
   averageRating: number | null | undefined;
   reviewCount?: number | null | undefined;
@@ -29,7 +29,7 @@ export function ProductRatingBadge({
           "tabular-nums text-muted-foreground",
           className,
         )}
-        title="Chưa có đánh giá"
+        title={emptyLabel}
       >
         {emptyLabel}
       </span>

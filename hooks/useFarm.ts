@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { cooperativeService } from "@/services/cooperative/cooperativeService";
 import { farmService } from "@/services/farm/farmService";
@@ -87,3 +87,4 @@ export const useRequestCooperativeJoinMutation = () => {
     },
   });
 };
+

@@ -17,7 +17,7 @@ import {
   UserX,
   X,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -840,3 +840,4 @@ function RejectForm({
     </>
   );
 }
+

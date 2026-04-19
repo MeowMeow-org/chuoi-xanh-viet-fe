@@ -25,7 +25,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+        "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         active
           ? "border-primary bg-primary/12 text-primary shadow-sm ring-1 ring-primary/25"

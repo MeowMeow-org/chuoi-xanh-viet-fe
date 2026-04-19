@@ -56,8 +56,8 @@ export default function FarmerCertificatesPage() {
       showArchived
         ? allItems
         : allItems.filter(
-            (c) => c.status !== "expired" && c.status !== "revoked",
-          ),
+          (c) => c.status !== "expired" && c.status !== "revoked",
+        ),
     [allItems, showArchived],
   );
 

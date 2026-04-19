@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Inbox, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -158,3 +158,4 @@ export default function CooperativeRequestsPage() {
     </div>
   );
 }
+

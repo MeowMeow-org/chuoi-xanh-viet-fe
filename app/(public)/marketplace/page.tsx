@@ -9,7 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Leaf, ShieldCheck, MapPin, Search, Loader2, SlidersHorizontal } from "lucide-react";
+import {
+  Leaf,
+  ShieldCheck,
+  MapPin,
+  Search,
+  Loader2,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { shopService } from "@/services/shop/shopService";
 import type { PublicProductSort } from "@/services/shop";
@@ -258,6 +266,18 @@ export default function MarketplacePage() {
                           ) : (
                             <Leaf className="h-10 w-10 text-primary/30" />
                           )}
+                          {typeof product.rankScore === "number" &&
+                            product.rankScore >= 0.55 && (
+                              <div className="absolute left-2 top-2">
+                                <Badge
+                                  variant="secondary"
+                                  className="gap-0.5 bg-amber-500/95 text-white border-0 text-[10px] px-1.5 py-0 shadow-sm"
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                  Nổi bật
+                                </Badge>
+                              </div>
+                            )}
                           {outOfStock && (
                             <div className="absolute inset-0 flex items-center justify-center rounded-t-lg bg-background/60">
                               <span className="font-bold text-muted-foreground">

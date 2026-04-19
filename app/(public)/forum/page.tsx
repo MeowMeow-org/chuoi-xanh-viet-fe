@@ -22,7 +22,7 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { uploadService } from "@/services/upload/uploadService";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 export default function PublicForumPage() {
@@ -257,7 +257,7 @@ export default function PublicForumPage() {
           ))}
         </div>
 
-        {pagination && pagination.totalPages > 1 && (
+        {pagination && (
           <div className="flex justify-center gap-2 pt-2">
             <Button
               variant="outline"
@@ -286,3 +286,4 @@ export default function PublicForumPage() {
     </ConsumerLayout>
   );
 }
+
