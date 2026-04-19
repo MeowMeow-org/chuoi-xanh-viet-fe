@@ -55,7 +55,8 @@ export interface CreateSeasonPayload {
   farmId: string;
   cropName: string;
   startDate: string;
-  harvestStartDate?: string;
+  /** Bắt buộc — BE dùng để HTX lên lịch kiểm tra trước thu hoạch. */
+  harvestStartDate: string;
   harvestEndDate?: string;
   estimatedYield: number;
   actualYield?: number;

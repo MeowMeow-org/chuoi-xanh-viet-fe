@@ -97,7 +97,7 @@ export default function ConsumerHomePage() {
                   Vào chợ
                 </Button>
               </Link>
-              <Link href="/consumer/trace">
+              <Link href="/truy-xuat">
                 <Button
                   size="lg"
                   variant="outline"

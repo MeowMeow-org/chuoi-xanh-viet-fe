@@ -18,6 +18,8 @@ import { Label } from "@/components/ui/label";
 
 import { useCreateFarmCertMutation } from "@/hooks/useCertificate";
 import { uploadService } from "@/services/upload/uploadService";
+import { farmCertUploadFormSchema } from "@/schemas/certificateSchema";
+import { cn } from "@/lib/utils";
 import { type CertType } from "@/services/certificate";
 
 type FarmOption = { id: string; name: string };
@@ -57,6 +59,10 @@ export function FarmCertUploadDialog({
   const [expiresAt, setExpiresAt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<
+    "certNo" | "issuer" | "issuedAt" | "expiresAt" | "file",
+    string
+  >>>({});
 
   const createMutation = useCreateFarmCertMutation();
 
@@ -72,6 +78,7 @@ export function FarmCertUploadDialog({
     setIssuedAt("");
     setExpiresAt("");
     setFile(null);
+    setFieldErrors({});
     if (!fixedFarmId) {
       setFarmId(farms[0]?.id ?? "");
     }
@@ -88,24 +95,53 @@ export function FarmCertUploadDialog({
       toast.error("Vui lòng chọn nông trại");
       return;
     }
-    if (!file) {
-      toast.error("Vui lòng tải lên file chứng chỉ");
+
+    const parsed = farmCertUploadFormSchema.safeParse({
+      certNo,
+      issuer,
+      issuedAt,
+      expiresAt,
+      file,
+    });
+    if (!parsed.success) {
+      const flat = parsed.error.flatten();
+      setFieldErrors({
+        certNo: flat.fieldErrors.certNo?.[0],
+        issuer: flat.fieldErrors.issuer?.[0],
+        issuedAt: flat.fieldErrors.issuedAt?.[0],
+        expiresAt: flat.fieldErrors.expiresAt?.[0],
+        file: flat.fieldErrors.file?.[0],
+      });
+      const first =
+        flat.fieldErrors.certNo?.[0] ??
+        flat.fieldErrors.issuer?.[0] ??
+        flat.fieldErrors.issuedAt?.[0] ??
+        flat.fieldErrors.expiresAt?.[0] ??
+        flat.fieldErrors.file?.[0] ??
+        "Vui lòng kiểm tra thông tin";
+      toast.error(first);
       return;
     }
+    setFieldErrors({});
 
     try {
       setUploading(true);
-      const up = await uploadService.uploadDocuments([file]);
+      const certFile = parsed.data.file;
+      if (!(certFile instanceof File)) {
+        toast.error("Thiếu file chứng chỉ");
+        return;
+      }
+      const up = await uploadService.uploadDocuments([certFile]);
       const fileUrl = up.items[0]?.url;
       if (!fileUrl) throw new Error("Không lấy được URL file");
 
       await createMutation.mutateAsync({
         farm_id: effectiveFarmId,
         type,
-        certificate_no: certNo.trim() || null,
-        issuer: issuer.trim() || null,
-        issued_at: issuedAt || null,
-        expires_at: expiresAt || null,
+        certificate_no: parsed.data.certNo.trim(),
+        issuer: parsed.data.issuer.trim(),
+        issued_at: parsed.data.issuedAt,
+        expires_at: parsed.data.expiresAt,
         file_url: fileUrl,
       });
 
@@ -166,17 +202,33 @@ export function FarmCertUploadDialog({
               <Label>Số giấy</Label>
               <Input
                 value={certNo}
-                onChange={(e) => setCertNo(e.target.value)}
+                onChange={(e) => {
+                  setCertNo(e.target.value);
+                  setFieldErrors((p) => ({ ...p, certNo: undefined }));
+                }}
                 placeholder="VD: VG-0001/2025"
+                aria-invalid={!!fieldErrors.certNo}
+                className={cn(fieldErrors.certNo && "border-destructive")}
               />
+              {fieldErrors.certNo ? (
+                <p className="text-xs text-destructive">{fieldErrors.certNo}</p>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label>Đơn vị cấp</Label>
               <Input
                 value={issuer}
-                onChange={(e) => setIssuer(e.target.value)}
+                onChange={(e) => {
+                  setIssuer(e.target.value);
+                  setFieldErrors((p) => ({ ...p, issuer: undefined }));
+                }}
                 placeholder="TT Kỹ thuật..."
+                aria-invalid={!!fieldErrors.issuer}
+                className={cn(fieldErrors.issuer && "border-destructive")}
               />
+              {fieldErrors.issuer ? (
+                <p className="text-xs text-destructive">{fieldErrors.issuer}</p>
+              ) : null}
             </div>
           </div>
 
@@ -186,16 +238,42 @@ export function FarmCertUploadDialog({
               <Input
                 type="date"
                 value={issuedAt}
-                onChange={(e) => setIssuedAt(e.target.value)}
+                onChange={(e) => {
+                  setIssuedAt(e.target.value);
+                  setFieldErrors((p) => ({
+                    ...p,
+                    issuedAt: undefined,
+                    expiresAt: undefined,
+                  }));
+                }}
+                aria-invalid={!!fieldErrors.issuedAt}
+                className={cn(fieldErrors.issuedAt && "border-destructive")}
               />
+              {fieldErrors.issuedAt ? (
+                <p className="text-xs text-destructive">{fieldErrors.issuedAt}</p>
+              ) : null}
             </div>
             <div className="space-y-1.5">
               <Label>Hiệu lực đến</Label>
               <Input
                 type="date"
                 value={expiresAt}
-                onChange={(e) => setExpiresAt(e.target.value)}
+                onChange={(e) => {
+                  setExpiresAt(e.target.value);
+                  setFieldErrors((p) => ({
+                    ...p,
+                    expiresAt: undefined,
+                    issuedAt: undefined,
+                  }));
+                }}
+                aria-invalid={!!fieldErrors.expiresAt}
+                className={cn(fieldErrors.expiresAt && "border-destructive")}
               />
+              {fieldErrors.expiresAt ? (
+                <p className="text-xs text-destructive">
+                  {fieldErrors.expiresAt}
+                </p>
+              ) : null}
             </div>
           </div>
 
@@ -204,8 +282,20 @@ export function FarmCertUploadDialog({
             <Input
               type="file"
               accept="application/pdf,image/*"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                setFile(e.target.files?.[0] ?? null);
+                setFieldErrors((p) => ({ ...p, file: undefined }));
+              }}
+              aria-invalid={!!fieldErrors.file}
+              className={cn(fieldErrors.file && "border-destructive")}
             />
+            {fieldErrors.file ? (
+              <p className="text-xs text-destructive">{fieldErrors.file}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Tối đa 15 MB. Định dạng: PDF hoặc ảnh (JPEG, PNG, WebP, GIF).
+              </p>
+            )}
           </div>
         </div>
 

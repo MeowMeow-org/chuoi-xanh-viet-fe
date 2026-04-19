@@ -19,6 +19,7 @@ import {
   LogOut,
   LogIn,
   ArrowLeftRight,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
@@ -31,6 +32,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { to: "/", label: "Trang chủ", icon: Home, publicHome: true },
   { to: "/marketplace", label: "Chợ", icon: Search },
+  { to: "/truy-xuat", label: "Truy xuất", icon: QrCode },
   { to: "/forum", label: "Diễn đàn", icon: Users },
   { to: "/consumer/ai", label: "Trợ lý AI", icon: Bot, requireConsumer: true },
 ];
@@ -185,6 +187,22 @@ export default function ConsumerLayout({
           </nav>
 
           <div className="flex items-center gap-1">
+            <Link
+              href="/truy-xuat"
+              className="hidden sm:inline-flex h-9 items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/5 px-3 text-xs font-semibold text-primary transition hover:bg-primary/10"
+              title="Tra cứu nguồn gốc bằng mã lô (CXV-xxx)"
+            >
+              <QrCode className="h-4 w-4" />
+              Tra cứu
+            </Link>
+            <Link
+              href="/truy-xuat"
+              className="inline-flex sm:hidden h-9 w-9 items-center justify-center rounded-lg border border-primary/40 bg-primary/5 text-primary transition hover:bg-primary/10"
+              title="Tra cứu nguồn gốc"
+              aria-label="Tra cứu nguồn gốc"
+            >
+              <QrCode className="h-4 w-4" />
+            </Link>
             <div className="hidden md:flex items-center gap-1">
               {isConsumer && (
                 <>
@@ -232,25 +250,6 @@ export default function ConsumerLayout({
 
               {isGuest && (
                 <div className="ml-2 flex items-center gap-2">
-                  <Link href={withNext("/consumer/cart")}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="relative h-9 w-9"
-                      title="Giỏ hàng (đăng nhập)"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        requireLogin("cart");
-                      }}
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      {cartCount > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
-                          {cartCount}
-                        </span>
-                      )}
-                    </Button>
-                  </Link>
                   <Link
                     href={withNext("/login")}
                     className="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-semibold text-foreground hover:bg-accent"
