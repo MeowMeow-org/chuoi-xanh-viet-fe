@@ -15,7 +15,7 @@ import {
   Loader2,
   MessageSquare,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { shopService } from "@/services/shop/shopService";
@@ -240,3 +240,4 @@ export default function PublicShopPage() {
     </ConsumerLayout>
   );
 }
+

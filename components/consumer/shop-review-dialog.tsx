@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { Star } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -240,3 +240,4 @@ export function ProductReviewDialog({
 
 /** @deprecated Dùng ProductReviewDialog */
 export const ShopReviewDialog = ProductReviewDialog;
+

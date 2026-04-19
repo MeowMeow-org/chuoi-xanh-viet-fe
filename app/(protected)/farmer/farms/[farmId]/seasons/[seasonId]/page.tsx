@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import DiaryEntryForm from "@/components/dashboard/DiaryEntryForm";
 import DiaryTimeline from "@/components/dashboard/DiaryTimeline";
@@ -667,3 +667,4 @@ function YieldCard({
     </div>
   );
 }
+
