@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Package,
   Users,
-  Bot,
   LogOut,
   LogIn,
   ArrowLeftRight,
@@ -29,12 +28,19 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { selectCartCount, useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof Home;
+  publicHome?: boolean;
+  requireConsumer?: boolean;
+};
+
+const navItems: NavItem[] = [
   { to: "/", label: "Trang chủ", icon: Home, publicHome: true },
   { to: "/marketplace", label: "Chợ", icon: Search },
   { to: "/truy-xuat", label: "Truy xuất", icon: QrCode },
   { to: "/forum", label: "Diễn đàn", icon: Users },
-  { to: "/consumer/ai", label: "Trợ lý AI", icon: Bot, requireConsumer: true },
 ];
 
 type MobileNavItem = {
