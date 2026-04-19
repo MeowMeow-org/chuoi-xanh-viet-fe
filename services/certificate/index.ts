@@ -1,7 +1,12 @@
 export type CertType = "vietgap" | "globalgap" | "organic" | "other";
 
-export type CoopCertStatus = "active" | "revoked";
-export type FarmCertStatus = "pending" | "approved" | "rejected" | "revoked";
+export type CoopCertStatus = "active" | "revoked" | "expired";
+export type FarmCertStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "revoked"
+  | "expired";
 export type FarmCertApproverScope = "cooperative" | "admin";
 
 export interface CertificateBadgeSourceOwn {
