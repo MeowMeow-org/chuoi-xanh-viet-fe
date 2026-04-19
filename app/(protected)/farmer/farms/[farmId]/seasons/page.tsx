@@ -31,10 +31,7 @@ import { useDeleteFarmMutation, useMyFarmsQuery } from "@/hooks/useFarm";
 import { useSeasonsQuery } from "@/hooks/useSeason";
 import { useMyFarmCertsQuery } from "@/hooks/useCertificate";
 import type { SeasonStatus } from "@/services/season";
-import {
-  CERT_TYPE_LABEL,
-  type FarmCertStatus,
-} from "@/services/certificate";
+import { CERT_TYPE_LABEL, type FarmCertStatus } from "@/services/certificate";
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
 
 const getStatusLabel = (status: SeasonStatus) => {
@@ -73,7 +70,8 @@ const getCertStatusClass = (status: FarmCertStatus) => {
   if (status === "approved") return "bg-[hsl(142,71%,45%)] text-white";
   if (status === "pending") return "bg-amber-100 text-amber-800";
   if (status === "rejected") return "bg-red-100 text-red-700";
-  if (status === "expired") return "bg-[hsl(35,80%,92%)] text-[hsl(32,90%,38%)]";
+  if (status === "expired")
+    return "bg-[hsl(35,80%,92%)] text-[hsl(32,90%,38%)]";
   return "bg-[hsl(120,10%,92%)] text-[hsl(150,10%,25%)]";
 };
 
@@ -127,9 +125,8 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
   );
   const archivedCertCount = useMemo(
     () =>
-      allCerts.filter(
-        (c) => c.status === "expired" || c.status === "revoked",
-      ).length,
+      allCerts.filter((c) => c.status === "expired" || c.status === "revoked")
+        .length,
     [allCerts],
   );
   const certs = useMemo(

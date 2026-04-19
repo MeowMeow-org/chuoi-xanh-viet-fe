@@ -362,7 +362,8 @@ export default function SeasonDetailPage() {
             <AlertDialogDescription>
               Toàn bộ dữ liệu nhật ký sẽ được hash và ghi lên Sepolia testnet.
               Sau khi neo, mùa vụ không thể chỉnh sửa thêm (trừ khi chuyển sang
-              trạng thái &quot;Đã chỉnh sửa&quot;). Quá trình có thể mất vài giây.
+              trạng thái &quot;Đã chỉnh sửa&quot;). Quá trình có thể mất vài
+              giây.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -450,10 +451,7 @@ export default function SeasonDetailPage() {
         {season?.status === "anchored" && (
           <TabsContent value="sale-units">
             {season && (
-              <SaleUnitsSection
-                seasonId={season.id}
-                farmId={season.farmId}
-              />
+              <SaleUnitsSection seasonId={season.id} farmId={season.farmId} />
             )}
           </TabsContent>
         )}
@@ -655,15 +653,15 @@ function YieldCard({
 
       {showWarning && !editing && (
         <p className="mt-3 text-xs text-amber-700">
-          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái &quot;Sẵn
-          sàng neo&quot; hoặc neo lên blockchain.
+          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái
+          &quot;Sẵn sàng neo&quot; hoặc neo lên blockchain.
         </p>
       )}
 
       {!editable && !editing && !yieldMissing && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang &quot;Đã
-          chỉnh sửa&quot;.
+          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang
+          &quot;Đã chỉnh sửa&quot;.
         </p>
       )}
     </div>
