@@ -10,7 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { buildGeocodeQuery, geocodeVietnamAddress } from "@/lib/googleGeocode";
+import {
+  convertAreaDisplayValue,
+  formatHaInputValue,
+  parseAreaInputToHa,
+  type FarmAreaUnit,
+} from "@/lib/farmArea";
+import { cn } from "@/lib/utils";
 import type { CreateFarmPayload, Farm } from "@/services/farm";
+import type { FarmFormValues } from "@/components/farmer/farm-form-types";
+import { VietnamAddressFields } from "@/components/farmer/VietnamAddressFields";
+import { FancySelect, type FancyOption } from "@/components/ui/fancy-select";
+
+export type { FarmFormValues };
 
 const farmFieldClass =
   "rounded-lg border border-input aria-invalid:border-destructive focus-visible:ring-1 focus-visible:ring-ring/50 focus-visible:aria-invalid:ring-destructive/40 aria-invalid:ring-1 aria-invalid:ring-destructive/25";
@@ -18,21 +30,15 @@ const farmFieldClass =
 const farmButtonClass =
   "cursor-pointer focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed";
 
-export type FarmFormValues = {
-  name: string;
-  areaHa: string;
-  cropMain: string;
-  province: string;
-  district: string;
-  ward: string;
-  address: string;
-  latitude: string;
-  longitude: string;
-};
+const AREA_UNIT_OPTIONS: FancyOption[] = [
+  { value: "m2", label: "m²" },
+  { value: "ha", label: "ha" },
+];
 
 export const emptyFarmFormValues = (): FarmFormValues => ({
   name: "",
-  areaHa: "",
+  areaValue: "",
+  areaUnit: "m2",
   cropMain: "",
   province: "",
   district: "",
@@ -43,10 +49,12 @@ export const emptyFarmFormValues = (): FarmFormValues => ({
 });
 
 export function farmToFormValues(farm: Farm): FarmFormValues {
+  const haRaw =
+    farm.areaHa != null && farm.areaHa !== "" ? Number(farm.areaHa) : NaN;
   return {
     name: farm.name,
-    areaHa:
-      farm.areaHa != null && farm.areaHa !== "" ? String(farm.areaHa) : "",
+    areaValue: Number.isFinite(haRaw) ? formatHaInputValue(haRaw) : "",
+    areaUnit: "ha",
     cropMain: farm.cropMain ?? "",
     province: farm.province ?? "",
     district: farm.district ?? "",
@@ -64,12 +72,14 @@ export function farmToFormValues(farm: Farm): FarmFormValues {
 }
 
 function valuesToPayload(values: FarmFormValues): CreateFarmPayload | null {
-  const normalizedArea = values.areaHa.trim();
-  const areaHa = normalizedArea ? Number(normalizedArea) : undefined;
-
-  if (areaHa !== undefined && Number.isNaN(areaHa)) {
-    toast.error("Diện tích phải là số hợp lệ");
+  const parsed = parseAreaInputToHa(values.areaValue, values.areaUnit);
+  if (parsed.error) {
+    toast.error(parsed.error);
     return null;
+  }
+  let areaHa = parsed.ha;
+  if (areaHa !== undefined) {
+    areaHa = Math.round(areaHa * 1e8) / 1e8;
   }
 
   const latStr = values.latitude.trim();
@@ -135,6 +145,7 @@ export default function FarmUpsertForm({
     handleSubmit,
     setValue,
     getValues,
+    watch,
     formState: { errors },
   } = useForm<FarmFormValues>({
     mode: "onBlur",
@@ -295,36 +306,66 @@ export default function FarmUpsertForm({
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input
-                className={farmFieldClass}
-                placeholder="Diện tích (ha)"
-                {...register("areaHa")}
-              />
-              <Input
-                className={farmFieldClass}
-                placeholder="Cây trồng chính"
-                {...register("cropMain")}
-              />
+            <div className="space-y-2">
+              <div className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto pb-0.5 sm:overflow-visible">
+                <Input
+                  className={cn(
+                    farmFieldClass,
+                    "h-11 min-h-11 min-w-28 flex-1 py-0 my-0",
+                  )}
+                  inputMode="decimal"
+                  placeholder={
+                    watch("areaUnit") === "m2"
+                      ? "Diện tích — ví dụ: 2500"
+                      : "Diện tích — ví dụ: 0,25"
+                  }
+                  aria-label="Diện tích (tuỳ chọn)"
+                  {...register("areaValue")}
+                />
+                <FancySelect
+                  className="h-11 min-h-11 w-21 shrink-0 rounded-lg border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] px-2 py-0 text-sm shadow-sm"
+                  listMaxHeightClassName="max-h-48"
+                  value={watch("areaUnit")}
+                  options={AREA_UNIT_OPTIONS}
+                  placeholder="Đơn vị"
+                  onChange={(v) => {
+                    const next = (v === "ha" ? "ha" : "m2") as FarmAreaUnit;
+                    const prev = getValues("areaUnit");
+                    if (prev === next) return;
+                    const raw = getValues("areaValue");
+                    setValue(
+                      "areaValue",
+                      convertAreaDisplayValue(raw, prev, next),
+                      { shouldValidate: true },
+                    );
+                    setValue("areaUnit", next, { shouldValidate: true });
+                  }}
+                />
+                <Input
+                  className={cn(
+                    farmFieldClass,
+                    "h-11 min-h-11 min-w-36 flex-1 py-0 my-0",
+                  )}
+                  placeholder="Cây trồng chính — ví dụ: Chuối, cà phê…"
+                  aria-label="Cây trồng chính (tuỳ chọn)"
+                  {...register("cropMain")}
+                />
+              </div>
+              <p className="text-xs leading-snug text-[hsl(150,8%,42%)]">
+                Hệ thống lưu theo{" "}
+                <strong className="font-medium text-[hsl(150,12%,22%)]">
+                  hecta (ha)
+                </strong>
+                . Chọn m² nếu quen đo theo mét vuông — sẽ quy đổi (1 ha = 10.000
+                m²).
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Input
-                className={farmFieldClass}
-                placeholder="Tỉnh/Thành"
-                {...register("province")}
-              />
-              <Input
-                className={farmFieldClass}
-                placeholder="Quận/Huyện"
-                {...register("district")}
-              />
-              <Input
-                className={farmFieldClass}
-                placeholder="Phường/Xã"
-                {...register("ward")}
-              />
-            </div>
+            <VietnamAddressFields
+              watch={watch}
+              setValue={setValue}
+              fieldClassName={farmFieldClass}
+            />
 
             <Input
               className={farmFieldClass}
@@ -348,11 +389,11 @@ export default function FarmUpsertForm({
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Button
                   type="button"
                   size="sm"
-                  className={`${farmButtonClass} w-full gap-2 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)] sm:w-auto`}
+                  className={`${farmButtonClass} w-full gap-2 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]`}
                   disabled={googleLoading || geoLoading}
                   onClick={() => void fillFromGoogleGeocode()}
                 >
@@ -367,7 +408,7 @@ export default function FarmUpsertForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={`${farmButtonClass} w-full gap-2 border-[hsl(142,35%,38%)] bg-white text-[hsl(142,58%,28%)] sm:w-auto`}
+                  className={`${farmButtonClass} w-full gap-2 border-[hsl(142,35%,38%)] bg-white text-[hsl(142,58%,28%)]`}
                   disabled={geoLoading || googleLoading}
                   onClick={() => void fillFromGeolocation()}
                 >
@@ -380,13 +421,13 @@ export default function FarmUpsertForm({
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="space-y-1">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="min-w-0 space-y-1">
                   <label className="block text-xs font-medium text-[hsl(150,10%,35%)]">
                     Vĩ độ *
                   </label>
                   <Input
-                    className={farmFieldClass}
+                    className={cn(farmFieldClass, "h-11 w-full")}
                     placeholder="Ví dụ: 10.8231"
                     inputMode="decimal"
                     aria-invalid={errors.latitude ? true : undefined}
@@ -408,12 +449,12 @@ export default function FarmUpsertForm({
                     </p>
                   )}
                 </div>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <label className="block text-xs font-medium text-[hsl(150,10%,35%)]">
                     Kinh độ *
                   </label>
                   <Input
-                    className={farmFieldClass}
+                    className={cn(farmFieldClass, "h-11 w-full")}
                     placeholder="Ví dụ: 106.6297"
                     inputMode="decimal"
                     aria-invalid={errors.longitude ? true : undefined}
@@ -438,16 +479,18 @@ export default function FarmUpsertForm({
               </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={isPending}
-              className={`${farmButtonClass} w-full sm:w-auto`}
-            >
-              {isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isPending ? pendingLabel : submitLabel}
-            </Button>
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:justify-end">
+              <Button
+                type="submit"
+                disabled={isPending}
+                className={`${farmButtonClass} w-full sm:w-auto sm:min-w-48`}
+              >
+                {isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isPending ? pendingLabel : submitLabel}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

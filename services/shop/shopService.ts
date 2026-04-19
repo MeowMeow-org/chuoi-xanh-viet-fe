@@ -6,6 +6,7 @@ import type {
   AvailableSaleUnitForProduct,
   CreateShopPayload,
   GetPublicProductsQuery,
+  GetShopsQuery,
   PublicProduct,
   PublicProductDetail,
   ShopSuggestResult,
@@ -178,14 +179,10 @@ export const shopService = {
     return mapProductDetail(raw);
   },
 
-  /** GET /shop — BE: chỉ gian hàng mở cửa; lọc `province`; sắp xếp sao → số review → xác minh → mới → số SP. */
-  getShops: async (query?: {
-    page?: number;
-    limit?: number;
-    searchTerm?: string;
-    /** Lọc theo tỉnh/thành (farm), cùng ý nghĩa với tab sản phẩm */
-    province?: string;
-  }): Promise<PaginatedResponse<ShopSummary>> => {
+  /** GET /shop — BE: chỉ gian hàng mở cửa; lọc province/district/ward; sắp xếp sao → review → xác minh → mới → số SP. */
+  getShops: async (
+    query?: GetShopsQuery,
+  ): Promise<PaginatedResponse<ShopSummary>> => {
     const raw = await axiosInstance.get<
       PaginatedResponse<ShopSummary>,
       PaginatedResponse<ShopSummary>

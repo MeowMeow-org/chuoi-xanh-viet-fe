@@ -25,7 +25,7 @@ export default function HomeClient() {
                 thanh toán tại gian hàng.
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/register"
                 className="inline-flex h-14 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white"
@@ -37,37 +37,6 @@ export default function HomeClient() {
                 className="inline-flex h-14 items-center justify-center rounded-xl border border-[hsl(142,15%,88%)] bg-white px-8 text-base font-bold text-[hsl(150,10%,15%)]"
               >
                 Mua sản phẩm
-              </Link>
-              <Link
-                href="/truy-xuat"
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-[hsl(142,71%,45%)] bg-white px-8 text-base font-bold text-[hsl(142,71%,32%)] hover:bg-[hsl(142,71%,45%)]/5"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <rect width="5" height="5" x="3" y="3" rx="1" />
-                  <rect width="5" height="5" x="16" y="3" rx="1" />
-                  <rect width="5" height="5" x="3" y="16" rx="1" />
-                  <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
-                  <path d="M21 21v.01" />
-                  <path d="M12 7v3a2 2 0 0 1-2 2H7" />
-                  <path d="M3 12h.01" />
-                  <path d="M12 3h.01" />
-                  <path d="M12 16v.01" />
-                  <path d="M16 12h1" />
-                  <path d="M21 12v.01" />
-                  <path d="M12 21v-1" />
-                </svg>
-                Tra cứu mã lô
               </Link>
             </div>
           </div>

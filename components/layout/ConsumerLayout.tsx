@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Home,
-  Search,
+  Store,
   ShoppingCart,
   User,
   Menu,
@@ -19,6 +19,13 @@ import {
   LogIn,
   ArrowLeftRight,
   QrCode,
+  Sprout,
+  ShoppingBag,
+  MessageCircle,
+  LayoutDashboard,
+  ShieldCheck,
+  Inbox,
+  CircleUser,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
@@ -38,8 +45,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { to: "/", label: "Trang chủ", icon: Home, publicHome: true },
-  { to: "/marketplace", label: "Chợ", icon: Search },
-  { to: "/truy-xuat", label: "Truy xuất", icon: QrCode },
+  { to: "/marketplace", label: "Chợ", icon: Store },
   { to: "/forum", label: "Diễn đàn", icon: Users },
 ];
 
@@ -53,15 +59,52 @@ type MobileNavItem = {
 
 const mobileNavAuthed: MobileNavItem[] = [
   { to: "/consumer", label: "Trang chủ", icon: Home },
-  { to: "/marketplace", label: "Chợ", icon: Search },
-  { to: "/consumer/cart", label: "Giỏ hàng", icon: ShoppingCart, requireConsumer: true },
-  { to: "/consumer/orders", label: "Đơn hàng", icon: Package, requireConsumer: true },
+  { to: "/marketplace", label: "Chợ", icon: Store },
+  {
+    to: "/consumer/cart",
+    label: "Giỏ hàng",
+    icon: ShoppingCart,
+    requireConsumer: true,
+  },
+  {
+    to: "/consumer/orders",
+    label: "Đơn hàng",
+    icon: Package,
+    requireConsumer: true,
+  },
   { to: "/consumer/profile", label: "Tôi", icon: User, requireAuth: true },
+];
+
+/** Cùng cấu trúc với FarmerLayout — nông hộ xem chợ công khai không dùng menu người mua */
+const mobileNavFarmer: MobileNavItem[] = [
+  { to: "/farmer/farms", label: "Nông trại", icon: Sprout },
+  { to: "/farmer/forum", label: "Diễn đàn", icon: Users },
+  { to: "/farmer", label: "Tổng quan", icon: Home },
+  { to: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
+  { to: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
+];
+
+/** Giống CooperativeLayout — HTX xem trang công khai */
+const mobileNavCooperative: MobileNavItem[] = [
+  { to: "/cooperative/households", label: "Nông hộ", icon: Users },
+  { to: "/cooperative/certificates", label: "Chứng chỉ", icon: ShieldCheck },
+  { to: "/cooperative", label: "Tổng quan", icon: LayoutDashboard },
+  { to: "/cooperative/requests", label: "Yêu cầu", icon: Inbox },
+  { to: "/cooperative/profile", label: "Hồ sơ", icon: CircleUser },
+];
+
+/** Admin xem chợ / diễn đàn công khai */
+const mobileNavAdmin: MobileNavItem[] = [
+  { to: "/admin", label: "Quản trị", icon: LayoutDashboard },
+  { to: "/marketplace", label: "Chợ", icon: Store },
+  { to: "/forum", label: "Diễn đàn", icon: Users },
+  { to: "/truy-xuat", label: "Tra cứu", icon: QrCode },
+  { to: "/", label: "Trang chủ", icon: Leaf },
 ];
 
 const mobileNavGuest: MobileNavItem[] = [
   { to: "/", label: "Trang chủ", icon: Home },
-  { to: "/marketplace", label: "Chợ", icon: Search },
+  { to: "/marketplace", label: "Chợ", icon: Store },
   { to: "/forum", label: "Diễn đàn", icon: Users },
   { to: "/login", label: "Đăng nhập", icon: LogIn },
 ];
@@ -118,7 +161,11 @@ export default function ConsumerLayout({
   const isActive = (path: string) => {
     if (path === "/consumer") return pathname === "/consumer";
     if (path === "/") return pathname === "/";
-    return pathname.startsWith(path);
+    if (path === "/farmer") return pathname === "/farmer";
+    if (path === "/cooperative") return pathname === "/cooperative";
+    if (path === "/admin")
+      return pathname === "/admin" || pathname.startsWith("/admin/");
+    return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   const headerHome = isConsumer ? "/consumer" : "/";
@@ -130,12 +177,31 @@ export default function ConsumerLayout({
     return `${href}?next=${encodeURIComponent(current)}`;
   };
 
-  const mobileNav = isGuest ? mobileNavGuest : mobileNavAuthed;
+  const mobileNav: MobileNavItem[] = isGuest
+    ? mobileNavGuest
+    : isConsumer
+      ? mobileNavAuthed
+      : role === "farmer"
+        ? mobileNavFarmer
+        : role === "cooperative"
+          ? mobileNavCooperative
+          : role === "admin"
+            ? mobileNavAdmin
+            : mobileNavAuthed;
 
   const requireLogin = (label: string) => {
     router.push(withNext("/login"));
     void label;
   };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -174,12 +240,13 @@ export default function ConsumerLayout({
             {navItems
               .filter((it) => !it.requireConsumer || isConsumer)
               .map((item) => {
-                const to = item.publicHome && isConsumer ? "/consumer" : item.to;
+                const to =
+                  item.publicHome && isConsumer ? "/consumer" : item.to;
                 return (
                   <Link
                     key={item.to}
                     href={to}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex min-w-28 items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive(to)
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -366,125 +433,152 @@ export default function ConsumerLayout({
             </Button>
           </div>
         </div>
-
-        {menuOpen && (
-          <div className="md:hidden border-t bg-card animate-fade-in">
-            <div className="container py-3 space-y-1">
-              {navItems
-                .filter((it) => !it.requireConsumer || isConsumer)
-                .map((item) => {
-                  const to = item.publicHome && isConsumer ? "/consumer" : item.to;
-                  return (
-                    <Link
-                      key={item.to}
-                      href={to}
-                      onClick={() => setMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                        isActive(to)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent"
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              {isConsumer && (
-                <div className="border-t my-2 pt-2">
-                  {sideNav.map((item) => (
-                    <Link
-                      key={item.to}
-                      href={item.to}
-                      onClick={() => setMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                        isActive(item.to)
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent"
-                      }`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.label}
-                      {item.to === "/consumer/notifications" &&
-                        unreadNotifs > 0 && (
-                          <span
-                            className={`ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${
-                              isActive(item.to)
-                                ? "bg-primary-foreground/20 text-primary-foreground"
-                                : "bg-primary/15 text-primary"
-                            }`}
-                          >
-                            {unreadNotifs > 99 ? "99+" : unreadNotifs}
-                          </span>
-                        )}
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {user && !isConsumer && role && (
-                <Link
-                  href={ROLE_HOME[role]}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 mt-2 border-t rounded-lg text-base font-medium text-foreground hover:bg-accent"
-                >
-                  <ArrowLeftRight className="h-5 w-5" />
-                  Về trang {ROLE_LABEL[role]}
-                </Link>
-              )}
-              {user && (
-                <>
-                  <div className="flex items-center gap-3 px-4 py-3 border-t mt-2 pt-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">{consumerName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {consumerEmail}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      logout();
-                    }}
-                    disabled={isLoggingOut}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-medium text-destructive hover:text-destructive/80 hover:bg-destructive/5 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-60 border-t"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
-                  </button>
-                </>
-              )}
-              {isGuest && (
-                <div className="grid grid-cols-2 gap-2 border-t mt-2 pt-3">
-                  <Link
-                    href={withNext("/login")}
-                    onClick={() => setMenuOpen(false)}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
-                  >
-                    <LogIn className="h-4 w-4" /> Đăng nhập
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMenuOpen(false)}
-                    className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    Đăng ký
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </header>
+
+      <div
+        className={cn(
+          // z-60 > bottom nav (z-50) so drawer + backdrop cover full screen like farmer mobile reference
+          "fixed inset-x-0 top-14 bottom-0 z-60 md:hidden transition-opacity duration-200",
+          menuOpen
+            ? "pointer-events-auto bg-black/50 opacity-100"
+            : "pointer-events-none bg-black/0 opacity-0",
+        )}
+        role="dialog"
+        aria-modal={menuOpen}
+        aria-label="Menu điều hướng"
+        aria-hidden={!menuOpen}
+        onClick={() => setMenuOpen(false)}
+      >
+        <div
+          className={cn(
+            "h-full w-[80%] max-w-xs overflow-y-auto border-r border-border bg-card p-3 shadow-md transition-transform duration-300 ease-out",
+            menuOpen ? "translate-x-0" : "-translate-x-full",
+          )}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="space-y-1">
+            {navItems
+              .filter((it) => !it.requireConsumer || isConsumer)
+              .map((item) => {
+                const to =
+                  item.publicHome && isConsumer ? "/consumer" : item.to;
+                return (
+                  <Link
+                    key={item.to}
+                    href={to}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
+                      isActive(to)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            {isConsumer && (
+              <div className="my-2 border-t pt-2">
+                {sideNav.map((item) => (
+                  <Link
+                    key={item.to}
+                    href={item.to}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
+                      isActive(item.to)
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent"
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                    {item.to === "/consumer/notifications" &&
+                      unreadNotifs > 0 && (
+                        <span
+                          className={`ml-auto rounded-none px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${
+                            isActive(item.to)
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : "bg-primary/15 text-primary"
+                          }`}
+                        >
+                          {unreadNotifs > 99 ? "99+" : unreadNotifs}
+                        </span>
+                      )}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {user && !isConsumer && role && (
+              <Link
+                href={ROLE_HOME[role]}
+                onClick={() => setMenuOpen(false)}
+                className="mt-2 flex items-center gap-3 rounded-none border-t px-4 py-3 text-base font-medium text-foreground hover:bg-accent"
+              >
+                <ArrowLeftRight className="h-5 w-5" />
+                Về trang {ROLE_LABEL[role]}
+              </Link>
+            )}
+            {user && (
+              <>
+                <div className="mt-2 flex items-center gap-3 border-t px-4 py-3 pt-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-none bg-primary/10">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{consumerName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {consumerEmail}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    logout();
+                  }}
+                  disabled={isLoggingOut}
+                  className="flex w-full items-center gap-3 rounded-none border-t px-4 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 hover:text-destructive/80 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <LogOut className="h-5 w-5" />
+                  {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+                </button>
+              </>
+            )}
+            {isGuest && (
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t pt-3">
+                <Link
+                  href={withNext("/login")}
+                  onClick={() => setMenuOpen(false)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-none border px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent"
+                >
+                  <LogIn className="h-4 w-4" /> Đăng nhập
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="inline-flex items-center justify-center rounded-none bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  Đăng ký
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <main className="flex-1">{children}</main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur">
-        <div className="flex w-full py-1">
+      <nav
+        className={cn(
+          "md:hidden fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur",
+          isConsumer || isGuest
+            ? "border-border bg-card/95"
+            : "border-[hsl(142,14%,88%)] bg-white/95",
+        )}
+      >
+        <div className="flex w-full justify-around overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {mobileNav.map((item) => {
             const active = isActive(item.to);
             const Icon = item.icon;
@@ -494,7 +588,7 @@ export default function ConsumerLayout({
             const href = needsLogin ? withNext("/login") : item.to;
             return (
               <Link
-                key={item.to}
+                key={`${item.to}-${item.label}`}
                 href={href}
                 aria-current={active ? "page" : undefined}
                 onClick={(e) => {

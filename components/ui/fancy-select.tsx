@@ -14,12 +14,18 @@ export function FancySelect({
   options,
   placeholder,
   disabled,
+  className,
+  listMaxHeightClassName = "max-h-64",
 }: {
   value: string;
   onChange: (v: string) => void;
   options: FancyOption[];
   placeholder?: string;
   disabled?: boolean;
+  /** Gộp vào nút trigger (vd. border, nền giống Input) */
+  className?: string;
+  /** Chiều cao tối đa danh sách (vd. max-h-72 cho danh sách dài) */
+  listMaxHeightClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState<number>(-1);
@@ -76,7 +82,7 @@ export function FancySelect({
   };
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative w-full min-w-0">
       <button
         type="button"
         disabled={disabled}
@@ -95,10 +101,11 @@ export function FancySelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         className={cn(
-          "flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-background px-3 text-left text-sm shadow-sm transition",
+          "flex h-11 min-h-11 w-full items-center justify-between gap-2 rounded-md border bg-background px-3 py-0 text-left text-sm shadow-sm transition",
           "hover:border-primary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           open ? "border-primary ring-2 ring-primary/30" : "border-input",
           disabled && "cursor-not-allowed opacity-50",
+          className,
         )}
       >
         <span
@@ -121,7 +128,10 @@ export function FancySelect({
         <div
           ref={listRef}
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-64 overflow-y-auto rounded-md border border-border/60 bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-black/5 animate-in fade-in-0 zoom-in-95"
+          className={cn(
+            "absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-y-auto rounded-md border border-border/60 bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-black/5 animate-in fade-in-0 zoom-in-95",
+            listMaxHeightClassName,
+          )}
         >
           {options.length === 0 && (
             <div className="px-3 py-2 text-xs text-muted-foreground">
