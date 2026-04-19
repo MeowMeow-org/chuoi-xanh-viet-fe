@@ -29,7 +29,6 @@ import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
 import type { ShopReview } from "@/services/review";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
-import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -479,11 +478,6 @@ export default function PublicProductPage() {
                   >
                     {shopInitials(product.shop.name)}
                   </div>
-                  <CertificateBadge
-                    badges={product.shop.badges}
-                    farmId={product.shop.farm?.id ?? product.shop.farmId}
-                    variant="corner"
-                  />
                 </div>
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <Link

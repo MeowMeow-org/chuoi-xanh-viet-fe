@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { ShieldCheck, BadgeCheck, Leaf, FileText, ExternalLink } from "lucide-react";
+import {
+  ShieldCheck,
+  BadgeCheck,
+  Leaf,
+  FileText,
+  ExternalLink,
+  ChevronRight,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -24,10 +31,15 @@ type Props = {
   /** Đã có sẵn mảng badge (ưu tiên). Nếu không có, truyền farmId để tự fetch */
   badges?: CertificateBadgeData[] | null;
   farmId?: string | null;
-  /** Chỉ hiển thị loại này (mặc định: vietgap) */
+  /** Chỉ hiển thị loại này (mặc định: vietgap). Với `row` nên truyền `any`. */
   filterType?: CertType | "any";
-  /** Style hiển thị */
-  variant?: "corner" | "inline";
+  /**
+   * Style hiển thị
+   *  - `corner`: chấm tròn nhỏ ở góc avatar (mặc định)
+   *  - `inline`: 1 pill text-icon gọn
+   *  - `row`: hàng pill nổi bật kèm hint "Nhấn xem" — dùng trong card thông tin
+   */
+  variant?: "corner" | "inline" | "row";
   className?: string;
 };
 
@@ -69,7 +81,7 @@ function filterBadges(
 export function CertificateBadge(props: Props) {
   const {
     variant = "corner",
-    filterType = "vietgap",
+    filterType = variant === "row" ? "any" : "vietgap",
     className,
   } = props;
   const badges = filterBadges(useResolvedBadges(props), filterType);
@@ -79,40 +91,79 @@ export function CertificateBadge(props: Props) {
   const mainType = badges[0].type;
   const label = CERT_TYPE_LABEL[mainType];
 
+  const trigger = (() => {
+    if (variant === "corner") {
+      return (
+        <button
+          type="button"
+          aria-label={`Chứng chỉ ${label}`}
+          title={`Chứng chỉ ${label} — bấm để xem`}
+          className={cn(
+            "absolute -bottom-1 -right-1 inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-primary text-white shadow-md transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+            className,
+          )}
+        >
+          <BadgeCheck className="h-4 w-4" />
+        </button>
+      );
+    }
+
+    if (variant === "inline") {
+      return (
+        <button
+          type="button"
+          aria-label={`Chứng chỉ ${label}`}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary hover:bg-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+            className,
+          )}
+        >
+          <ShieldCheck className="h-3 w-3" />
+          <span>{label}</span>
+        </button>
+      );
+    }
+
+    // variant === "row" — khối nổi bật, người dùng thấy rõ và biết nhấn được
+    return (
+      <button
+        type="button"
+        aria-label="Xem danh sách chứng chỉ đã xác thực"
+        className={cn(
+          "group inline-flex w-full max-w-full items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-left shadow-sm transition-colors hover:border-primary/50 hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto",
+          className,
+        )}
+      >
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <ShieldCheck className="h-4 w-4" />
+        </span>
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-primary/80">
+            Chứng chỉ đã xác thực
+          </span>
+          <span className="flex flex-wrap items-center gap-1 pt-0.5">
+            {badges.map((b) => (
+              <span
+                key={b.type}
+                className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-primary ring-1 ring-primary/20"
+              >
+                <BadgeCheck className="h-3 w-3" />
+                {CERT_TYPE_LABEL[b.type]}
+              </span>
+            ))}
+          </span>
+        </span>
+        <span className="ml-auto hidden items-center gap-1 text-[11px] font-medium text-primary/70 group-hover:text-primary sm:inline-flex">
+          Xem chi tiết
+          <ChevronRight className="h-3.5 w-3.5" />
+        </span>
+      </button>
+    );
+  })();
+
   return (
     <Dialog>
-      <DialogTrigger
-        render={
-          variant === "corner" ? (
-            <button
-              type="button"
-              aria-label={`Chứng chỉ ${label}`}
-              className={cn(
-                "absolute -bottom-1 -right-1 inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-primary text-white shadow-md transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                className,
-              )}
-            />
-          ) : (
-            <button
-              type="button"
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary hover:bg-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                className,
-              )}
-              aria-label={`Chứng chỉ ${label}`}
-            />
-          )
-        }
-      >
-        {variant === "corner" ? (
-          <BadgeCheck className="h-4 w-4" />
-        ) : (
-          <>
-            <ShieldCheck className="h-3 w-3" />
-            <span>{label}</span>
-          </>
-        )}
-      </DialogTrigger>
+      <DialogTrigger render={trigger} />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

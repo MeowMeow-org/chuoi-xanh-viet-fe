@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Leaf, ShieldCheck, MapPin, Search, Loader2 } from "lucide-react";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
-import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { shopService } from "@/services/shop/shopService";
 
 const REGIONS = [
@@ -217,11 +216,6 @@ export default function MarketplacePage() {
                         <CardContent className="p-4 flex items-start gap-4">
                           <div className="relative h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                             <Leaf className="h-7 w-7 text-primary" />
-                            <CertificateBadge
-                              badges={shop.badges}
-                              farmId={shop.farm_id}
-                              variant="corner"
-                            />
                           </div>
                           <div className="flex-1 min-w-0 space-y-1">
                             <p className="font-bold text-sm">{shop.name}</p>

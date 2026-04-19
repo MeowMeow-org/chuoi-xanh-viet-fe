@@ -1,0 +1,42 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Node / build output
+node_modules
+.next
+out
+dist
+build
+coverage
+
+# Env local (trừ .env.example). NEXT_PUBLIC_* truyền qua build args trong compose.
+.env
+.env.*.local
+.env.local
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Docker-related local artefacts
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Logs & caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.turbo
+
+# Tests / docs không cần trong image
+**/__tests__/**
+**/*.test.*
+**/*.spec.*
+README*.md
