@@ -14,6 +14,7 @@ import {
   QrCode,
   Loader2,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
@@ -189,7 +190,7 @@ export default function PublicShopPage() {
             {products.map((product) => (
               <Link key={product.id} href={`/product/${product.id}`}>
                 <Card className="hover:border-primary/40 transition-colors h-full">
-                  <div className="aspect-square bg-muted/50 rounded-t-lg overflow-hidden flex items-center justify-center">
+                  <div className="aspect-square bg-muted/50 rounded-t-lg overflow-hidden flex items-center justify-center relative">
                     {product.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -201,6 +202,18 @@ export default function PublicShopPage() {
                     ) : (
                       <Leaf className="h-10 w-10 text-primary/30" />
                     )}
+                    {typeof product.rankScore === "number" &&
+                      product.rankScore >= 0.55 && (
+                        <div className="absolute left-2 top-2">
+                          <Badge
+                            variant="secondary"
+                            className="gap-0.5 bg-amber-500/95 text-white border-0 text-[10px] px-1.5 py-0 shadow-sm"
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            Nổi bật
+                          </Badge>
+                        </div>
+                      )}
                   </div>
                   <CardContent className="p-3 space-y-1.5">
                     <p className="font-semibold text-sm line-clamp-1">

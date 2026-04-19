@@ -55,6 +55,8 @@ export interface PublicProduct {
   /** Tổng hợp từ shop_reviews (BE) */
   averageRating?: number | null;
   reviewCount?: number;
+  /** Điểm xếp hạng 0–1 (freshness + rating + scan), BE */
+  rankScore?: number;
 }
 
 export interface PublicProductDetail extends PublicProduct {
@@ -84,6 +86,7 @@ export interface ShopCooperativeSummary {
   avatar_url: string | null;
 }
 
+/** GET /shop (danh sách công khai): BE chỉ trả gian hàng `status: open` (đã sắp xếp). */
 export interface ShopSummary {
   id: string;
   farm_id: string;
