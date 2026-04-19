@@ -71,9 +71,9 @@ export default function FarmerCertificatesPage() {
         <div>
           <h1 className="text-xl font-bold">Chứng chỉ nông trại</h1>
           <p className="text-sm text-muted-foreground">
-            Nộp và theo dõi trạng thái VietGAP (và các chứng chỉ khác). Nếu
-            nông trại đã thuộc HTX, HTX sẽ là người duyệt. Nông hộ độc lập
-            sẽ do quản trị viên duyệt.
+            Nộp và theo dõi trạng thái VietGAP (và các chứng chỉ khác). Nếu nông
+            trại đã thuộc HTX, HTX sẽ là người duyệt. Nông hộ độc lập sẽ do quản
+            trị viên duyệt.
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -141,8 +141,7 @@ export default function FarmerCertificatesPage() {
                       <dd className="text-foreground">{c.issuer ?? "—"}</dd>
                       <dt>Hiệu lực:</dt>
                       <dd className="text-foreground">
-                        {formatDate(c.issued_at)} →{" "}
-                        {formatDate(c.expires_at)}
+                        {formatDate(c.issued_at)} → {formatDate(c.expires_at)}
                       </dd>
                     </dl>
                     {c.reject_reason && c.status === "rejected" && (
