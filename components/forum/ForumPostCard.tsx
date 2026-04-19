@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Image, Popconfirm } from "antd";
 import { MessageCircle, MoreHorizontal, Send, Trash2, UserRound } from "lucide-react";
 import { showAppToast } from "@/components/ui/toast";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { forumSlugToLabel } from "@/constants/forum-labels";
 import {
@@ -62,6 +71,9 @@ export function ForumPostCard({
   const [commentMenuOpenId, setCommentMenuOpenId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
+  const [deletePostOpen, setDeletePostOpen] = useState(false);
+  const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const postMenuRef = useRef<HTMLDivElement | null>(null);
 
   const {
@@ -142,6 +154,7 @@ export function ForumPostCard({
   const handleDeletePost = () => {
     deletePost.mutate(post.id, {
       onSuccess: () => {
+        setDeletePostOpen(false);
         showAppToast({ message: "Đã xóa bài viết", type: "success" });
       },
     });
@@ -150,6 +163,7 @@ export function ForumPostCard({
   const handleDeleteComment = (commentId: string) => {
     deleteComment.mutate(commentId, {
       onSuccess: () => {
+        setDeleteCommentId(null);
         showAppToast({ message: "Đã xóa bình luận", type: "success" });
       },
     });
@@ -161,7 +175,7 @@ export function ForumPostCard({
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
       if (!target) return;
-      if (target.closest(".ant-popover")) return;
+      if (target.closest('[data-slot="alert-dialog"]')) return;
       if (!postMenuRef.current) return;
       if (!postMenuRef.current.contains(target)) {
         setPostMenuOpen(false);
@@ -186,7 +200,7 @@ export function ForumPostCard({
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target?.closest(".ant-popover")) return;
+      if (target?.closest('[data-slot="alert-dialog"]')) return;
       if (!target?.closest("[data-comment-menu]")) {
         setCommentMenuOpenId(null);
       }
@@ -199,6 +213,7 @@ export function ForumPostCard({
   }, []);
 
   return (
+    <>
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
@@ -262,24 +277,17 @@ export function ForumPostCard({
                       >
                         Sửa
                       </button>
-                      <Popconfirm
-                        title="Xóa bài viết này?"
-                        okText="Xóa"
-                        cancelText="Hủy"
-                        okButtonProps={{ danger: true, loading: deletePost.isPending }}
-                        onConfirm={() => {
+                      <button
+                        type="button"
+                        className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+                        disabled={deletePost.isPending}
+                        onClick={() => {
                           setPostMenuOpen(false);
-                          handleDeletePost();
+                          setDeletePostOpen(true);
                         }}
                       >
-                        <button
-                          type="button"
-                          className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
-                          disabled={deletePost.isPending}
-                        >
-                          Xóa
-                        </button>
-                      </Popconfirm>
+                        Xóa
+                      </button>
                     </div>
                   )}
                 </div>
@@ -307,23 +315,17 @@ export function ForumPostCard({
                 </>
               )}
               {!allowEditPost && (
-                <Popconfirm
-                  title="Xóa bài viết này?"
-                  okText="Xóa"
-                  cancelText="Hủy"
-                  okButtonProps={{ danger: true, loading: deletePost.isPending }}
-                  onConfirm={handleDeletePost}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 cursor-pointer px-2 text-destructive hover:text-destructive"
+                  disabled={deletePost.isPending}
+                  onClick={() => setDeletePostOpen(true)}
+                  aria-label="Xóa bài viết"
                 >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 cursor-pointer px-2 text-destructive hover:text-destructive"
-                    disabled={deletePost.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </Popconfirm>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               )}
             </div>
           )}
@@ -348,15 +350,11 @@ export function ForumPostCard({
                       key={img.id}
                       className="relative h-24 w-24 overflow-hidden rounded-md border bg-muted"
                     >
-                      <Image
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={img.url}
                         alt=""
-                        width={96}
-                        height={96}
-                        preview={false}
                         className="block h-full w-full object-cover"
-                        rootClassName="block h-full w-full leading-none"
-                        style={{ display: "block", objectFit: "cover" }}
                       />
                       <button
                         type="button"
@@ -389,24 +387,21 @@ export function ForumPostCard({
 
         {!editingPost && post.images.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            <Image.PreviewGroup>
-              {post.images.map((img) => (
-                <div
-                  key={img.id}
-                  className="h-24 w-24 overflow-hidden rounded-md border bg-muted"
-                >
-                  <Image
-                    src={img.url}
-                    alt=""
-                    width={96}
-                    height={96}
-                    className="block h-full w-full object-cover"
-                    rootClassName="block h-full w-full leading-none"
-                    style={{ display: "block", objectFit: "cover" }}
-                  />
-                </div>
-              ))}
-            </Image.PreviewGroup>
+            {post.images.map((img) => (
+              <button
+                key={img.id}
+                type="button"
+                className="h-24 w-24 overflow-hidden rounded-md border bg-muted p-0 text-left ring-offset-background transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={() => setLightboxUrl(img.url)}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.url}
+                  alt=""
+                  className="block h-full w-full object-cover"
+                />
+              </button>
+            ))}
           </div>
         )}
 
@@ -507,24 +502,17 @@ export function ForumPostCard({
                                 >
                                   Sửa
                                 </button>
-                                <Popconfirm
-                                  title="Xóa bình luận này?"
-                                  okText="Xóa"
-                                  cancelText="Hủy"
-                                  okButtonProps={{ danger: true, loading: deleteComment.isPending }}
-                                  onConfirm={() => {
+                                <button
+                                  type="button"
+                                  className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+                                  disabled={deleteComment.isPending}
+                                  onClick={() => {
                                     setCommentMenuOpenId(null);
-                                    handleDeleteComment(comment.id);
+                                    setDeleteCommentId(comment.id);
                                   }}
                                 >
-                                  <button
-                                    type="button"
-                                    className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
-                                    disabled={deleteComment.isPending}
-                                  >
-                                    Xóa
-                                  </button>
-                                </Popconfirm>
+                                  Xóa
+                                </button>
                               </div>
                             )}
                           </div>
@@ -619,5 +607,68 @@ export function ForumPostCard({
         )}
       </CardContent>
     </Card>
+
+    <AlertDialog open={deletePostOpen} onOpenChange={setDeletePostOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Xóa bài viết này?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Hành động này không thể hoàn tác.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={deletePost.isPending}
+            onClick={() => handleDeletePost()}
+          >
+            {deletePost.isPending ? "Đang xóa..." : "Xóa"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog
+      open={deleteCommentId !== null}
+      onOpenChange={(open) => !open && setDeleteCommentId(null)}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Xóa bình luận này?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Hành động này không thể hoàn tác.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Hủy</AlertDialogCancel>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={deleteComment.isPending}
+            onClick={() => {
+              if (deleteCommentId) handleDeleteComment(deleteCommentId);
+            }}
+          >
+            {deleteComment.isPending ? "Đang xóa..." : "Xóa"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <Dialog open={!!lightboxUrl} onOpenChange={(o) => !o && setLightboxUrl(null)}>
+      <DialogContent className="max-w-[min(100vw-2rem,56rem)] border-0 bg-transparent p-0 shadow-none ring-0">
+        {lightboxUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={lightboxUrl}
+            alt=""
+            className="max-h-[85vh] w-full rounded-lg object-contain"
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
