@@ -340,7 +340,7 @@ export default function PublicProductPage() {
     </div>
   );
 
-  // Non-consumer đã login: ẩn nút mua (vì vô nghĩa với họ), vẫn hiện "Nhắn nông hộ".
+  // Non-consumer đã login: ẩn nút mua (vì vô nghĩa với họ).
   const showBuyingActions = isConsumer || !role; // guest: hiện để dẫn login
 
   return (
@@ -422,17 +422,6 @@ export default function PublicProductPage() {
                     : `Còn ${stock.toLocaleString("vi-VN")} ${unitLabel}`}
                 </p>
               </div>
-              {product.shop.farm?.ownerUserId && (
-                <Button
-                  variant="outline"
-                  className="w-full gap-2"
-                  onClick={messageFarmer}
-                  disabled={openChatMutation.isPending}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  {openChatMutation.isPending ? "Đang mở..." : "Nhắn nông hộ"}
-                </Button>
-              )}
             </div>
 
             {showBuyingActions && (

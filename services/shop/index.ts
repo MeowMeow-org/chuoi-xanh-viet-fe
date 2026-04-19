@@ -70,12 +70,28 @@ export interface PublicProductDetail extends PublicProduct {
   } | null;
 }
 
+export type PublicProductSort = "newest" | "price_asc" | "price_desc";
+
 export interface GetPublicProductsQuery {
   page?: number;
   limit?: number;
   searchTerm?: string;
   province?: string;
+  district?: string;
+  ward?: string;
   shopId?: string;
+  sort?: PublicProductSort;
+  minPrice?: number;
+  maxPrice?: number;
+}
+
+export interface GetShopsQuery {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+  province?: string;
+  district?: string;
+  ward?: string;
 }
 
 export interface ShopCooperativeSummary {

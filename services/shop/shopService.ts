@@ -6,6 +6,7 @@ import type {
   AvailableSaleUnitForProduct,
   CreateShopPayload,
   GetPublicProductsQuery,
+  GetShopsQuery,
   PublicProduct,
   PublicProductDetail,
   ShopSuggestResult,
@@ -176,11 +177,9 @@ export const shopService = {
     return mapProductDetail(raw);
   },
 
-  getShops: async (query?: {
-    page?: number;
-    limit?: number;
-    searchTerm?: string;
-  }): Promise<PaginatedResponse<ShopSummary>> => {
+  getShops: async (
+    query?: GetShopsQuery,
+  ): Promise<PaginatedResponse<ShopSummary>> => {
     const raw = await axiosInstance.get<
       PaginatedResponse<ShopSummary>,
       PaginatedResponse<ShopSummary>
