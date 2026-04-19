@@ -99,14 +99,19 @@ export default function FarmerLayout({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm leading-none transition-colors ${
-                        active
-                          ? "bg-[hsl(142,69%,45%)] text-white font-semibold"
-                          : "text-[hsl(150,6%,38%)] font-medium hover:bg-[hsl(120,10%,92%)] hover:text-[hsl(150,10%,18%)]"
-                      }`}
+                      className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm leading-none transition-colors ${active
+                        ? "bg-[hsl(142,71%,45%)]/18 font-semibold shadow-[inset_0_0_0_1px_hsl(142,50%,80%)]"
+                        : "text-[hsl(150,6%,38%)] font-medium hover:bg-[hsl(120,10%,92%)] hover:text-[hsl(150,10%,18%)]"
+                        }`}
                     >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
+                      <Icon
+                        className={`h-4 w-4 ${active ? "text-[hsl(142,71%,34%)]" : ""}`}
+                      />
+                      <span
+                        className={active ? "text-[hsl(142,71%,34%)]" : ""}
+                      >
+                        {item.label}
+                      </span>
                     </Link>
                   );
                 })}
@@ -201,17 +206,15 @@ export default function FarmerLayout({
           <main className="flex-1">{children}</main>
 
           <div
-            className={`fixed inset-x-0 top-14 bottom-[57px] z-40 md:hidden transition-opacity duration-200 ${
-              mobileMenuOpen
-                ? "pointer-events-auto bg-black/35 opacity-100"
-                : "pointer-events-none bg-black/0 opacity-0"
-            }`}
+            className={`fixed inset-x-0 top-14 bottom-[57px] z-40 md:hidden transition-opacity duration-200 ${mobileMenuOpen
+              ? "pointer-events-auto bg-black/35 opacity-100"
+              : "pointer-events-none bg-black/0 opacity-0"
+              }`}
             onClick={() => setMobileMenuOpen(false)}
           >
             <div
-              className={`h-full w-[84%] max-w-xs overflow-y-auto border-r bg-white p-3 transition-transform duration-300 ease-out ${
-                mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-              }`}
+              className={`h-full w-[84%] max-w-xs overflow-y-auto border-r bg-white p-3 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+                }`}
               onClick={(event) => event.stopPropagation()}
             >
               <div className="space-y-1">
@@ -224,11 +227,10 @@ export default function FarmerLayout({
                       key={`${item.href}-mobile`}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
-                        active
-                          ? "bg-[hsl(142,71%,45%)] text-white"
-                          : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
-                      }`}
+                      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${active
+                        ? "bg-[hsl(142,71%,45%)] text-white"
+                        : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
+                        }`}
                     >
                       <Icon className="h-5 w-5" />
                       {item.label}
@@ -246,11 +248,10 @@ export default function FarmerLayout({
                         key={`${item.href}-secondary`}
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
-                          active
-                            ? "bg-[hsl(142,71%,45%)] text-white"
-                            : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
-                        }`}
+                        className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${active
+                          ? "bg-[hsl(142,71%,45%)] text-white"
+                          : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
+                          }`}
                       >
                         <Icon className="h-5 w-5" />
                         {item.label}
@@ -266,14 +267,21 @@ export default function FarmerLayout({
                 </div>
 
                 <div className="mt-2 flex items-center gap-3 border-t px-4 py-3 pt-4">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/15">
-                    <User className="h-5 w-5 text-[hsl(142,71%,35%)]" />
+                  <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-[hsl(142,71%,45%)]/15">
+                    {user?.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={user.avatarUrl}
+                        alt={user?.fullName ?? "User avatar"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5 text-[hsl(142,71%,35%)]" />
+                    )}
                   </span>
                   <div>
-                    <p className="font-semibold">Farmer</p>
-                    <p className="text-sm text-[hsl(150,7%,45%)]">
-                      Role: Farmer
-                    </p>
+                    <p className="font-semibold">{user?.fullName ?? "Farmer"}</p>
+                    <p className="text-sm text-[hsl(150,7%,45%)]">Vai trò: farmer</p>
                   </div>
                 </div>
 
