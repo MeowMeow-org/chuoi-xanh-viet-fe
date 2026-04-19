@@ -35,13 +35,13 @@ export default function RootLayout({
         "h-full",
         "antialiased",
         beVietnamPro.variable,
-        geistMono.variable,
+        geistMono.variable, 
         "font-sans",
       )}
     >
       <body className="min-h-full flex flex-col">
         <QueryProvider>
-          <Toaster position="top-center" richColors />
+          <Toaster position="top-right" richColors />
           {children}
         </QueryProvider>
       </body>

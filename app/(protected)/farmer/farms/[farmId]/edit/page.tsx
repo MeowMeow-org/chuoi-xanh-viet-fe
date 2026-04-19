@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import FarmUpsertForm, { farmToFormValues } from "@/components/farmer/FarmUpsertForm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -78,3 +78,4 @@ export default function EditFarmPage() {
     />
   );
 }
+

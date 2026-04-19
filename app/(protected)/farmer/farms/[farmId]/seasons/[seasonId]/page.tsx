@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import DiaryEntryForm from "@/components/dashboard/DiaryEntryForm";
 import DiaryTimeline from "@/components/dashboard/DiaryTimeline";
@@ -54,7 +54,7 @@ function parseSeasonActualYield(value: unknown): number | null {
 }
 
 const STATUS_LABEL: Record<SeasonStatus, string> = {
-  draft: "Nháp",
+  draft: "Hiện hành",
   ready_to_anchor: "Hoàn thành thu hoạch",
   anchored: "Đã công khai",
   amended: "Đã chỉnh sửa",
@@ -78,7 +78,7 @@ const NEXT_STATUS: Partial<
   draft: { to: "ready_to_anchor", label: "Hoàn thành thu hoạch" },
   ready_to_anchor: { to: "anchored", label: "Đăng nhật ký" },
   amended: { to: "ready_to_anchor", label: "Hoàn thành thu hoạch lại" },
-  failed: { to: "draft", label: "Khôi phục nháp" },
+  failed: { to: "draft", label: "Khôi phục (Hiện hành)" },
 };
 
 export default function SeasonDetailPage() {
@@ -362,7 +362,8 @@ export default function SeasonDetailPage() {
             <AlertDialogDescription>
               Toàn bộ dữ liệu nhật ký sẽ được hash và ghi lên Sepolia testnet.
               Sau khi neo, mùa vụ không thể chỉnh sửa thêm (trừ khi chuyển sang
-              trạng thái &quot;Đã chỉnh sửa&quot;). Quá trình có thể mất vài giây.
+              trạng thái &quot;Đã chỉnh sửa&quot;). Quá trình có thể mất vài
+              giây.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -450,10 +451,7 @@ export default function SeasonDetailPage() {
         {season?.status === "anchored" && (
           <TabsContent value="sale-units">
             {season && (
-              <SaleUnitsSection
-                seasonId={season.id}
-                farmId={season.farmId}
-              />
+              <SaleUnitsSection seasonId={season.id} farmId={season.farmId} />
             )}
           </TabsContent>
         )}
@@ -655,17 +653,18 @@ function YieldCard({
 
       {showWarning && !editing && (
         <p className="mt-3 text-xs text-amber-700">
-          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái &quot;Sẵn
-          sàng neo&quot; hoặc neo lên blockchain.
+          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái
+          &quot;Sẵn sàng neo&quot; hoặc neo lên blockchain.
         </p>
       )}
 
       {!editable && !editing && !yieldMissing && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang &quot;Đã
-          chỉnh sửa&quot;.
+          Mùa vụ đã seal — không thể chỉnh sản lượng trừ khi chuyển sang
+          &quot;Đã chỉnh sửa&quot;.
         </p>
       )}
     </div>
   );
 }
+

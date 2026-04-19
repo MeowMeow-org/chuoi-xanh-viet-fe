@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -136,14 +136,22 @@ export default function CreateSeasonPage() {
       toast.error("Ngày bắt đầu mùa vụ không hợp lệ.");
       return;
     }
-    if (hExpected) {
-      const tH = utcDayFromYmd(hExpected);
-      if (tH != null && tH < tSeason) {
-        toast.error(
-          "Ngày thu hoạch dự kiến không được trước ngày bắt đầu mùa vụ.",
-        );
-        return;
-      }
+    if (!hExpected) {
+      toast.error(
+        "Vui lòng nhập ngày dự kiến thu hoạch để HTX lên lịch kiểm tra.",
+      );
+      return;
+    }
+    const tH = utcDayFromYmd(hExpected);
+    if (tH == null) {
+      toast.error("Ngày thu hoạch dự kiến không hợp lệ.");
+      return;
+    }
+    if (tH < tSeason) {
+      toast.error(
+        "Ngày thu hoạch dự kiến không được trước ngày bắt đầu mùa vụ.",
+      );
+      return;
     }
 
     const estimatedYield = Number(values.estimatedYield.trim());
@@ -166,7 +174,7 @@ export default function CreateSeasonPage() {
         farmId,
         cropName,
         startDate: start,
-        harvestStartDate: hExpected || undefined,
+        harvestStartDate: hExpected,
         estimatedYield,
         ...(actualYield !== undefined ? { actualYield } : {}),
         yieldUnit,
@@ -263,21 +271,27 @@ export default function CreateSeasonPage() {
                   htmlFor="expected-harvest"
                   className="block text-sm font-semibold text-[hsl(150,16%,18%)]"
                 >
-                  Ngày thu hoạch dự kiến{" "}
-                  <span className="font-normal text-[hsl(150,8%,40%)]">
-                    (tuỳ chọn)
-                  </span>
+                  Ngày thu hoạch dự kiến *
                 </label>
                 <p className="text-xs leading-relaxed text-[hsl(150,8%,38%)]">
-                  Không được trước ngày bắt đầu vụ.
+                  Không được trước ngày bắt đầu vụ. HTX sẽ dùng ngày này để nhắc
+                  lịch kiểm tra trước khi thu hoạch.
                 </p>
                 <Input
                   id="expected-harvest"
                   type="date"
                   className={farmFieldClass}
+                  aria-invalid={errors.expectedHarvestDate ? true : undefined}
                   disabled={farmsLoading || !farm}
-                  {...register("expectedHarvestDate")}
+                  {...register("expectedHarvestDate", {
+                    required: "Chọn ngày dự kiến thu hoạch",
+                  })}
                 />
+                {errors.expectedHarvestDate && (
+                  <p className="text-sm text-red-600">
+                    {errors.expectedHarvestDate.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -384,3 +398,4 @@ export default function CreateSeasonPage() {
     </div>
   );
 }
+

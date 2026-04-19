@@ -14,7 +14,7 @@ import {
   XCircle,
   AlertTriangle,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ function getDeviceLocalDateInputValue(date = new Date()): string {
 }
 
 const SEASON_STATUS_LABEL: Record<SeasonStatus, string> = {
-  draft: "Nháp",
+  draft: "Hiện hành",
   ready_to_anchor: "Hoàn thành thu hoạch",
   anchored: "Đã công khai",
   amended: "Đã chỉnh sửa",
@@ -570,3 +570,4 @@ function SkeletonList() {
     </div>
   );
 }
+

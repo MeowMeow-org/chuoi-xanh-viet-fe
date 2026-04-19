@@ -16,7 +16,7 @@ import {
   MessageSquare,
   Sparkles,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/toast";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { CertificateBadge } from "@/components/certificate/CertificateBadge";
 import { shopService } from "@/services/shop/shopService";
@@ -167,7 +167,7 @@ export default function PublicShopPage() {
                 <MessageSquare className="h-3.5 w-3.5" />
                 Nhắn nông hộ
               </Button>
-              <Link href={`/consumer/trace`}>
+              <Link href="/truy-xuat">
                 <Button variant="outline" size="sm" className="gap-1">
                   <QrCode className="h-3.5 w-3.5" /> Truy xuất
                 </Button>
@@ -227,6 +227,22 @@ export default function PublicShopPage() {
                     <p className="text-primary font-bold text-sm">
                       {formatPrice(product.price)}đ/{product.unit ?? "đơn vị"}
                     </p>
+                    {(product.saleUnit || product.stockQty != null) && (
+                      <p className="text-[11px] text-muted-foreground">
+                        {product.saleUnit && (
+                          <span className="font-medium text-foreground/80">
+                            {product.saleUnit.shortCode ?? product.saleUnit.code}
+                          </span>
+                        )}
+                        {product.saleUnit && product.stockQty != null && " · "}
+                        {product.stockQty != null && (
+                          <span>
+                            Còn {Number(product.stockQty).toLocaleString("vi-VN")}
+                            {product.unit ? ` ${product.unit}` : ""}
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </Link>
@@ -237,3 +253,4 @@ export default function PublicShopPage() {
     </ConsumerLayout>
   );
 }
+

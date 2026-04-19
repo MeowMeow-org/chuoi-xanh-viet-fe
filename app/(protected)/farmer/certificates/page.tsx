@@ -56,8 +56,8 @@ export default function FarmerCertificatesPage() {
       showArchived
         ? allItems
         : allItems.filter(
-            (c) => c.status !== "expired" && c.status !== "revoked",
-          ),
+          (c) => c.status !== "expired" && c.status !== "revoked",
+        ),
     [allItems, showArchived],
   );
 
@@ -123,10 +123,14 @@ export default function FarmerCertificatesPage() {
                       <Badge variant={statusColor(c.status)}>
                         {statusLabel(c.status)}
                       </Badge>
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px]"
+                        title="Ai chịu trách nhiệm xét duyệt hồ sơ (khác với trạng thái «Đã duyệt»)"
+                      >
                         {c.approver_scope === "cooperative"
-                          ? "HTX duyệt"
-                          : "Admin duyệt"}
+                          ? "HTX xét duyệt"
+                          : "Admin xét duyệt"}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
