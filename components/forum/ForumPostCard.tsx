@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, MoreHorizontal, Send, Trash2, UserRound } from "lucide-react";
+import { Image } from "antd";
 import { showAppToast } from "@/components/ui/toast";
 import {
   AlertDialog,
@@ -12,7 +13,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import { forumSlugToLabel } from "@/constants/forum-labels";
 import {
@@ -73,7 +73,6 @@ export function ForumPostCard({
   const [editCommentText, setEditCommentText] = useState("");
   const [deletePostOpen, setDeletePostOpen] = useState(false);
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const postMenuRef = useRef<HTMLDivElement | null>(null);
 
   const {
@@ -214,461 +213,457 @@ export function ForumPostCard({
 
   return (
     <>
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 space-y-1">
-            <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span className="flex min-w-0 max-w-full items-center gap-1 font-medium text-foreground">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(142,30%,90%)] text-[hsl(142,71%,38%)]">
-                  <UserRound className="h-3 w-3" />
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 space-y-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span className="flex min-w-0 max-w-full items-center gap-1 font-medium text-foreground">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(142,30%,90%)] text-[hsl(142,71%,38%)]">
+                    <UserRound className="h-3 w-3" />
+                  </span>
+                  <span className="truncate" title={post.author.fullName}>
+                    {post.author.fullName}
+                  </span>
                 </span>
-                <span className="truncate" title={post.author.fullName}>
-                  {post.author.fullName}
+                <Badge className="h-5 shrink-0 border border-border bg-white text-[10px] text-foreground hover:bg-white">
+                  {authorRole.label}
+                </Badge>
+                <span className="shrink-0">
+                  {new Date(post.createdAt).toLocaleDateString("vi-VN")}
                 </span>
-              </span>
-              <Badge className="h-5 shrink-0 border border-border bg-white text-[10px] text-foreground hover:bg-white">
-                {authorRole.label}
-              </Badge>
-              <span className="shrink-0">
-                {new Date(post.createdAt).toLocaleDateString("vi-VN")}
-              </span>
-            </div>
-            {editingPost && allowEditPost && isPostOwner ? (
-              <div className="space-y-2">
-                <Input
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="my-0 font-semibold"
-                />
               </div>
-            ) : (
-              <CardTitle className="text-base leading-snug">{post.title}</CardTitle>
-            )}
-          </div>
-          {isPostOwner && (
-            <div className="flex shrink-0 gap-1">
-              {allowEditPost && !editingPost && (
-                <div className="relative" ref={postMenuRef}>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2"
-                    title="Tùy chọn bài viết"
-                    aria-label="Tùy chọn bài viết"
-                    onClick={() => setPostMenuOpen((v) => !v)}
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                  {postMenuOpen && (
-                    <div className="absolute right-0 z-20 mt-1 min-w-28 rounded-md border bg-background p-1 shadow-md">
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-start rounded-sm px-2 py-1.5 text-xs hover:bg-muted"
-                        onClick={() => {
-                          setEditTitle(post.title);
-                          setEditContent(post.content);
-                          setEditExistingImages(post.images);
-                          setEditImageFiles([]);
-                          setEditingPost(true);
-                          setPostMenuOpen(false);
-                        }}
-                      >
-                        Sửa
-                      </button>
-                      <button
-                        type="button"
-                        className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
-                        disabled={deletePost.isPending}
-                        onClick={() => {
-                          setPostMenuOpen(false);
-                          setDeletePostOpen(true);
-                        }}
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                  )}
+              {editingPost && allowEditPost && isPostOwner ? (
+                <div className="space-y-2">
+                  <Input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="my-0 font-semibold"
+                  />
                 </div>
-              )}
-              {allowEditPost && editingPost && (
-                <>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="h-8 text-xs"
-                    onClick={() => void savePost()}
-                    disabled={updatePost.isPending}
-                  >
-                    Lưu
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-xs"
-                    onClick={() => setEditingPost(false)}
-                  >
-                    Hủy
-                  </Button>
-                </>
-              )}
-              {!allowEditPost && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 cursor-pointer px-2 text-destructive hover:text-destructive"
-                  disabled={deletePost.isPending}
-                  onClick={() => setDeletePostOpen(true)}
-                  aria-label="Xóa bài viết"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              ) : (
+                <CardTitle className="text-base leading-snug">{post.title}</CardTitle>
               )}
             </div>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-3">
-        {editingPost && allowEditPost && isPostOwner ? (
-          <div className="space-y-3">
-            <Textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              rows={5}
-              className="text-sm"
-            />
-            {editExistingImages.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Ảnh hiện có</p>
-                <div className="flex flex-wrap gap-2">
-                  {editExistingImages.map((img, index) => (
-                    <div
-                      key={img.id}
-                      className="relative h-24 w-24 overflow-hidden rounded-md border bg-muted"
+            {isPostOwner && (
+              <div className="flex shrink-0 gap-1">
+                {allowEditPost && !editingPost && (
+                  <div className="relative" ref={postMenuRef}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2"
+                      title="Tùy chọn bài viết"
+                      aria-label="Tùy chọn bài viết"
+                      onClick={() => setPostMenuOpen((v) => !v)}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={img.url}
-                        alt=""
-                        className="block h-full w-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setEditExistingImages((prev) =>
-                            prev.filter((_, i) => i !== index),
-                          )
-                        }
-                        className="absolute right-0.5 top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-destructive shadow-sm hover:bg-destructive hover:text-white"
-                        aria-label="Xóa ảnh cũ"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <ForumPostImagePicker
-              files={editImageFiles}
-              onFilesChange={setEditImageFiles}
-              className="rounded-lg border border-dashed border-border p-3"
-            />
-          </div>
-        ) : (
-          <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-3">
-            <p className="whitespace-pre-line text-sm leading-6">{post.content}</p>
-          </div>
-        )}
-
-        {!editingPost && post.images.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {post.images.map((img) => (
-              <button
-                key={img.id}
-                type="button"
-                className="h-24 w-24 overflow-hidden rounded-md border bg-muted p-0 text-left ring-offset-background transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={() => setLightboxUrl(img.url)}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.url}
-                  alt=""
-                  className="block h-full w-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="flex flex-wrap gap-1.5">
-          {post.labels.map((slug) => (
-            <Badge
-              key={slug}
-              variant="secondary"
-              className="text-xs hover:bg-secondary"
-            >
-              {forumSlugToLabel(slug)}
-            </Badge>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MessageCircle className="h-4 w-4" />
-          {post.commentCount} bình luận
-          {commentsLoading && <span className="text-xs">(đang tải…)</span>}
-        </div>
-
-        {comments.length > 0 && (
-          <div className="space-y-3 border-t pt-3">
-            {hasNextPage && (
-              <div className="flex justify-center pb-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  disabled={isFetchingNextPage}
-                  onClick={() => void fetchNextPage()}
-                >
-                  {isFetchingNextPage
-                    ? "Đang tải…"
-                    : `Xem thêm ${nextCommentChunk} bình luận trước đó`}
-                </Button>
-              </div>
-            )}
-            {comments.map((comment) => {
-              const cr = roleDisplay(comment.author.role);
-              const isCommentOwner =
-                Boolean(currentUserId) &&
-                comment.authorUserId === currentUserId;
-
-              return (
-                <div
-                  key={comment.id}
-                  className="min-w-0 space-y-1 rounded-xl border border-border/70 bg-muted/20 px-3 py-2"
-                >
-                  <div className="flex min-w-0 w-full items-center gap-2 text-xs">
-                    <span className="flex min-w-0 flex-1 items-center gap-1 font-medium">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(142,30%,90%)] text-[hsl(142,71%,38%)]">
-                        <UserRound className="h-3 w-3" />
-                      </span>
-                      <span
-                        className="truncate"
-                        title={comment.author.fullName}
-                      >
-                        {comment.author.fullName}
-                      </span>
-                    </span>
-                    <Badge className="h-4 shrink-0 border border-border bg-white text-[10px] hover:bg-white">
-                      {cr.label}
-                    </Badge>
-                    <span className="shrink-0 text-muted-foreground">
-                      {new Date(comment.createdAt).toLocaleDateString("vi-VN")}
-                    </span>
-                    {isCommentOwner && (
-                      <div className="ml-auto flex shrink-0 gap-1">
-                        {editingCommentId !== comment.id ? (
-                          <div className="relative" data-comment-menu>
-                            <button
-                              type="button"
-                              className={cn(
-                                buttonVariants({ variant: "ghost", size: "sm" }),
-                                "h-6 w-6 cursor-pointer p-0",
-                              )}
-                              aria-label="Tùy chọn bình luận"
-                              onClick={() =>
-                                setCommentMenuOpenId((prev) =>
-                                  prev === comment.id ? null : comment.id,
-                                )
-                              }
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </button>
-                            {commentMenuOpenId === comment.id && (
-                              <div className="absolute right-0 z-20 mt-1 min-w-24 rounded-md border bg-background p-1 shadow-md">
-                                <button
-                                  type="button"
-                                  className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs hover:bg-muted"
-                                  onClick={() => {
-                                    setEditingCommentId(comment.id);
-                                    setEditCommentText(comment.content);
-                                    setCommentMenuOpenId(null);
-                                  }}
-                                >
-                                  Sửa
-                                </button>
-                                <button
-                                  type="button"
-                                  className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
-                                  disabled={deleteComment.isPending}
-                                  onClick={() => {
-                                    setCommentMenuOpenId(null);
-                                    setDeleteCommentId(comment.id);
-                                  }}
-                                >
-                                  Xóa
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <>
-                            <Button
-                              size="sm"
-                              className="h-6 text-xs"
-                              onClick={() => {
-                                const t = editCommentText.trim();
-                                if (!t) return;
-                                updateComment.mutate(
-                                  { commentId: comment.id, content: t },
-                                  {
-                                    onSuccess: () => {
-                                      setEditingCommentId(null);
-                                      showAppToast({
-                                        message: "Đã cập nhật bình luận",
-                                        type: "success",
-                                      });
-                                    },
-                                  },
-                                );
-                              }}
-                              disabled={updateComment.isPending}
-                            >
-                              Lưu
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 text-xs"
-                              onClick={() => setEditingCommentId(null)}
-                            >
-                              Hủy
-                            </Button>
-                          </>
-                        )}
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                    {postMenuOpen && (
+                      <div className="absolute right-0 z-20 mt-1 min-w-28 rounded-md border bg-background p-1 shadow-md">
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-start rounded-sm px-2 py-1.5 text-xs hover:bg-muted"
+                          onClick={() => {
+                            setEditTitle(post.title);
+                            setEditContent(post.content);
+                            setEditExistingImages(post.images);
+                            setEditImageFiles([]);
+                            setEditingPost(true);
+                            setPostMenuOpen(false);
+                          }}
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          type="button"
+                          className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+                          disabled={deletePost.isPending}
+                          onClick={() => {
+                            setPostMenuOpen(false);
+                            setDeletePostOpen(true);
+                          }}
+                        >
+                          Xóa
+                        </button>
                       </div>
                     )}
                   </div>
-                  {editingCommentId === comment.id ? (
-                    <Textarea
-                      value={editCommentText}
-                      onChange={(e) => setEditCommentText(e.target.value)}
-                      rows={2}
-                      className="text-sm"
-                    />
-                  ) : (
-                    <p className="text-sm leading-6">{comment.content}</p>
-                  )}
-                </div>
-              );
-            })}
+                )}
+                {allowEditPost && editingPost && (
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => void savePost()}
+                      disabled={updatePost.isPending}
+                    >
+                      Lưu
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => setEditingPost(false)}
+                    >
+                      Hủy
+                    </Button>
+                  </>
+                )}
+                {!allowEditPost && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 cursor-pointer px-2 text-destructive hover:text-destructive"
+                    disabled={deletePost.isPending}
+                    onClick={() => setDeletePostOpen(true)}
+                    aria-label="Xóa bài viết"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </CardHeader>
 
-        {readOnly ? (
-          <button
-            type="button"
-            onClick={() => onRequireAuth?.()}
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 text-xs font-semibold text-primary hover:bg-primary/10"
-          >
+        <CardContent className="space-y-3">
+          {editingPost && allowEditPost && isPostOwner ? (
+            <div className="space-y-3">
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={5}
+                className="text-sm"
+              />
+              {editExistingImages.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Ảnh hiện có</p>
+                  <Image.PreviewGroup>
+                    <div className="flex flex-wrap gap-2">
+                      {editExistingImages.map((img, index) => (
+                        <div
+                          key={img.id}
+                          className="relative h-24 w-24 overflow-hidden rounded-md border bg-muted"
+                        >
+                          <Image
+                            src={img.url}
+                            alt="Ảnh hiện có"
+                            width={96}
+                            height={96}
+                            className="h-full w-full object-cover"
+                            classNames={{
+                              root: "!h-24 !w-24",
+                              image: "!h-24 !w-24 !rounded-md !object-cover",
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditExistingImages((prev) =>
+                                prev.filter((_, i) => i !== index),
+                              )
+                            }
+                            className="absolute right-0.5 top-0.5 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-destructive shadow-sm hover:bg-destructive hover:text-white"
+                            aria-label="Xóa ảnh cũ"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </Image.PreviewGroup>
+                </div>
+              )}
+              <ForumPostImagePicker
+                files={editImageFiles}
+                onFilesChange={setEditImageFiles}
+                className="rounded-lg border border-dashed border-border p-3"
+              />
+            </div>
+          ) : (
+            <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-3">
+              <p className="whitespace-pre-line text-sm leading-6">{post.content}</p>
+            </div>
+          )}
+
+          {!editingPost && post.images.length > 0 && (
+            <Image.PreviewGroup>
+              <div className="flex flex-wrap gap-2">
+                {post.images.map((img) => (
+                  <Image
+                    key={img.id}
+                    src={img.url}
+                    alt="Ảnh bài viết"
+                    width={96}
+                    height={96}
+                    className="h-24 w-24 overflow-hidden rounded-md border bg-muted object-cover"
+                    classNames={{
+                      root: "!h-24 !w-24 !overflow-hidden !rounded-md !border !border-border",
+                      image: "!h-24 !w-24 !rounded-md !object-cover",
+                    }}
+                  />
+                ))}
+              </div>
+            </Image.PreviewGroup>
+          )}
+
+          <div className="flex flex-wrap gap-1.5">
+            {post.labels.map((slug) => (
+              <Badge
+                key={slug}
+                variant="secondary"
+                className="text-xs hover:bg-secondary"
+              >
+                {forumSlugToLabel(slug)}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MessageCircle className="h-4 w-4" />
-            Đăng nhập để bình luận
-          </button>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Viết bình luận..."
-              className="my-0 h-8 flex-1 text-sm"
-              value={commentDraft}
-              onChange={(e) => setCommentDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  submitComment();
-                }
-              }}
-            />
+            {post.commentCount} bình luận
+            {commentsLoading && <span className="text-xs">(đang tải…)</span>}
+          </div>
+
+          {comments.length > 0 && (
+            <div className="space-y-3 border-t pt-3">
+              {hasNextPage && (
+                <div className="flex justify-center pb-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={isFetchingNextPage}
+                    onClick={() => void fetchNextPage()}
+                  >
+                    {isFetchingNextPage
+                      ? "Đang tải…"
+                      : `Xem thêm ${nextCommentChunk} bình luận trước đó`}
+                  </Button>
+                </div>
+              )}
+              {comments.map((comment) => {
+                const cr = roleDisplay(comment.author.role);
+                const isCommentOwner =
+                  Boolean(currentUserId) &&
+                  comment.authorUserId === currentUserId;
+
+                return (
+                  <div
+                    key={comment.id}
+                    className="min-w-0 space-y-1 rounded-xl border border-border/70 bg-muted/20 px-3 py-2"
+                  >
+                    <div className="flex min-w-0 w-full items-center gap-2 text-xs">
+                      <span className="flex min-w-0 flex-1 items-center gap-1 font-medium">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(142,30%,90%)] text-[hsl(142,71%,38%)]">
+                          <UserRound className="h-3 w-3" />
+                        </span>
+                        <span
+                          className="truncate"
+                          title={comment.author.fullName}
+                        >
+                          {comment.author.fullName}
+                        </span>
+                      </span>
+                      <Badge className="h-4 shrink-0 border border-border bg-white text-[10px] hover:bg-white">
+                        {cr.label}
+                      </Badge>
+                      <span className="shrink-0 text-muted-foreground">
+                        {new Date(comment.createdAt).toLocaleDateString("vi-VN")}
+                      </span>
+                      {isCommentOwner && (
+                        <div className="ml-auto flex shrink-0 gap-1">
+                          {editingCommentId !== comment.id ? (
+                            <div className="relative" data-comment-menu>
+                              <button
+                                type="button"
+                                className={cn(
+                                  buttonVariants({ variant: "ghost", size: "sm" }),
+                                  "h-6 w-6 cursor-pointer p-0",
+                                )}
+                                aria-label="Tùy chọn bình luận"
+                                onClick={() =>
+                                  setCommentMenuOpenId((prev) =>
+                                    prev === comment.id ? null : comment.id,
+                                  )
+                                }
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </button>
+                              {commentMenuOpenId === comment.id && (
+                                <div className="absolute right-0 z-20 mt-1 min-w-24 rounded-md border bg-background p-1 shadow-md">
+                                  <button
+                                    type="button"
+                                    className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs hover:bg-muted"
+                                    onClick={() => {
+                                      setEditingCommentId(comment.id);
+                                      setEditCommentText(comment.content);
+                                      setCommentMenuOpenId(null);
+                                    }}
+                                  >
+                                    Sửa
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="flex w-full cursor-pointer items-center justify-start rounded-sm px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+                                    disabled={deleteComment.isPending}
+                                    onClick={() => {
+                                      setCommentMenuOpenId(null);
+                                      setDeleteCommentId(comment.id);
+                                    }}
+                                  >
+                                    Xóa
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                className="h-6 text-xs"
+                                onClick={() => {
+                                  const t = editCommentText.trim();
+                                  if (!t) return;
+                                  updateComment.mutate(
+                                    { commentId: comment.id, content: t },
+                                    {
+                                      onSuccess: () => {
+                                        setEditingCommentId(null);
+                                        showAppToast({
+                                          message: "Đã cập nhật bình luận",
+                                          type: "success",
+                                        });
+                                      },
+                                    },
+                                  );
+                                }}
+                                disabled={updateComment.isPending}
+                              >
+                                Lưu
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 text-xs"
+                                onClick={() => setEditingCommentId(null)}
+                              >
+                                Hủy
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {editingCommentId === comment.id ? (
+                      <Textarea
+                        value={editCommentText}
+                        onChange={(e) => setEditCommentText(e.target.value)}
+                        rows={2}
+                        className="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm leading-6">{comment.content}</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {readOnly ? (
+            <button
+              type="button"
+              onClick={() => onRequireAuth?.()}
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-md border border-dashed border-primary/40 bg-primary/5 text-xs font-semibold text-primary hover:bg-primary/10"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Đăng nhập để bình luận
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Viết bình luận..."
+                className="my-0 h-8 flex-1 text-sm"
+                value={commentDraft}
+                onChange={(e) => setCommentDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    submitComment();
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-8 shrink-0 px-3"
+                onClick={() => submitComment()}
+                disabled={createComment.isPending || !commentDraft.trim()}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={deletePostOpen} onOpenChange={setDeletePostOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa bài viết này?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <Button
               type="button"
-              size="sm"
-              variant="secondary"
-              className="h-8 shrink-0 px-3"
-              onClick={() => submitComment()}
-              disabled={createComment.isPending || !commentDraft.trim()}
+              variant="destructive"
+              disabled={deletePost.isPending}
+              onClick={() => handleDeletePost()}
             >
-              <Send className="h-4 w-4" />
+              {deletePost.isPending ? "Đang xóa..." : "Xóa"}
             </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-    <AlertDialog open={deletePostOpen} onOpenChange={setDeletePostOpen}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Xóa bài viết này?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Hành động này không thể hoàn tác.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={deletePost.isPending}
-            onClick={() => handleDeletePost()}
-          >
-            {deletePost.isPending ? "Đang xóa..." : "Xóa"}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      <AlertDialog
+        open={deleteCommentId !== null}
+        onOpenChange={(open) => !open && setDeleteCommentId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xóa bình luận này?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteComment.isPending}
+              onClick={() => {
+                if (deleteCommentId) handleDeleteComment(deleteCommentId);
+              }}
+            >
+              {deleteComment.isPending ? "Đang xóa..." : "Xóa"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-    <AlertDialog
-      open={deleteCommentId !== null}
-      onOpenChange={(open) => !open && setDeleteCommentId(null)}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Xóa bình luận này?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Hành động này không thể hoàn tác.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Hủy</AlertDialogCancel>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={deleteComment.isPending}
-            onClick={() => {
-              if (deleteCommentId) handleDeleteComment(deleteCommentId);
-            }}
-          >
-            {deleteComment.isPending ? "Đang xóa..." : "Xóa"}
-          </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-
-    <Dialog open={!!lightboxUrl} onOpenChange={(o) => !o && setLightboxUrl(null)}>
-      <DialogContent className="max-w-[min(100vw-2rem,56rem)] border-0 bg-transparent p-0 shadow-none ring-0">
-        {lightboxUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={lightboxUrl}
-            alt=""
-            className="max-h-[85vh] w-full rounded-lg object-contain"
-          />
-        ) : null}
-      </DialogContent>
-    </Dialog>
     </>
   );
 }
