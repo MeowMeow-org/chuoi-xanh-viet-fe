@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileText, Loader2, Plus, ShieldCheck } from "lucide-react";
 
+import { Pagination } from "@/components/shared/Pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,8 @@ import {
   type FarmCertStatus,
 } from "@/services/certificate";
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
+import { cn } from "@/lib/utils";
+import type { PaginationMeta } from "@/types";
 
 function statusColor(
   status: FarmCertStatus,
@@ -38,9 +41,12 @@ function formatDate(value: string | null | undefined) {
   return d.toLocaleDateString("vi-VN");
 }
 
+const LIST_PAGE_SIZE = 5;
+
 export default function FarmerCertificatesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [listPage, setListPage] = useState(1);
   const { farms } = useMyFarmsQuery({ page: 1, limit: 100 });
   const myCertsQuery = useMyFarmCertsQuery({ page: 1, limit: 100 });
 
@@ -51,14 +57,45 @@ export default function FarmerCertificatesPage() {
         .length,
     [allItems],
   );
-  const items = useMemo(
+  const filteredItems = useMemo(
     () =>
       showArchived
         ? allItems
         : allItems.filter(
-          (c) => c.status !== "expired" && c.status !== "revoked",
-        ),
+            (c) => c.status !== "expired" && c.status !== "revoked",
+          ),
     [allItems, showArchived],
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredItems.length / LIST_PAGE_SIZE),
+  );
+
+  useEffect(() => {
+    setListPage(1);
+  }, [showArchived]);
+
+  useEffect(() => {
+    if (listPage > totalPages) setListPage(totalPages);
+  }, [listPage, totalPages]);
+
+  const safePage = Math.min(listPage, totalPages);
+  const pagedItems = useMemo(() => {
+    const start = (safePage - 1) * LIST_PAGE_SIZE;
+    return filteredItems.slice(start, start + LIST_PAGE_SIZE);
+  }, [filteredItems, safePage]);
+
+  const listMeta: PaginationMeta = useMemo(
+    () => ({
+      page: safePage,
+      limit: LIST_PAGE_SIZE,
+      total: filteredItems.length,
+      totalPages,
+      previousPage: safePage > 1 ? safePage - 1 : null,
+      nextPage: safePage < totalPages ? safePage + 1 : null,
+    }),
+    [safePage, filteredItems.length, totalPages],
   );
 
   return (
@@ -101,7 +138,7 @@ export default function FarmerCertificatesPage() {
         <div className="py-12 text-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mx-auto" />
         </div>
-      ) : items.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-sm text-muted-foreground">
             Bạn chưa nộp chứng chỉ nào. Nhấn &quot;Nộp chứng chỉ&quot; để bắt
@@ -110,7 +147,7 @@ export default function FarmerCertificatesPage() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {items.map((c) => (
+          {pagedItems.map((c) => (
             <Card key={c.id}>
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -148,11 +185,27 @@ export default function FarmerCertificatesPage() {
                         {formatDate(c.issued_at)} → {formatDate(c.expires_at)}
                       </dd>
                     </dl>
-                    {c.reject_reason && c.status === "rejected" && (
-                      <p className="text-xs text-red-600">
-                        Lý do từ chối: {c.reject_reason}
-                      </p>
-                    )}
+                    {c.reviewer_note?.trim() &&
+                      (c.status === "approved" ||
+                        c.status === "rejected" ||
+                        c.status === "revoked") && (
+                        <p
+                          className={cn(
+                            "rounded-md border px-2.5 py-1.5 text-xs",
+                            c.status === "rejected" || c.status === "revoked"
+                              ? "border-red-200/90 bg-red-50/80 text-red-800"
+                              : "border-[hsl(142,20%,88%)] bg-[hsl(120,30%,98%)] text-foreground",
+                          )}
+                        >
+                          <span className="font-medium text-muted-foreground">
+                            {c.status === "approved" &&
+                              "Ghi chú từ người duyệt: "}
+                            {c.status === "rejected" && "Lý do từ chối: "}
+                            {c.status === "revoked" && "Ghi chú thu hồi: "}
+                          </span>
+                          {c.reviewer_note}
+                        </p>
+                      )}
                   </div>
                   {c.file_url && (
                     <a
@@ -169,6 +222,13 @@ export default function FarmerCertificatesPage() {
               </CardContent>
             </Card>
           ))}
+          {listMeta.totalPages > 1 ? (
+            <Pagination
+              meta={listMeta}
+              onPageChange={setListPage}
+              className="pt-2"
+            />
+          ) : null}
         </div>
       )}
     </div>

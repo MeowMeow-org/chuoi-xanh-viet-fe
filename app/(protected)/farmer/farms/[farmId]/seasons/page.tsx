@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -34,6 +34,9 @@ import type { SeasonStatus } from "@/services/season";
 import { CERT_TYPE_LABEL, type FarmCertStatus } from "@/services/certificate";
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
 import { cn } from "@/lib/utils";
+import type { PaginationMeta } from "@/types";
+
+const CERT_LIST_PAGE_SIZE = 5;
 
 const getStatusLabel = (status: SeasonStatus) => {
   if (status === "draft") return "Hiện hành";
@@ -95,6 +98,7 @@ const formatCertDate = (value: string | null | undefined) => {
 
 function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
   const [page, setPage] = useState(1);
+  const [certListPage, setCertListPage] = useState(1);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [certDialogOpen, setCertDialogOpen] = useState(false);
   const [showArchivedCerts, setShowArchivedCerts] = useState(false);
@@ -117,7 +121,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
   } = useSeasonsQuery({
     farmId,
     page,
-    limit: 6,
+    limit: 5,
   });
 
   const certsQuery = useMyFarmCertsQuery({
@@ -140,7 +144,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
         .length,
     [allCerts],
   );
-  const certs = useMemo(
+  const filteredCerts = useMemo(
     () =>
       showArchivedCerts
         ? allCerts
@@ -148,6 +152,37 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           (c) => c.status !== "expired" && c.status !== "revoked",
         ),
     [allCerts, showArchivedCerts],
+  );
+
+  const certTotalPages = Math.max(
+    1,
+    Math.ceil(filteredCerts.length / CERT_LIST_PAGE_SIZE),
+  );
+
+  useEffect(() => {
+    setCertListPage(1);
+  }, [showArchivedCerts]);
+
+  useEffect(() => {
+    if (certListPage > certTotalPages) setCertListPage(certTotalPages);
+  }, [certListPage, certTotalPages]);
+
+  const safeCertPage = Math.min(certListPage, certTotalPages);
+  const pagedCerts = useMemo(() => {
+    const start = (safeCertPage - 1) * CERT_LIST_PAGE_SIZE;
+    return filteredCerts.slice(start, start + CERT_LIST_PAGE_SIZE);
+  }, [filteredCerts, safeCertPage]);
+
+  const certListMeta: PaginationMeta = useMemo(
+    () => ({
+      page: safeCertPage,
+      limit: CERT_LIST_PAGE_SIZE,
+      total: filteredCerts.length,
+      totalPages: certTotalPages,
+      previousPage: safeCertPage > 1 ? safeCertPage - 1 : null,
+      nextPage: safeCertPage < certTotalPages ? safeCertPage + 1 : null,
+    }),
+    [safeCertPage, filteredCerts.length, certTotalPages],
   );
 
   return (
@@ -238,9 +273,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                       "w-full justify-center sm:w-auto",
                     )}
                     render={
-                      <Link
-                        href={`/farmer/farms/${farmId}/join-cooperative`}
-                      />
+                      <Link href={`/farmer/farms/${farmId}/join-cooperative`} />
                     }
                   >
                     <Building2 className="h-4 w-4 shrink-0" aria-hidden />
@@ -292,7 +325,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                 />
               ))}
             </div>
-          ) : certs.length === 0 ? (
+          ) : filteredCerts.length === 0 ? (
             <div className="rounded-lg border border-dashed border-[hsl(142,15%,85%)] bg-[hsl(120,20%,98%)] p-4 text-sm text-muted-foreground">
               {archivedCertCount > 0 && !showArchivedCerts
                 ? `Không có chứng chỉ đang hiển thị (đang ẩn ${archivedCertCount} bản hết hạn/vô hiệu).`
@@ -300,7 +333,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
             </div>
           ) : (
             <div className="grid gap-2">
-              {certs.map((c) => (
+              {pagedCerts.map((c) => (
                 <div
                   key={c.id}
                   className="flex flex-col gap-2 rounded-lg border border-[hsl(142,15%,90%)] bg-white p-3 sm:flex-row sm:items-start sm:justify-between"
@@ -337,11 +370,26 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                         {formatCertDate(c.expires_at)}
                       </dd>
                     </dl>
-                    {c.reject_reason && c.status === "rejected" && (
-                      <p className="text-xs text-red-600">
-                        Lý do từ chối: {c.reject_reason}
-                      </p>
-                    )}
+                    {c.reviewer_note?.trim() &&
+                      (c.status === "approved" ||
+                        c.status === "rejected" ||
+                        c.status === "revoked") && (
+                        <p
+                          className={
+                            c.status === "rejected" || c.status === "revoked"
+                              ? "text-xs text-red-600"
+                              : "rounded-md border border-[hsl(142,20%,88%)] bg-[hsl(120,30%,98%)] px-2 py-1 text-xs text-foreground"
+                          }
+                        >
+                          <span className="font-medium">
+                            {c.status === "approved" &&
+                              "Ghi chú từ người duyệt: "}
+                            {c.status === "rejected" && "Lý do từ chối: "}
+                            {c.status === "revoked" && "Ghi chú thu hồi: "}
+                          </span>
+                          {c.reviewer_note}
+                        </p>
+                      )}
                   </div>
                   {c.file_url && (
                     <a
@@ -356,6 +404,13 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                   )}
                 </div>
               ))}
+              {certListMeta.totalPages > 1 ? (
+                <Pagination
+                  meta={certListMeta}
+                  onPageChange={setCertListPage}
+                  className="pt-1"
+                />
+              ) : null}
             </div>
           )}
 
@@ -436,9 +491,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
             <Button
               nativeButton={false}
               className={farmSectionPrimaryActionClass}
-              render={
-                <Link href={`/farmer/farms/${farmId}/seasons/create`} />
-              }
+              render={<Link href={`/farmer/farms/${farmId}/seasons/create`} />}
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
               Tạo mùa vụ

@@ -14,6 +14,7 @@ import {
 import { toast } from "@/components/ui/toast";
 
 import { Pagination } from "@/components/shared/Pagination";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,6 +49,49 @@ export default function CoopCertThuaHuongPage() {
     [certsQuery.data, certificateId],
   );
 
+  const scopeAddLocked = useMemo(() => {
+    if (!cert) {
+      return { locked: false, banner: null as string | null, label: null as string | null };
+    }
+    if (cert.status === "revoked") {
+      return {
+        locked: true,
+        banner:
+          "Chứng chỉ đã bị thu hồi — không thể thêm nông hộ vào danh sách thừa hưởng.",
+        label: "Đã thu hồi",
+      };
+    }
+    if (cert.status === "expired") {
+      return {
+        locked: true,
+        banner:
+          "Chứng chỉ đã hết hạn — không thể thêm nông hộ vào danh sách thừa hưởng.",
+        label: "Hết hạn",
+      };
+    }
+    const exp = cert.expires_at ? new Date(cert.expires_at) : null;
+    const pastExpiry =
+      exp !== null &&
+      !Number.isNaN(exp.getTime()) &&
+      exp.getTime() < Date.now();
+    if (cert.status === "active" && pastExpiry) {
+      return {
+        locked: true,
+        banner: `Chứng chỉ đã quá ngày hiệu lực (${exp.toLocaleDateString("vi-VN")}) — không thể thêm nông hộ vào danh sách thừa hưởng.`,
+        label: "Hết hạn",
+      };
+    }
+    if (cert.status !== "active") {
+      return {
+        locked: true,
+        banner:
+          "Chứng chỉ không còn hiệu lực — không thể thêm nông hộ vào danh sách thừa hưởng.",
+        label: "Không hiệu lực",
+      };
+    }
+    return { locked: false, banner: null, label: null };
+  }, [cert]);
+
   const [appliedPage, setAppliedPage] = useState(1);
   const [appliedSearchRaw, setAppliedSearchRaw] = useState("");
   const appliedSearch = useDebouncedValue(appliedSearchRaw, 350);
@@ -79,6 +123,7 @@ export default function CoopCertThuaHuongPage() {
   const removeMutation = useRemoveScopeFarmMutation();
 
   const handleAdd = async (farmId: string) => {
+    if (scopeAddLocked.locked) return;
     try {
       await addMutation.mutateAsync({ certificateId, farmId });
       toast.success("Đã thêm nông hộ vào danh sách thừa hưởng");
@@ -137,9 +182,31 @@ export default function CoopCertThuaHuongPage() {
             <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(142,50%,35%)]">
               Danh sách thừa hưởng
             </p>
-            <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-[hsl(150,10%,16%)]">
-              <ShieldCheck className="h-7 w-7 shrink-0 text-[hsl(142,71%,40%)]" />
+            <h1
+              className={cn(
+                "flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight",
+                scopeAddLocked.locked
+                  ? "text-red-700"
+                  : "text-[hsl(150,10%,16%)]",
+              )}
+            >
+              <ShieldCheck
+                className={cn(
+                  "h-7 w-7 shrink-0",
+                  scopeAddLocked.locked
+                    ? "text-red-600"
+                    : "text-[hsl(142,71%,40%)]",
+                )}
+              />
               <span>Thừa hưởng chứng chỉ</span>
+              {scopeAddLocked.label ? (
+                <Badge
+                  variant="outline"
+                  className="h-7 border-red-300 bg-red-50 px-2.5 text-[11px] font-semibold text-red-700"
+                >
+                  {scopeAddLocked.label}
+                </Badge>
+              ) : null}
             </h1>
             {certsQuery.isLoading ? (
               <p className="text-sm text-muted-foreground">Đang tải…</p>
@@ -156,6 +223,14 @@ export default function CoopCertThuaHuongPage() {
                 ) : null}
                 . Chỉ các nông hộ được chọn mới hiển thị badge từ chứng chỉ HTX
                 này.
+              </p>
+            ) : null}
+            {scopeAddLocked.banner ? (
+              <p
+                role="alert"
+                className="max-w-2xl rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-800"
+              >
+                {scopeAddLocked.banner}
               </p>
             ) : null}
           </div>
@@ -240,13 +315,35 @@ export default function CoopCertThuaHuongPage() {
 
             <section
               className={cn(
-                "flex flex-col overflow-hidden rounded-xl border border-[hsl(142,15%,90%)] bg-[hsl(120,30%,99%)]/90 shadow-sm",
+                "flex flex-col overflow-hidden rounded-xl border bg-[hsl(120,30%,99%)]/90 shadow-sm",
+                scopeAddLocked.locked
+                  ? "border-red-200/90"
+                  : "border-[hsl(142,15%,90%)]",
               )}
             >
-              <div className="border-b border-[hsl(142,14%,92%)] px-4 py-3">
-                <h2 className="text-sm font-semibold text-foreground">
+              <div
+                className={cn(
+                  "border-b px-4 py-3",
+                  scopeAddLocked.locked
+                    ? "border-red-100 bg-red-50/50"
+                    : "border-[hsl(142,14%,92%)]",
+                )}
+              >
+                <h2
+                  className={cn(
+                    "text-sm font-semibold",
+                    scopeAddLocked.locked ? "text-red-800" : "text-foreground",
+                  )}
+                >
                   Có thể thêm
-                  <span className="ml-1.5 tabular-nums font-normal text-muted-foreground">
+                  <span
+                    className={cn(
+                      "ml-1.5 tabular-nums font-normal",
+                      scopeAddLocked.locked
+                        ? "text-red-700/90"
+                        : "text-muted-foreground",
+                    )}
+                  >
                     ({eligibleMeta?.total ?? eligibleItems.length})
                   </span>
                 </h2>
@@ -296,7 +393,9 @@ export default function CoopCertThuaHuongPage() {
                           variant="outline"
                           className="h-8 w-8 shrink-0 border-[hsl(142,25%,82%)] p-0"
                           onClick={() => handleAdd(m.farm.id)}
-                          disabled={addMutation.isPending}
+                          disabled={
+                            addMutation.isPending || scopeAddLocked.locked
+                          }
                           aria-label="Thêm vào danh sách thừa hưởng"
                         >
                           <Plus className="h-3.5 w-3.5" />

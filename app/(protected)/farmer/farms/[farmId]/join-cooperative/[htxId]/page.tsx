@@ -30,17 +30,16 @@ export default function JoinCooperativeConfirmPage() {
   const farm = useMemo(() => farms.find((f) => f.id === farmId), [farms, farmId]);
 
   const {
-    data: cooperatives = [],
+    data: htxResult,
     isLoading: htxLoading,
     isError: htxError,
   } = useQuery({
-    queryKey: ["cooperative", "htx-list", "join"],
-    queryFn: () => cooperativeService.getActiveCooperatives({ limit: 100 }),
+    queryKey: ["cooperative", "htx", "by-id", htxId],
+    queryFn: () =>
+      cooperativeService.getActiveCooperatives({ id: htxId, page: 1, limit: 1 }),
+    enabled: Boolean(htxId),
   });
-  const selectedHtx = useMemo(
-    () => cooperatives.find((c) => c.id === htxId),
-    [cooperatives, htxId],
-  );
+  const selectedHtx = htxResult?.items[0];
 
   const { mutate: submitJoin, isPending } = useRequestCooperativeJoinMutation();
 
