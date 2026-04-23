@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Inbox, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Pagination } from "@/components/shared/Pagination";
 import {
   useApproveMembershipMutation,
   useCooperativeMembershipsQuery,
   useRejectMembershipMutation,
 } from "@/hooks/useCooperativeMemberships";
+import type { CooperativeMembership } from "@/services/cooperative";
 
 export default function CooperativeRequestsPage() {
   const [page, setPage] = useState(1);
@@ -22,6 +32,18 @@ export default function CooperativeRequestsPage() {
       limit: 6,
     },
   );
+
+  const [approveRow, setApproveRow] = useState<CooperativeMembership | null>(null);
+  const [approveNote, setApproveNote] = useState("");
+  const [rejectRow, setRejectRow] = useState<CooperativeMembership | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+
+  useEffect(() => {
+    if (!approveRow) setApproveNote("");
+  }, [approveRow]);
+  useEffect(() => {
+    if (!rejectRow) setRejectNote("");
+  }, [rejectRow]);
 
   const { mutateAsync: approveAsync, isPending: isApproving } =
     useApproveMembershipMutation();
@@ -35,7 +57,8 @@ export default function CooperativeRequestsPage() {
       <div>
         <h1 className="text-xl font-bold text-[hsl(150,16%,12%)]">Yêu cầu tham gia</h1>
         <p className="mt-1 text-sm text-[hsl(150,8%,40%)]">
-          Duyệt hoặc từ chối hồ sơ nông hộ đăng ký vào HTX.
+          Duyệt hoặc từ chối hồ sơ nông hộ đăng ký vào HTX. Có thể thêm ghi chú gửi
+          kèm thông báo cho nông hộ.
         </p>
       </div>
 
@@ -101,42 +124,20 @@ export default function CooperativeRequestsPage() {
                     <div className="flex shrink-0 flex-wrap gap-2">
                       <Button
                         size="sm"
-                        className="bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]"
+                        className="bg-[hsl(142,71%,45%)] text-white! hover:bg-[hsl(142,71%,40%)] hover:text-white!"
                         disabled={isBusy}
-                        onClick={async () => {
-                          try {
-                            await approveAsync(row.id);
-                            toast.success("Đã duyệt, nông hộ đã gia nhập HTX.");
-                          } catch {
-                            /* axios interceptor đã toast lỗi */
-                          }
-                        }}
+                        onClick={() => setApproveRow(row)}
                       >
-                        {isApproving ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Duyệt"
-                        )}
+                        Duyệt
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         className="border-[hsl(142,20%,75%)]"
                         disabled={isBusy}
-                        onClick={async () => {
-                          try {
-                            await rejectAsync({ membershipId: row.id });
-                            toast.success("Đã từ chối hồ sơ.");
-                          } catch {
-                            /* axios interceptor đã toast lỗi */
-                          }
-                        }}
+                        onClick={() => setRejectRow(row)}
                       >
-                        {isRejecting ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Từ chối"
-                        )}
+                        Từ chối
                       </Button>
                     </div>
                   </div>
@@ -155,7 +156,126 @@ export default function CooperativeRequestsPage() {
           )}
         </>
       )}
+
+      <Dialog open={!!approveRow} onOpenChange={(o) => !o && setApproveRow(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Duyệt tham gia HTX</DialogTitle>
+          </DialogHeader>
+          {approveRow && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                <strong>{approveRow.farmer.fullName}</strong> — {approveRow.farm.name}
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="approve-note">Ghi chú gửi nông hộ (tùy chọn)</Label>
+                <Textarea
+                  id="approve-note"
+                  value={approveNote}
+                  onChange={(e) => setApproveNote(e.target.value)}
+                  placeholder="Ví dụ: Chào mừng hộ gia nhập, vui lòng cập nhật nhật ký mùa vụ…"
+                  rows={3}
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setApproveRow(null)}
+                  disabled={isApproving}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="button"
+                  className="bg-[hsl(142,71%,45%)] text-white! hover:bg-[hsl(142,71%,40%)]"
+                  disabled={isApproving}
+                  onClick={async () => {
+                    try {
+                      await approveAsync({
+                        membershipId: approveRow.id,
+                        note: approveNote.trim() || undefined,
+                      });
+                      toast.success("Đã duyệt, nông hộ đã gia nhập HTX.");
+                      setApproveRow(null);
+                    } catch {
+                      /* axios interceptor đã toast lỗi */
+                    }
+                  }}
+                >
+                  {isApproving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Xác nhận duyệt"
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!rejectRow} onOpenChange={(o) => !o && setRejectRow(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Từ chối yêu cầu</DialogTitle>
+          </DialogHeader>
+          {rejectRow && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                <strong>{rejectRow.farmer.fullName}</strong> — {rejectRow.farm.name}
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="reject-note">Lý do từ chối</Label>
+                <Textarea
+                  id="reject-note"
+                  value={rejectNote}
+                  onChange={(e) => setRejectNote(e.target.value)}
+                  placeholder="Bắt buộc — ghi rõ lý do (tối thiểu 5 ký tự)…"
+                  rows={4}
+                />
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRejectRow(null)}
+                  disabled={isRejecting}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={isRejecting}
+                  onClick={async () => {
+                    if (rejectNote.trim().length < 5) {
+                      toast.error("Vui lòng nhập lý do từ chối (tối thiểu 5 ký tự).");
+                      return;
+                    }
+                    try {
+                      await rejectAsync({
+                        membershipId: rejectRow.id,
+                        note: rejectNote.trim(),
+                      });
+                      toast.success("Đã từ chối hồ sơ.");
+                      setRejectRow(null);
+                    } catch {
+                      /* axios interceptor đã toast lỗi */
+                    }
+                  }}
+                >
+                  {isRejecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Gửi từ chối"
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-

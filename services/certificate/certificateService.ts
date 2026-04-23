@@ -153,10 +153,13 @@ export const certificateService = {
     });
   },
 
-  approveFarmCert: async (certificateId: string): Promise<FarmCertificate> => {
+  approveFarmCert: async (
+    certificateId: string,
+    body?: { note?: string },
+  ): Promise<FarmCertificate> => {
     return axiosInstance.post(
       `/certificate/farm/${certificateId}/approve`,
-      {},
+      body ?? {},
     );
   },
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Check,
   FileText,
@@ -46,6 +47,9 @@ function formatDate(value: string | null | undefined) {
 }
 
 export default function AdminCertificatesPage() {
+  const searchParams = useSearchParams();
+  const highlightFarmCert = searchParams.get("highlightFarmCert");
+
   return (
     <main className="bg-[hsl(120,20%,98%)] px-4 py-6 text-[hsl(150,10%,15%)] sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-4">
@@ -71,7 +75,9 @@ export default function AdminCertificatesPage() {
           </TabsList>
 
           <TabsContent value="pending">
-            <AdminPendingFarmCertsSection />
+            <AdminPendingFarmCertsSection
+              highlightFarmCertId={highlightFarmCert}
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -79,25 +85,69 @@ export default function AdminCertificatesPage() {
   );
 }
 
-function AdminPendingFarmCertsSection() {
+function AdminPendingFarmCertsSection({
+  highlightFarmCertId,
+}: {
+  highlightFarmCertId: string | null;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const query = usePendingFarmCertsForAdminQuery({ page: 1, limit: 100 });
   const [rejectTarget, setRejectTarget] = useState<FarmCertificate | null>(
     null,
   );
-  const approveMutation = useApproveFarmCertMutation();
+  const [approveTarget, setApproveTarget] = useState<FarmCertificate | null>(
+    null,
+  );
 
   const items = query.data?.items ?? [];
 
-  const handleApprove = async (id: string) => {
-    try {
-      await approveMutation.mutateAsync(id);
-      toast.success("Đã duyệt chứng chỉ");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Không thể duyệt";
-      toast.error(message);
-    }
-  };
+  useEffect(() => {
+    if (!highlightFarmCertId || query.isLoading || items.length === 0) return;
+    if (!items.some((c) => c.id === highlightFarmCertId)) return;
+
+    const elId = `pending-farm-cert-${highlightFarmCertId}`;
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add(
+        "ring-2",
+        "ring-[hsl(142,71%,42%)]",
+        "ring-offset-2",
+        "rounded-xl",
+      );
+      window.setTimeout(() => {
+        el.classList.remove(
+          "ring-2",
+          "ring-[hsl(142,71%,42%)]",
+          "ring-offset-2",
+          "rounded-xl",
+        );
+      }, 2800);
+    }, 150);
+
+    const strip = window.setTimeout(() => {
+      const p = new URLSearchParams(searchParams.toString());
+      if (!p.has("highlightFarmCert")) return;
+      p.delete("highlightFarmCert");
+      const q = p.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    }, 3200);
+
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(strip);
+    };
+  }, [
+    highlightFarmCertId,
+    items,
+    pathname,
+    query.isLoading,
+    router,
+    searchParams,
+  ]);
 
   return (
     <div className="space-y-2">
@@ -113,7 +163,11 @@ function AdminPendingFarmCertsSection() {
         </Card>
       ) : (
         items.map((c) => (
-          <Card key={c.id}>
+          <Card
+            key={c.id}
+            id={`pending-farm-cert-${c.id}`}
+            className="scroll-mt-24"
+          >
             <CardContent className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div className="space-y-1 min-w-0">
@@ -165,7 +219,7 @@ function AdminPendingFarmCertsSection() {
                   <div className="flex gap-1">
                     <Button
                       size="sm"
-                      onClick={() => handleApprove(c.id)}
+                      onClick={() => setApproveTarget(c)}
                       className="gap-1"
                     >
                       <UserCheck className="h-3.5 w-3.5" />
@@ -189,6 +243,24 @@ function AdminPendingFarmCertsSection() {
       )}
 
       <Dialog
+        open={!!approveTarget}
+        onOpenChange={(open) => !open && setApproveTarget(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          {approveTarget && (
+            <AdminApproveForm
+              certificate={approveTarget}
+              onCancel={() => setApproveTarget(null)}
+              onSuccess={() => {
+                setApproveTarget(null);
+                toast.success("Đã duyệt chứng chỉ");
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={!!rejectTarget}
         onOpenChange={(open) => !open && setRejectTarget(null)}
       >
@@ -196,7 +268,8 @@ function AdminPendingFarmCertsSection() {
           {rejectTarget && (
             <AdminRejectForm
               certificate={rejectTarget}
-              onDone={() => {
+              onCancel={() => setRejectTarget(null)}
+              onSuccess={() => {
                 setRejectTarget(null);
                 toast.success("Đã từ chối");
               }}
@@ -208,12 +281,79 @@ function AdminPendingFarmCertsSection() {
   );
 }
 
-function AdminRejectForm({
+function AdminApproveForm({
   certificate,
-  onDone,
+  onCancel,
+  onSuccess,
 }: {
   certificate: FarmCertificate;
-  onDone: () => void;
+  onCancel: () => void;
+  onSuccess: () => void;
+}) {
+  const [note, setNote] = useState("");
+  const approveMutation = useApproveFarmCertMutation();
+
+  const handleSubmit = async () => {
+    try {
+      await approveMutation.mutateAsync({
+        certificateId: certificate.id,
+        note: note.trim() || undefined,
+      });
+      onSuccess();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Không thể duyệt";
+      toast.error(message);
+    }
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <UserCheck className="h-5 w-5 text-[hsl(142,71%,40%)]" />
+          Duyệt chứng chỉ
+        </DialogTitle>
+      </DialogHeader>
+      <div className="space-y-2">
+        <Label>Ghi chú gửi nông hộ (tùy chọn)</Label>
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Ví dụ: Hồ sơ hợp lệ, chúc mùa vụ tốt…"
+          rows={3}
+        />
+      </div>
+      <DialogFooter className="gap-2 sm:gap-0">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Hủy
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={approveMutation.isPending}
+          className="gap-1"
+        >
+          {approveMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Check className="h-4 w-4" />
+          )}
+          Xác nhận duyệt
+        </Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+function AdminRejectForm({
+  certificate,
+  onCancel,
+  onSuccess,
+}: {
+  certificate: FarmCertificate;
+  onCancel: () => void;
+  onSuccess: () => void;
 }) {
   const [reason, setReason] = useState("");
   const rejectMutation = useRejectFarmCertMutation();
@@ -228,7 +368,7 @@ function AdminRejectForm({
         certificateId: certificate.id,
         reason: reason.trim(),
       });
-      onDone();
+      onSuccess();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Không thể từ chối";
@@ -252,8 +392,12 @@ function AdminRejectForm({
           placeholder="Ví dụ: file không rõ ràng, sai thông tin..."
         />
       </div>
-      <DialogFooter>
+      <DialogFooter className="gap-2 sm:gap-0">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Hủy
+        </Button>
         <Button
+          type="button"
           onClick={handleSubmit}
           disabled={rejectMutation.isPending}
           className="gap-1"

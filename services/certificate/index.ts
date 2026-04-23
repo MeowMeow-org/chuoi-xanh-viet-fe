@@ -73,7 +73,8 @@ export interface FarmCertificate {
   reviewer_cooperative_id: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
-  reject_reason: string | null;
+  /** Ghi chú người duyệt: khi đồng ý, từ chối hoặc thu hồi. */
+  reviewer_note: string | null;
   created_at: string;
   updated_at: string;
   farm?: {

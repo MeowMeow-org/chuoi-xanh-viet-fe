@@ -245,7 +245,17 @@ export const usePendingFarmCertsForAdminQuery = (q?: {
 export const useApproveFarmCertMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: certificateService.approveFarmCert,
+    mutationFn: ({
+      certificateId,
+      note,
+    }: {
+      certificateId: string;
+      note?: string;
+    }) =>
+      certificateService.approveFarmCert(
+        certificateId,
+        note?.trim() ? { note: note.trim() } : {},
+      ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate"] });
     },
