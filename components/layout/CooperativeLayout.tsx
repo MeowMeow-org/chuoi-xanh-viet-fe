@@ -90,14 +90,22 @@ export default function CooperativeLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm leading-none transition-colors ${
+                  className={cn(
+                    "flex items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm leading-none transition-colors",
                     active
-                      ? "bg-[hsl(142,69%,45%)] font-semibold text-white"
-                      : "font-medium text-[hsl(150,6%,38%)] hover:bg-[hsl(120,10%,92%)] hover:text-[hsl(150,10%,18%)]"
-                  }`}
+                      ? "bg-[hsl(142,71%,45%)]/18 font-semibold shadow-[inset_0_0_0_1px_hsl(142,50%,80%)]"
+                      : "font-medium text-[hsl(150,6%,38%)] hover:bg-[hsl(120,10%,92%)] hover:text-[hsl(150,10%,18%)]",
+                  )}
                 >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      active && "text-[hsl(142,71%,34%)]",
+                    )}
+                  />
+                  <span className={active ? "text-[hsl(142,71%,34%)]" : ""}>
+                    {item.label}
+                  </span>
                 </Link>
               );
             })}
@@ -120,12 +128,12 @@ export default function CooperativeLayout({
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[hsl(142,71%,45%)]/15">
                   <User className="h-4 w-4 text-[hsl(142,71%,35%)]" />
                 </span>
-                <span className="max-w-[10rem] truncate font-semibold text-[hsl(150,10%,22%)]">
+                <span className="max-w-40 truncate font-semibold text-[hsl(150,10%,22%)]">
                   {displayName}
                 </span>
               </div>
               <div
-                className="pointer-events-none invisible absolute right-0 top-full z-[60] pt-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
+                className="pointer-events-none invisible absolute right-0 top-full z-60 pt-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
                 role="menu"
               >
                 <div className="w-52 rounded-lg border border-[hsl(142,14%,88%)] bg-white py-1 shadow-lg">
@@ -170,17 +178,15 @@ export default function CooperativeLayout({
       <main className="flex-1">{children}</main>
 
       <div
-        className={`fixed inset-x-0 top-14 bottom-[57px] z-40 transition-opacity duration-200 md:hidden ${
-          mobileMenuOpen
+        className={`fixed inset-x-0 top-14 bottom-14.25 z-40 transition-opacity duration-200 md:hidden ${mobileMenuOpen
             ? "pointer-events-auto bg-black/35 opacity-100"
             : "pointer-events-none bg-black/0 opacity-0"
-        }`}
+          }`}
         onClick={() => setMobileMenuOpen(false)}
       >
         <div
-          className={`h-full w-[84%] max-w-xs overflow-y-auto border-r bg-white p-3 transition-transform duration-300 ease-out ${
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`h-full w-[84%] max-w-xs overflow-y-auto border-r bg-white p-3 transition-transform duration-300 ease-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
           onClick={(event) => event.stopPropagation()}
         >
           <div className="space-y-1">
@@ -193,11 +199,12 @@ export default function CooperativeLayout({
                   key={`${item.href}-mobile`}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                  className={cn(
+                    "flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors",
                     active
                       ? "bg-[hsl(142,71%,45%)] text-white"
-                      : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
-                  }`}
+                      : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]",
+                  )}
                 >
                   <Icon className="h-5 w-5" />
                   {item.label}
@@ -215,11 +222,12 @@ export default function CooperativeLayout({
                     key={`${item.href}-secondary`}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium transition-colors ${
+                    className={cn(
+                      "flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors",
                       active
                         ? "bg-[hsl(142,71%,45%)] text-white"
-                        : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]"
-                    }`}
+                        : "text-[hsl(150,7%,45%)] hover:bg-[hsl(120,10%,92%)]",
+                    )}
                   >
                     <Icon className="h-5 w-5" />
                     {item.label}

@@ -149,8 +149,8 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
       showArchivedCerts
         ? allCerts
         : allCerts.filter(
-            (c) => c.status !== "expired" && c.status !== "revoked",
-          ),
+          (c) => c.status !== "expired" && c.status !== "revoked",
+        ),
     [allCerts, showArchivedCerts],
   );
 

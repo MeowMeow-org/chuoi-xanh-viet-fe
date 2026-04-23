@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Controller, useForm, type SubmitErrorHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
 import { BadgeCheck, Loader2, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -228,12 +230,25 @@ export function FarmCertUploadDialog({
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
               <Label htmlFor="farm-cert-issued">Ngày cấp</Label>
-              <Input
-                id="farm-cert-issued"
-                type="date"
-                aria-invalid={!!errors.issuedAt}
-                className={cn(errors.issuedAt && "border-destructive")}
-                {...register("issuedAt", { deps: ["expiresAt"] })}
+              <Controller
+                name="issuedAt"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id="farm-cert-issued"
+                    format="DD/MM/YYYY"
+                    placeholder="dd/mm/yyyy"
+                    value={field.value ? dayjs(field.value, "YYYY-MM-DD") : null}
+                    className={cn(
+                      "h-10 w-full rounded-md border border-input bg-background",
+                      errors.issuedAt && "border-destructive",
+                    )}
+                    onChange={(value) => {
+                      field.onChange(value ? value.format("YYYY-MM-DD") : "");
+                    }}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
               {errors.issuedAt ? (
                 <p className={errText} role="alert">
@@ -243,12 +258,25 @@ export function FarmCertUploadDialog({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="farm-cert-expires">Hiệu lực đến</Label>
-              <Input
-                id="farm-cert-expires"
-                type="date"
-                aria-invalid={!!errors.expiresAt}
-                className={cn(errors.expiresAt && "border-destructive")}
-                {...register("expiresAt", { deps: ["issuedAt"] })}
+              <Controller
+                name="expiresAt"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id="farm-cert-expires"
+                    format="DD/MM/YYYY"
+                    placeholder="dd/mm/yyyy"
+                    value={field.value ? dayjs(field.value, "YYYY-MM-DD") : null}
+                    className={cn(
+                      "h-10 w-full rounded-md border border-input bg-background",
+                      errors.expiresAt && "border-destructive",
+                    )}
+                    onChange={(value) => {
+                      field.onChange(value ? value.format("YYYY-MM-DD") : "");
+                    }}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
               {errors.expiresAt ? (
                 <p className={errText} role="alert">
@@ -259,7 +287,7 @@ export function FarmCertUploadDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="farm-cert-file">File (PDF / ảnh)</Label>
+            <Label htmlFor="farm-cert-file">File PDF</Label>
             <Controller
               name="file"
               control={control}
@@ -269,7 +297,7 @@ export function FarmCertUploadDialog({
                   ref={ref}
                   name={name}
                   type="file"
-                  accept="application/pdf,image/*"
+                  accept="application/pdf,.pdf"
                   aria-invalid={!!errors.file}
                   className={cn(errors.file && "border-destructive")}
                   onChange={(e) => {
@@ -289,7 +317,7 @@ export function FarmCertUploadDialog({
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Tối đa 15 MB. Định dạng: PDF hoặc ảnh (JPEG, PNG, WebP, GIF).
+                Tối đa 15 MB. Định dạng: PDF.
               </p>
             )}
           </div>

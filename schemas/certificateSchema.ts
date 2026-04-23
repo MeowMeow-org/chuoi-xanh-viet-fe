@@ -87,9 +87,8 @@ export const MAX_CERT_FILE_BYTES = 15 * 1024 * 1024; // 15 MB
 
 export function isAllowedCertFileMime(file: File): boolean {
   if (file.type === "application/pdf") return true;
-  if (file.type.startsWith("image/")) return true;
   const name = file.name.toLowerCase();
-  return /\.(pdf|jpe?g|png|webp|gif)$/i.test(name);
+  return /\.pdf$/i.test(name);
 }
 
 export const farmCertUploadFormSchema = z
@@ -113,7 +112,7 @@ export const farmCertUploadFormSchema = z
     if (!(f instanceof File) || f.size === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Vui lòng chọn file PDF hoặc ảnh (tối đa 15 MB)",
+        message: "Vui lòng chọn file PDF (tối đa 15 MB)",
         path: ["file"],
       });
     } else {
@@ -127,7 +126,7 @@ export const farmCertUploadFormSchema = z
       if (!isAllowedCertFileMime(f)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Chỉ chấp nhận PDF hoặc ảnh (JPEG, PNG, WebP, GIF)",
+          message: "Chỉ chấp nhận file PDF",
           path: ["file"],
         });
       }
