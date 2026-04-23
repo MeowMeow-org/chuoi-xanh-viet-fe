@@ -247,15 +247,25 @@ export default function ConsumerHomePage() {
               {featuredShops.map((shop: ShopSummary) => {
                 const certs = Array.isArray(shop.certifications)
                   ? (shop.certifications as string[]).filter(
-                      (c) => typeof c === "string",
-                    )
+                    (c) => typeof c === "string",
+                  )
                   : [];
                 return (
                   <Link key={shop.id} href={`/shop/${shop.id}`}>
                     <Card className="hover:border-primary/40 transition-colors mb-3">
                       <CardContent className="p-4 flex items-start gap-4">
-                        <div className="relative h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                          <Leaf className="h-7 w-7 text-primary" />
+                        <div className="relative h-14 w-14 overflow-hidden rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                          {shop.avatar_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={shop.avatar_url}
+                              alt={shop.name}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <Leaf className="h-7 w-7 text-primary" />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
                           <p className="font-bold text-sm">{shop.name}</p>

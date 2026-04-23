@@ -16,6 +16,7 @@ import {
   User,
   Users,
   X,
+  Package,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -121,6 +122,11 @@ export default function FarmerLayout({
                 <Link href="/farmer/messages">
                   <Button variant="ghost" size="icon" className="h-9 w-9">
                     <MessageCircle className="size-5" />
+                  </Button>
+                </Link>
+                <Link href="/farmer/orders">
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Package className="size-5" />
                   </Button>
                 </Link>
               </div>

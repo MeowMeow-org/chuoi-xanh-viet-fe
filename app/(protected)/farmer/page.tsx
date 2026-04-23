@@ -92,7 +92,7 @@ export default function FarmerPage() {
       </header>
 
       {loading ? (
-        <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-[hsl(142,15%,88%)] bg-white">
+        <div className="flex min-h-50 items-center justify-center rounded-2xl border border-[hsl(142,15%,88%)] bg-white">
           <Loader2 className="h-8 w-8 animate-spin text-[hsl(142,50%,40%)]" />
         </div>
       ) : (

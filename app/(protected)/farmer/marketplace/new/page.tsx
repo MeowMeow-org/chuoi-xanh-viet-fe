@@ -213,7 +213,7 @@ export default function FarmerNewShopPage() {
                 <p className="mt-1 truncate text-lg font-semibold">
                   {shopName.trim() || "Tên gian hàng của bạn"}
                 </p>
-                <p className="mt-0.5 line-clamp-2 min-w-0 w-full break-words text-xs text-muted-foreground">
+                <p className="mt-0.5 line-clamp-2 min-w-0 w-full wrap-break-word text-xs text-muted-foreground">
                   {shopDesc.trim() ||
                     "Mô tả ngắn sẽ hiển thị cho người mua trên chợ."}
                 </p>
