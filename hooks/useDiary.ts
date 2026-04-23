@@ -36,5 +36,6 @@ export const useCreateDiaryMutation = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: diaryQueryKeys.all });
     },
+    onError: () => {},
   });
 };

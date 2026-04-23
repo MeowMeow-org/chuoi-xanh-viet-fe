@@ -2,7 +2,11 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { UseFormSetValue, UseFormWatch } from "react-hook-form";
+import {
+  useWatch,
+  type Control,
+  type UseFormSetValue,
+} from "react-hook-form";
 
 import { FancySelect, type FancyOption } from "@/components/ui/fancy-select";
 import { cn } from "@/lib/utils";
@@ -17,19 +21,19 @@ const sortVi = (a: { name: string }, b: { name: string }) =>
   a.name.localeCompare(b.name, "vi");
 
 type Props = {
-  watch: UseFormWatch<FarmFormValues>;
+  control: Control<FarmFormValues>;
   setValue: UseFormSetValue<FarmFormValues>;
   fieldClassName: string;
 };
 
 export function VietnamAddressFields({
-  watch,
+  control,
   setValue,
   fieldClassName,
 }: Props) {
-  const provinceName = (watch("province") ?? "").trim();
-  const districtName = (watch("district") ?? "").trim();
-  const wardName = (watch("ward") ?? "").trim();
+  const provinceName = (useWatch({ control, name: "province" }) ?? "").trim();
+  const districtName = (useWatch({ control, name: "district" }) ?? "").trim();
+  const wardName = (useWatch({ control, name: "ward" }) ?? "").trim();
 
   const provincesQuery = useQuery({
     queryKey: ["vn-address", "provinces"],

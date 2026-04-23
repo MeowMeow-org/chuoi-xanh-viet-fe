@@ -28,6 +28,7 @@ export const useCreateSaleUnitMutation = () => {
         queryKey: saleUnitQueryKeys.list(variables.seasonId),
       });
     },
+    onError: () => {},
   });
 };
 
@@ -41,5 +42,6 @@ export const useDeleteSaleUnitMutation = (seasonId: string) => {
         queryKey: saleUnitQueryKeys.list(seasonId),
       });
     },
+    onError: () => {},
   });
 };

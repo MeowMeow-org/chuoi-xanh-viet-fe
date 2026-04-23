@@ -36,8 +36,24 @@ export default function RegisterForm() {
 
   const onSubmit = (data: RegisterFormData) => registerUser(data);
 
+  const intro =
+    selectedRole === "consumer"
+      ? "Truy xuất nguồn gốc minh bạch, mua nông sản an toàn và kết nối trực tiếp với nông hộ trên nền tảng số."
+      : "Bắt đầu hành trình truy xuất minh bạch và quản lý mùa vụ trên nền tảng số.";
+
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <form className="mt-4 space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <div>
+        <h1 className="text-3xl font-extrabold leading-tight text-[hsl(150,16%,12%)]">
+          Tạo tài khoản mới.
+        </h1>
+        <p
+          className="mt-2 text-sm leading-relaxed text-[hsl(150,8%,34%)]"
+          aria-live="polite"
+        >
+          {intro}
+        </p>
+      </div>
       <div className="space-y-3">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-[hsl(150,8%,40%)]">
