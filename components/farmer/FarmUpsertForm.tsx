@@ -307,11 +307,11 @@ export default function FarmUpsertForm({
             </div>
 
             <div className="space-y-2">
-              <div className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto pb-0.5 sm:overflow-visible">
+              <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_84px_minmax(0,1.35fr)] sm:items-center">
                 <Input
                   className={cn(
                     farmFieldClass,
-                    "h-11 min-h-11 min-w-28 flex-1 py-0 my-0",
+                    "h-11 min-h-11 min-w-0 py-0 my-0",
                   )}
                   inputMode="decimal"
                   placeholder={
@@ -323,7 +323,7 @@ export default function FarmUpsertForm({
                   {...register("areaValue")}
                 />
                 <FancySelect
-                  className="h-11 min-h-11 w-21 shrink-0 rounded-lg border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] px-2 py-0 text-sm shadow-sm"
+                  className="h-11 min-h-11 w-full rounded-lg border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] px-2 py-0 text-sm shadow-sm"
                   listMaxHeightClassName="max-h-48"
                   value={watch("areaUnit")}
                   options={AREA_UNIT_OPTIONS}
@@ -344,7 +344,7 @@ export default function FarmUpsertForm({
                 <Input
                   className={cn(
                     farmFieldClass,
-                    "h-11 min-h-11 min-w-36 flex-1 py-0 my-0",
+                    "h-11 min-h-11 min-w-0 py-0 my-0",
                   )}
                   placeholder="Cây trồng chính — ví dụ: Chuối, cà phê…"
                   aria-label="Cây trồng chính (tuỳ chọn)"
@@ -352,11 +352,7 @@ export default function FarmUpsertForm({
                 />
               </div>
               <p className="text-xs leading-snug text-[hsl(150,8%,42%)]">
-                Hệ thống lưu theo{" "}
-                <strong className="font-medium text-[hsl(150,12%,22%)]">
-                  hecta (ha)
-                </strong>
-                . Chọn m² nếu quen đo theo mét vuông — sẽ quy đổi (1 ha = 10.000
+                (1 ha = 10.000
                 m²).
               </p>
             </div>
@@ -377,15 +373,6 @@ export default function FarmUpsertForm({
               <div>
                 <p className="text-sm font-semibold text-[hsl(150,16%,18%)]">
                   Tọa độ (bắt buộc)
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,38%)]">
-                  Bước 1: Ghi đủ địa chỉ ở trên. Bước 2: Bấm{" "}
-                  <strong className="font-semibold text-[hsl(150,12%,28%)]">
-                    Tìm từ địa chỉ
-                  </strong>{" "}
-                  — Google sẽ điền hai số bên dưới. Nếu không được, bấm lấy vị
-                  trí điện thoại hoặc nhập hai số tay (nhờ con cháu lấy trên bản
-                  đồ).
                 </p>
               </div>
 
@@ -417,7 +404,7 @@ export default function FarmUpsertForm({
                   ) : (
                     <Crosshair className="h-4 w-4" />
                   )}
-                  Lấy vị trí điện thoại
+                  Lấy vị trí từ thiết bị
                 </Button>
               </div>
 

@@ -35,7 +35,7 @@ export default function FarmerMarketplacePage() {
             Gian hàng của tôi
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Mỗi nông trại có 1 gian hàng riêng để giữ nguyên câu chuyện nguồn
+            Mỗi nông trại có 1 gian hàng riêng để minh bạch nguồn
             gốc.
           </p>
         </div>
@@ -44,7 +44,7 @@ export default function FarmerMarketplacePage() {
             href="/farmer/marketplace/new"
             className={cn(
               buttonVariants({ size: "sm" }),
-              "inline-flex shrink-0 gap-1.5",
+              "inline-flex shrink-0 gap-1.5 text-white!",
             )}
           >
             <Plus className="h-4 w-4" />
@@ -87,13 +87,13 @@ export default function FarmerMarketplacePage() {
                 Mở gian hàng đầu tiên để bắt đầu đăng sản phẩm.
               </p>
             </div>
-            <Link
+            {/* <Link
               href="/farmer/marketplace/new"
-              className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}
+              className={cn(buttonVariants({ size: "sm" }), "gap-1.5 text-white!")}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 text-white" />
               Mở gian hàng
-            </Link>
+            </Link> */}
           </CardContent>
         </Card>
       )}

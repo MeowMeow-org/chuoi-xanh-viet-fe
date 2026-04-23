@@ -134,8 +134,8 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
       showArchivedCerts
         ? allCerts
         : allCerts.filter(
-            (c) => c.status !== "expired" && c.status !== "revoked",
-          ),
+          (c) => c.status !== "expired" && c.status !== "revoked",
+        ),
     [allCerts, showArchivedCerts],
   );
 
@@ -416,7 +416,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           {farm != null && (
             <Link
               href={`/farmer/farms/${farmId}/seasons/create`}
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-[hsl(142,71%,45%)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(142,71%,40%)]"
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-[hsl(142,71%,45%)] px-3 text-sm font-semibold text-white! shadow-sm transition hover:bg-[hsl(142,71%,40%)]"
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
               Tạo mùa vụ
