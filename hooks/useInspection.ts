@@ -27,6 +27,7 @@ export const useCreateInspectionMutation = () => {
         queryKey: inspectionQueryKeys.list(variables.seasonId),
       });
     },
+    onError: () => {},
   });
 };
 
@@ -39,5 +40,6 @@ export const useDeleteInspectionMutation = (seasonId: string) => {
         queryKey: inspectionQueryKeys.list(seasonId),
       });
     },
+    onError: () => {},
   });
 };

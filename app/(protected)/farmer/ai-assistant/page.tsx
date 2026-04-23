@@ -5,7 +5,7 @@ import { Bot, ImagePlus, Loader2, Send, User, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { chatbotService, type ConversationTurn } from "@/services/chatbot";
-import { cn } from "@/lib/utils";
+import { clientRandomUUID, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type Message = {
@@ -120,7 +120,9 @@ export default function FarmerAIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-  const [thinkingRoute, setThinkingRoute] = useState<"farming" | "market" | "image" | null>(null);
+  const [thinkingRoute, setThinkingRoute] = useState<
+    "farming" | "market" | "image" | null
+  >(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -157,7 +159,7 @@ export default function FarmerAIAssistantPage() {
     setMessages((prev) => [
       ...prev,
       {
-        id: `b-${crypto.randomUUID()}`,
+        id: `b-${clientRandomUUID()}`,
         role: "assistant",
         content,
       },
@@ -178,7 +180,7 @@ export default function FarmerAIAssistantPage() {
     setMessages((prev) => [
       ...prev,
       {
-        id: `b-${crypto.randomUUID()}`,
+        id: `b-${clientRandomUUID()}`,
         role: "assistant",
         content,
       },
@@ -196,7 +198,7 @@ export default function FarmerAIAssistantPage() {
 
     const intent = inferTextIntent(trimmed);
     const userMsg: Message = {
-      id: `u-${crypto.randomUUID()}`,
+      id: `u-${clientRandomUUID()}`,
       role: "user",
       content: trimmed,
     };
@@ -226,7 +228,9 @@ export default function FarmerAIAssistantPage() {
   const onFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const ok = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(f.type);
+    const ok = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
+      f.type,
+    );
     if (!ok) {
       toast.error("Chỉ chấp nhận JPG, PNG, WebP hoặc GIF.");
       e.target.value = "";
@@ -250,7 +254,7 @@ export default function FarmerAIAssistantPage() {
 
     const displayUrl = URL.createObjectURL(file);
     const userMsg: Message = {
-      id: `u-${crypto.randomUUID()}`,
+      id: `u-${clientRandomUUID()}`,
       role: "user",
       content: note ? note : "Ảnh gửi chẩn đoán",
       imageSrc: displayUrl,
@@ -269,7 +273,7 @@ export default function FarmerAIAssistantPage() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `b-${crypto.randomUUID()}`,
+          id: `b-${clientRandomUUID()}`,
           role: "assistant",
           content,
         },
@@ -356,13 +360,15 @@ export default function FarmerAIAssistantPage() {
                   </div>
                 )}
                 {msg.id === "assistant-welcome" && msg.content.includes("**")
-                  ? msg.content.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-                      part.startsWith("**") && part.endsWith("**") ? (
-                        <strong key={i}>{part.slice(2, -2)}</strong>
-                      ) : (
-                        <span key={i}>{part}</span>
-                      ),
-                    )
+                  ? msg.content
+                      .split(/(\*\*[^*]+\*\*)/g)
+                      .map((part, i) =>
+                        part.startsWith("**") && part.endsWith("**") ? (
+                          <strong key={i}>{part.slice(2, -2)}</strong>
+                        ) : (
+                          <span key={i}>{part}</span>
+                        ),
+                      )
                   : msg.content}
               </div>
 
@@ -404,7 +410,9 @@ export default function FarmerAIAssistantPage() {
                 <p className="truncate text-xs font-medium text-zinc-800">
                   {pendingImage?.name ?? "Ảnh đính kèm"}
                 </p>
-                <p className="text-[11px] text-zinc-500">Sẽ gửi chẩn đoán khi bấm gửi</p>
+                <p className="text-[11px] text-zinc-500">
+                  Sẽ gửi chẩn đoán khi bấm gửi
+                </p>
               </div>
               <button
                 type="button"

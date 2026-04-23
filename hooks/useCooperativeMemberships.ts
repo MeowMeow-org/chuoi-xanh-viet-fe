@@ -42,6 +42,7 @@ export const useApproveMembershipMutation = () => {
         queryKey: cooperativeMembershipQueryKeys.all,
       });
     },
+    onError: () => {},
   });
 };
 
@@ -61,5 +62,6 @@ export const useRejectMembershipMutation = () => {
         queryKey: cooperativeMembershipQueryKeys.all,
       });
     },
+    onError: () => {},
   });
 };

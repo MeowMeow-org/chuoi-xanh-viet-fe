@@ -33,6 +33,7 @@ import { useMyFarmCertsQuery } from "@/hooks/useCertificate";
 import type { SeasonStatus } from "@/services/season";
 import { CERT_TYPE_LABEL, type FarmCertStatus } from "@/services/certificate";
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
+import { cn } from "@/lib/utils";
 
 const getStatusLabel = (status: SeasonStatus) => {
   if (status === "draft") return "Hiện hành";
@@ -74,6 +75,16 @@ const getCertStatusClass = (status: FarmCertStatus) => {
     return "bg-[hsl(35,80%,92%)] text-[hsl(32,90%,38%)]";
   return "bg-[hsl(120,10%,92%)] text-[hsl(150,10%,25%)]";
 };
+
+/**
+ * CTA xanh: dùng !text-* để luôn thắng merge shadcn + `<Link>` (tránh một nút trắng / một nút đen).
+ */
+const farmSectionPrimaryActionClass = cn(
+  "h-9 shrink-0 gap-2 rounded-lg px-3 text-sm font-semibold shadow-sm transition-all",
+  "bg-[hsl(142,71%,45%)] hover:bg-[hsl(142,71%,40%)]",
+  "!text-primary-foreground hover:!text-primary-foreground",
+  "[&_svg]:!text-primary-foreground",
+);
 
 const formatCertDate = (value: string | null | undefined) => {
   if (!value) return "—";
@@ -220,13 +231,21 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                   <p className="mb-2 text-xs text-[hsl(32,90%,38%)]">
                     Nông trại chưa gắn với hợp tác xã.
                   </p>
-                  <Link
-                    href={`/farmer/farms/${farmId}/join-cooperative`}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[hsl(142,35%,38%)] bg-[hsl(142,71%,96%)] px-3 py-2 text-sm font-semibold text-[hsl(142,58%,28%)] transition hover:bg-[hsl(142,71%,90%)]"
+                  <Button
+                    nativeButton={false}
+                    className={cn(
+                      farmSectionPrimaryActionClass,
+                      "w-full justify-center sm:w-auto",
+                    )}
+                    render={
+                      <Link
+                        href={`/farmer/farms/${farmId}/join-cooperative`}
+                      />
+                    }
                   >
                     <Building2 className="h-4 w-4 shrink-0" aria-hidden />
                     Tham gia hợp tác xã
-                  </Link>
+                  </Button>
                 </>
               )}
             </div>
@@ -254,7 +273,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           {farm != null && (
             <Button
               type="button"
-              className="h-9 shrink-0 gap-2 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]"
+              className={farmSectionPrimaryActionClass}
               onClick={() => setCertDialogOpen(true)}
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
@@ -414,13 +433,16 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
             )}
           </div>
           {farm != null && (
-            <Link
-              href={`/farmer/farms/${farmId}/seasons/create`}
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-[hsl(142,71%,45%)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[hsl(142,71%,40%)]"
+            <Button
+              nativeButton={false}
+              className={farmSectionPrimaryActionClass}
+              render={
+                <Link href={`/farmer/farms/${farmId}/seasons/create`} />
+              }
             >
               <Plus className="h-4 w-4 shrink-0" aria-hidden />
               Tạo mùa vụ
-            </Link>
+            </Button>
           )}
         </div>
 

@@ -42,6 +42,7 @@ export const useCreateFarmMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: farmQueryKeys.all });
     },
+    onError: () => {},
   });
 };
 
@@ -58,6 +59,7 @@ export const useUpdateFarmMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: farmQueryKeys.all });
     },
+    onError: () => {},
   });
 };
 
@@ -73,6 +75,7 @@ export const useDeleteFarmMutation = () => {
       router.replace("/farmer/farms");
       toast.success("Đã xóa nông trại");
     },
+    onError: () => {},
   });
 };
 
@@ -85,6 +88,7 @@ export const useRequestCooperativeJoinMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: farmQueryKeys.all });
     },
+    onError: () => {},
   });
 };
 

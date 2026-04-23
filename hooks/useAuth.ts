@@ -55,9 +55,7 @@ export const useRegisterMutation = () => {
       const roleRoute = resolveRoleRoute(res.user.role);
       router.replace(roleRoute ?? "/");
     },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onError: () => {},
   });
 };
 
@@ -80,9 +78,7 @@ export const useLoginMutation = () => {
       const roleRoute = resolveRoleRoute(res.user.role);
       router.replace(next ?? roleRoute ?? "/");
     },
-    onError: () => {
-      // error toast handled globally
-    },
+    onError: () => {},
   });
 };
 
@@ -102,14 +98,7 @@ export const useLogoutMutation = () => {
       router.replace("/login");
       toast.success("Đăng xuất thành công");
     },
-    onError: (error) => {
-      clearAuth();
-      void useAuthStore.persist.clearStorage();
-      clearAuthCookies();
-      queryClient.removeQueries();
-      router.replace("/login");
-      toast.error(error.message);
-    },
+    onError: () => {},
   });
 };
 
@@ -145,9 +134,7 @@ export const usePatchMeMutation = () => {
       void queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
       toast.success("Đã cập nhật hồ sơ");
     },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onError: () => {},
   });
 };
 
@@ -161,8 +148,6 @@ export const useChangePasswordMutation = () => {
     onSuccess: () => {
       toast.success("Đã đổi mật khẩu");
     },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onError: () => {},
   });
 };

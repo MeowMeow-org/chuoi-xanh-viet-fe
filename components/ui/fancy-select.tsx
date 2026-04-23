@@ -15,6 +15,7 @@ export function FancySelect({
   placeholder,
   disabled,
   className,
+  wrapperClassName,
   listMaxHeightClassName = "max-h-64",
 }: {
   value: string;
@@ -24,6 +25,8 @@ export function FancySelect({
   disabled?: boolean;
   /** Gộp vào nút trigger (vd. border, nền giống Input) */
   className?: string;
+  /** Bọc ngoài (trigger + list). Mặc định `w-full`; dùng `w-21 shrink-0` khi ô hẹp (vd. m² / ha). */
+  wrapperClassName?: string;
   /** Chiều cao tối đa danh sách (vd. max-h-72 cho danh sách dài) */
   listMaxHeightClassName?: string;
 }) {
@@ -82,7 +85,10 @@ export function FancySelect({
   };
 
   return (
-    <div ref={rootRef} className="relative w-full min-w-0">
+    <div
+      ref={rootRef}
+      className={cn("relative min-w-0", wrapperClassName ?? "w-full")}
+    >
       <button
         type="button"
         disabled={disabled}
@@ -129,7 +135,8 @@ export function FancySelect({
           ref={listRef}
           role="listbox"
           className={cn(
-            "absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-y-auto rounded-md border border-border/60 bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-black/5 animate-in fade-in-0 zoom-in-95",
+            "absolute inset-x-0 top-[calc(100%+6px)] z-[100] overflow-y-auto rounded-md border border-border/60 bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-black/5 animate-in fade-in-0 zoom-in-95",
+            /* Trùng chiều ngang với nút; tên dài xuống dòng trong từng option */
             listMaxHeightClassName,
           )}
         >
@@ -150,7 +157,7 @@ export function FancySelect({
                 onMouseEnter={() => setHighlight(idx)}
                 onClick={() => commit(opt.value)}
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left text-sm transition",
+                  "flex w-full min-w-0 items-start gap-2 rounded-sm px-2.5 py-2 text-left text-sm transition",
                   hl
                     ? "bg-primary/10 text-foreground"
                     : "text-foreground hover:bg-accent hover:text-accent-foreground",
@@ -159,11 +166,13 @@ export function FancySelect({
               >
                 <Check
                   className={cn(
-                    "h-4 w-4 shrink-0",
+                    "mt-0.5 h-4 w-4 shrink-0",
                     selected ? "text-primary" : "text-transparent",
                   )}
                 />
-                <span className="truncate">{opt.label}</span>
+                <span className="min-w-0 flex-1 wrap-break-word leading-snug whitespace-normal">
+                  {opt.label}
+                </span>
               </button>
             );
           })}
