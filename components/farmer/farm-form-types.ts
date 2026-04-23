@@ -9,7 +9,6 @@ export type FarmFormValues = {
   areaValue: string;
   /** m² hoặc ha — khi lưu luôn quy đổi sang ha */
   areaUnit: FarmAreaUnit;
-  cropMain: string;
   province: string;
   district: string;
   ward: string;

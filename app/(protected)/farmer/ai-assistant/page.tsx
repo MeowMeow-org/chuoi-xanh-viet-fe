@@ -5,7 +5,7 @@ import { Bot, ImagePlus, Loader2, Send, User, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { chatbotService, type ConversationTurn } from "@/services/chatbot";
-import { cn } from "@/lib/utils";
+import { clientRandomUUID, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type Message = {
@@ -157,7 +157,7 @@ export default function FarmerAIAssistantPage() {
     setMessages((prev) => [
       ...prev,
       {
-        id: `b-${crypto.randomUUID()}`,
+        id: `b-${clientRandomUUID()}`,
         role: "assistant",
         content,
       },
@@ -178,7 +178,7 @@ export default function FarmerAIAssistantPage() {
     setMessages((prev) => [
       ...prev,
       {
-        id: `b-${crypto.randomUUID()}`,
+        id: `b-${clientRandomUUID()}`,
         role: "assistant",
         content,
       },
@@ -196,7 +196,7 @@ export default function FarmerAIAssistantPage() {
 
     const intent = inferTextIntent(trimmed);
     const userMsg: Message = {
-      id: `u-${crypto.randomUUID()}`,
+      id: `u-${clientRandomUUID()}`,
       role: "user",
       content: trimmed,
     };
@@ -250,7 +250,7 @@ export default function FarmerAIAssistantPage() {
 
     const displayUrl = URL.createObjectURL(file);
     const userMsg: Message = {
-      id: `u-${crypto.randomUUID()}`,
+      id: `u-${clientRandomUUID()}`,
       role: "user",
       content: note ? note : "Ảnh gửi chẩn đoán",
       imageSrc: displayUrl,
@@ -269,7 +269,7 @@ export default function FarmerAIAssistantPage() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `b-${crypto.randomUUID()}`,
+          id: `b-${clientRandomUUID()}`,
           role: "assistant",
           content,
         },

@@ -355,6 +355,7 @@ function CoopCertCreateForm({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<CoopCertCreateFormValues>({
     resolver: zodResolver(coopCertCreateSchema),
@@ -511,17 +512,21 @@ function CoopCertCreateForm({
           <Controller
             name="file"
             control={control}
-            render={({ field: { onChange, onBlur, name, ref } }) => (
+            render={({ field: { name, ref } }) => (
               <Input
                 id="coop-cert-file"
                 ref={ref}
                 name={name}
-                onBlur={onBlur}
                 type="file"
                 accept="application/pdf,image/*"
                 aria-invalid={!!errors.file}
                 onChange={(e) => {
-                  onChange(e.target.files?.[0]);
+                  const f = e.target.files?.[0];
+                  setValue("file", f, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
                 }}
               />
             )}

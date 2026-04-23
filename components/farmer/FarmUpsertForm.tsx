@@ -9,7 +9,6 @@ import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { buildGeocodeQuery, geocodeVietnamAddress } from "@/lib/googleGeocode";
 import {
   convertAreaDisplayValue,
   formatHaInputValue,
@@ -39,7 +38,6 @@ export const emptyFarmFormValues = (): FarmFormValues => ({
   name: "",
   areaValue: "",
   areaUnit: "m2",
-  cropMain: "",
   province: "",
   district: "",
   ward: "",
@@ -55,7 +53,6 @@ export function farmToFormValues(farm: Farm): FarmFormValues {
     name: farm.name,
     areaValue: Number.isFinite(haRaw) ? formatHaInputValue(haRaw) : "",
     areaUnit: "ha",
-    cropMain: farm.cropMain ?? "",
     province: farm.province ?? "",
     district: farm.district ?? "",
     ward: farm.ward ?? "",
@@ -87,7 +84,7 @@ function valuesToPayload(values: FarmFormValues): CreateFarmPayload | null {
 
   if (!latStr || !lngStr) {
     toast.error(
-      'Cần có tọa độ. Bấm "Tìm từ địa chỉ" hoặc "Lấy vị trí điện thoại", hoặc nhập hai số tay.',
+      'Cần có đủ vĩ độ và kinh độ. Bấm "Lấy vị trí điện thoại" hoặc nhập hai số tay.',
     );
     return null;
   }
@@ -106,7 +103,6 @@ function valuesToPayload(values: FarmFormValues): CreateFarmPayload | null {
   return {
     name: values.name.trim(),
     areaHa,
-    cropMain: values.cropMain.trim() || undefined,
     province: values.province.trim() || undefined,
     district: values.district.trim() || undefined,
     ward: values.ward.trim() || undefined,
@@ -138,7 +134,6 @@ export default function FarmUpsertForm({
   onSubmitPayload,
 }: FarmUpsertFormProps) {
   const [geoLoading, setGeoLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const {
     register,
@@ -153,64 +148,14 @@ export default function FarmUpsertForm({
     defaultValues,
   });
 
-  const fillFromGoogleGeocode = async () => {
-    const v = getValues();
-    const query = buildGeocodeQuery({
-      address: v.address,
-      ward: v.ward,
-      district: v.district,
-      province: v.province,
-    });
-
-    if (query.length < 8) {
-      toast.error(
-        "Hãy ghi rõ địa chỉ: ít nhất đường/xã và tỉnh, rồi bấm tìm lại.",
-      );
-      return;
-    }
-
-    setGoogleLoading(true);
-    try {
-      const result = await geocodeVietnamAddress(query);
-      if (result == null) {
-        toast.error(
-          "Google không tìm thấy địa chỉ này. Kiểm tra chính tả hoặc ghi đầy đủ hơn.",
-        );
-        return;
-      }
-      setValue("latitude", String(result.lat), { shouldValidate: true });
-      setValue("longitude", String(result.lng), { shouldValidate: true });
-      toast.success(
-        result.formattedAddress
-          ? `Đã lấy tọa độ: ${result.formattedAddress}`
-          : "Đã điền kinh độ và vĩ độ.",
-      );
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "";
-      if (msg === "MISSING_GOOGLE_KEY") {
-        toast.error(
-          "Chưa có khóa Google Maps. Thêm NEXT_PUBLIC_GOOGLE_MAPS_API_KEY vào file cấu hình (xem hướng dẫn Geocoding API).",
-          { duration: 10_000 },
-        );
-      } else if (msg === "GOOGLE_DENIED") {
-        toast.error(
-          "Google từ chối yêu cầu: kiểm tra đã bật Geocoding API, thanh toán trên Cloud, và khóa đúng hạn chế.",
-          { duration: 10_000 },
-        );
-      } else {
-        toast.error(
-          "Không tra được địa chỉ lúc này. Thử lại sau hoặc dùng nút lấy vị trí điện thoại.",
-        );
-      }
-    } finally {
-      setGoogleLoading(false);
-    }
+  const fillFromAddressSearch = () => {
+    toast.info("Tính năng đang được phát triển.");
   };
 
   const fillFromGeolocation = async () => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       toast.error(
-        "Điện thoại không bật được định vị. Hãy dùng nút tìm theo địa chỉ ở trên.",
+        "Thiết bị không hỗ trợ định vị. Hãy nhập vĩ độ và kinh độ vào hai ô bên dưới.",
       );
       return;
     }
@@ -219,7 +164,7 @@ export default function FarmUpsertForm({
       const perm = await navigator.permissions?.query({ name: "geolocation" });
       if (perm?.state === "denied") {
         toast.error(
-          "Trang đang bị tắt quyền vị trí. Bấm ổ khóa cạnh đường link → Vị trí → Cho phép, hoặc dùng nút tìm theo địa chỉ.",
+          "Trang đang bị tắt quyền vị trí. Bấm ổ khóa cạnh đường link → Vị trí → Cho phép, hoặc nhập tọa độ tay.",
           { duration: 12_000 },
         );
         return;
@@ -244,12 +189,12 @@ export default function FarmUpsertForm({
         setGeoLoading(false);
         if (err.code === 1) {
           toast.error(
-            "Chưa cho phép vị trí. Bấm ổ khóa cạnh đường link → Cho phép, hoặc dùng nút tìm theo địa chỉ.",
+            "Chưa cho phép vị trí. Bấm ổ khóa cạnh đường link → Cho phép, hoặc nhập tọa độ tay.",
             { duration: 12_000 },
           );
         } else {
           toast.error(
-            "Không lấy được GPS. Hãy bấm tìm tọa độ theo địa chỉ đã nhập.",
+            "Không lấy được GPS. Hãy nhập vĩ độ và kinh độ tay.",
           );
         }
       },
@@ -307,7 +252,7 @@ export default function FarmUpsertForm({
             </div>
 
             <div className="space-y-2">
-              <div className="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto pb-0.5 sm:overflow-visible">
+              <div className="flex min-w-0 flex-nowrap items-center gap-2 overflow-visible pb-0.5">
                 <Input
                   className={cn(
                     farmFieldClass,
@@ -323,7 +268,8 @@ export default function FarmUpsertForm({
                   {...register("areaValue")}
                 />
                 <FancySelect
-                  className="h-11 min-h-11 w-21 shrink-0 rounded-lg border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] px-2 py-0 text-sm shadow-sm"
+                  wrapperClassName="w-21 shrink-0"
+                  className="h-11 min-h-11 w-full rounded-lg border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] px-2 py-0 text-sm shadow-sm"
                   listMaxHeightClassName="max-h-48"
                   value={watch("areaUnit")}
                   options={AREA_UNIT_OPTIONS}
@@ -340,15 +286,6 @@ export default function FarmUpsertForm({
                     );
                     setValue("areaUnit", next, { shouldValidate: true });
                   }}
-                />
-                <Input
-                  className={cn(
-                    farmFieldClass,
-                    "h-11 min-h-11 min-w-36 flex-1 py-0 my-0",
-                  )}
-                  placeholder="Cây trồng chính — ví dụ: Chuối, cà phê…"
-                  aria-label="Cây trồng chính (tuỳ chọn)"
-                  {...register("cropMain")}
                 />
               </div>
               <p className="text-xs leading-snug text-[hsl(150,8%,42%)]">
@@ -381,11 +318,14 @@ export default function FarmUpsertForm({
                 <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,38%)]">
                   Bước 1: Ghi đủ địa chỉ ở trên. Bước 2: Bấm{" "}
                   <strong className="font-semibold text-[hsl(150,12%,28%)]">
+                    Lấy vị trí điện thoại
+                  </strong>{" "}
+                  để điền hai số bên dưới, hoặc nhập tay (nhờ con cháu lấy trên
+                  bản đồ). Nút{" "}
+                  <strong className="font-semibold text-[hsl(150,12%,28%)]">
                     Tìm từ địa chỉ
                   </strong>{" "}
-                  — Google sẽ điền hai số bên dưới. Nếu không được, bấm lấy vị
-                  trí điện thoại hoặc nhập hai số tay (nhờ con cháu lấy trên bản
-                  đồ).
+                  sẽ sớm tự điền từ địa chỉ bạn ghi.
                 </p>
               </div>
 
@@ -394,22 +334,18 @@ export default function FarmUpsertForm({
                   type="button"
                   size="sm"
                   className={`${farmButtonClass} w-full gap-2 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]`}
-                  disabled={googleLoading || geoLoading}
-                  onClick={() => void fillFromGoogleGeocode()}
+                  disabled={geoLoading}
+                  onClick={fillFromAddressSearch}
                 >
-                  {googleLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <MapPin className="h-4 w-4" />
-                  )}
-                  Tìm từ địa chỉ (Google)
+                  <MapPin className="h-4 w-4" />
+                  Tìm từ địa chỉ
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   className={`${farmButtonClass} w-full gap-2 border-[hsl(142,35%,38%)] bg-white text-[hsl(142,58%,28%)]`}
-                  disabled={geoLoading || googleLoading}
+                  disabled={geoLoading}
                   onClick={() => void fillFromGeolocation()}
                 >
                   {geoLoading ? (
@@ -432,7 +368,8 @@ export default function FarmUpsertForm({
                     inputMode="decimal"
                     aria-invalid={errors.latitude ? true : undefined}
                     {...register("latitude", {
-                      required: "Cần vĩ độ — dùng nút Tìm từ địa chỉ",
+                      required:
+                        "Cần vĩ độ — bấm Lấy vị trí điện thoại hoặc nhập số",
                       validate: (v) => {
                         const t = String(v ?? "").trim();
                         if (!t) return true;
@@ -459,7 +396,8 @@ export default function FarmUpsertForm({
                     inputMode="decimal"
                     aria-invalid={errors.longitude ? true : undefined}
                     {...register("longitude", {
-                      required: "Cần kinh độ — dùng nút Tìm từ địa chỉ",
+                      required:
+                        "Cần kinh độ — bấm Lấy vị trí điện thoại hoặc nhập số",
                       validate: (v) => {
                         const t = String(v ?? "").trim();
                         if (!t) return true;
