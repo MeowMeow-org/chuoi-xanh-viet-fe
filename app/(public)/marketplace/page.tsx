@@ -212,7 +212,7 @@ export default function MarketplacePage() {
                     placeholder="0"
                     value={minPriceStr}
                     onChange={(e) => setMinPriceStr(e.target.value)}
-                    className="h-10"
+                    className="my-0 h-10 rounded-md px-3 py-2 text-sm"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -225,7 +225,7 @@ export default function MarketplacePage() {
                     placeholder="Không giới hạn"
                     value={maxPriceStr}
                     onChange={(e) => setMaxPriceStr(e.target.value)}
-                    className="h-10"
+                    className="my-0 h-10 rounded-md px-3 py-2 text-sm"
                   />
                 </div>
               </div>
@@ -352,8 +352,18 @@ export default function MarketplacePage() {
                     <Link key={shop.id} href={`/shop/${shop.id}`}>
                       <Card className="mb-3 transition-colors hover:border-primary/40">
                         <CardContent className="flex items-start gap-4 p-4">
-                          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                            <Leaf className="h-7 w-7 text-primary" />
+                          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary/10">
+                            {shop.avatar_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={shop.avatar_url}
+                                alt={shop.name}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <Leaf className="h-7 w-7 text-primary" />
+                            )}
                           </div>
                           <div className="min-w-0 flex-1 space-y-1">
                             <p className="text-sm font-bold">{shop.name}</p>
@@ -376,7 +386,7 @@ export default function MarketplacePage() {
                               </div>
                             )}
                             {shop.description && (
-                              <p className="line-clamp-2 min-w-0 w-full break-words text-xs text-muted-foreground">
+                              <p className="line-clamp-2 min-w-0 w-full wrap-break-word text-xs text-muted-foreground">
                                 {shop.description}
                               </p>
                             )}

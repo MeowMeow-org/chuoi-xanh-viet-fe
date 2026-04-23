@@ -105,7 +105,7 @@ export default function JoinCooperativeListPage() {
                 href={`/farmer/farms/${farmId}/join-cooperative/${item.id}`}
                 className={cn(
                   buttonVariants({ variant: "default" }),
-                  "w-full shrink-0 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)] sm:w-auto",
+                  "w-full shrink-0 bg-[hsl(142,71%,45%)] text-white! hover:bg-[hsl(142,71%,40%)] sm:w-auto",
                 )}
               >
                 Đăng ký

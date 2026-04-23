@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Bot, ShieldCheck, ShoppingCart, Leaf } from "lucide-react";
 
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
 
@@ -28,7 +29,7 @@ export default function HomeClient() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/register"
-                className="inline-flex h-14 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white"
+                className="inline-flex h-14 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white!"
               >
                 Đăng ký nông hộ
               </Link>
@@ -41,36 +42,56 @@ export default function HomeClient() {
             </div>
           </div>
 
-          <div className="dashboard-card rounded-2xl border border-[hsl(142,15%,88%)] p-5 shadow-md">
+          <div className="dashboard-card self-start rounded-2xl border border-[hsl(142,15%,88%)] p-4 shadow-md lg:max-w-xl lg:justify-self-center">
             <div className="rounded-xl bg-[hsl(142,71%,45%)] p-5 text-white">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/70">
-                Dashboard Snapshot
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/75">
+                Cơ sở lý thuyết
               </p>
-              <h2 className="mt-2 text-xl font-bold">Mùa vụ rau ăn lá 2026</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-white/15 bg-white/10 p-4">
-                  <p className="text-sm text-white/70">Nhật ký hôm nay</p>
-                  <p className="mt-2 text-2xl font-bold">12 bản ghi</p>
-                  <p className="mt-1 text-xs text-white/80">
-                    Tự gắn GPS, ảnh thực địa và thời gian máy chủ
-                  </p>
-                </div>
-                <div className="rounded-xl border border-white/15 bg-white/10 p-4">
-                  <p className="text-sm text-white/70">Truy xuất QR</p>
-                  <p className="mt-2 text-2xl font-bold">98%</p>
-                  <p className="mt-1 text-xs text-white/80">
-                    Lô hàng hiển thị đủ hành trình sản xuất cho người mua
-                  </p>
-                </div>
-              </div>
-              <div className="mt-3 rounded-xl border border-white/15 bg-white/10 p-4 text-sm">
-                <p className="font-bold text-white">
-                  AI hỗ trợ ngay tại ruộng
-                </p>
-                <p className="mt-1 text-white/80">
-                  Gợi ý bệnh nghi ngờ, hướng xử lý và nhắc thời gian cách ly
-                  trước khi mở bán.
-                </p>
+                {[
+                  {
+                    icon: Leaf,
+                    title: "Truy xuất nguồn gốc",
+                    desc: "Minh bạch theo mùa vụ và mã QR.",
+                  },
+                  {
+                    icon: ShieldCheck,
+                    title: "Quản trị chất lượng",
+                    desc: "Chuẩn hóa VietGAP & GlobalGAP.",
+                  },
+                  {
+                    icon: ShoppingCart,
+                    title: "Sàn thương mại B2C",
+                    desc: "Giao dịch trực tiếp, phân quyền bảo mật.",
+                  },
+                  // {
+                  //   icon: Users,
+                  //   title: "Kết nối cộng đồng",
+                  //   desc: "Không gian hợp tác và chia sẻ kiến thức.",
+                  // },
+                  {
+                    icon: Bot,
+                    title: "Trợ lý AI thông minh",
+                    desc: "Phân tích dữ liệu và hỗ trợ quyết định.",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="flex min-h-28 flex-col gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-sm"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/18 text-white shadow-sm ring-1 ring-white/20">
+                      <item.icon className="h-5 w-5" aria-hidden />
+                    </div>
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-bold leading-snug text-white sm:text-[15px]">
+                        {item.title}
+                      </p>
+                      <p className="text-xs leading-relaxed text-white/78 sm:text-sm">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -216,7 +237,7 @@ export default function HomeClient() {
             </div>
             <Link
               href="/truy-xuat"
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[hsl(142,71%,45%)] px-6 text-sm font-bold text-white transition hover:bg-[hsl(142,71%,40%)]"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[hsl(142,71%,45%)] px-6 text-sm font-bold text-white! transition hover:bg-[hsl(142,71%,40%)]"
             >
               Tra cứu ngay
               <svg

@@ -116,4 +116,3 @@ Swagger của backend (khi server đang chạy): ví dụ **`http://localhost:80
 
 ---
 
-*Dự án phục vụ mục đích học tập / WDU (theo ghi chú team).*

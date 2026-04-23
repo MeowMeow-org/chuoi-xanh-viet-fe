@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { ArrowLeft, Crosshair, Loader2, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
@@ -140,13 +140,14 @@ export default function FarmUpsertForm({
     handleSubmit,
     setValue,
     getValues,
-    watch,
+    control,
     formState: { errors },
   } = useForm<FarmFormValues>({
     mode: "onBlur",
     reValidateMode: "onBlur",
     defaultValues,
   });
+  const areaUnit = useWatch({ control, name: "areaUnit" }) ?? "m2";
 
   const fillFromAddressSearch = () => {
     toast.info("Tính năng đang được phát triển.");
@@ -256,11 +257,11 @@ export default function FarmUpsertForm({
                 <Input
                   className={cn(
                     farmFieldClass,
-                    "h-11 min-h-11 min-w-28 flex-1 py-0 my-0",
+                    "h-11 min-h-11 min-w-0 py-0 my-0",
                   )}
                   inputMode="decimal"
                   placeholder={
-                    watch("areaUnit") === "m2"
+                    areaUnit === "m2"
                       ? "Diện tích — ví dụ: 2500"
                       : "Diện tích — ví dụ: 0,25"
                   }
@@ -271,7 +272,7 @@ export default function FarmUpsertForm({
                   wrapperClassName="w-21 shrink-0"
                   className="h-11 min-h-11 w-full rounded-lg border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] px-2 py-0 text-sm shadow-sm"
                   listMaxHeightClassName="max-h-48"
-                  value={watch("areaUnit")}
+                  value={areaUnit}
                   options={AREA_UNIT_OPTIONS}
                   placeholder="Đơn vị"
                   onChange={(v) => {
@@ -289,17 +290,13 @@ export default function FarmUpsertForm({
                 />
               </div>
               <p className="text-xs leading-snug text-[hsl(150,8%,42%)]">
-                Hệ thống lưu theo{" "}
-                <strong className="font-medium text-[hsl(150,12%,22%)]">
-                  hecta (ha)
-                </strong>
-                . Chọn m² nếu quen đo theo mét vuông — sẽ quy đổi (1 ha = 10.000
+                (1 ha = 10.000
                 m²).
               </p>
             </div>
 
             <VietnamAddressFields
-              watch={watch}
+              control={control}
               setValue={setValue}
               fieldClassName={farmFieldClass}
             />
@@ -314,18 +311,6 @@ export default function FarmUpsertForm({
               <div>
                 <p className="text-sm font-semibold text-[hsl(150,16%,18%)]">
                   Tọa độ (bắt buộc)
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,38%)]">
-                  Bước 1: Ghi đủ địa chỉ ở trên. Bước 2: Bấm{" "}
-                  <strong className="font-semibold text-[hsl(150,12%,28%)]">
-                    Lấy vị trí điện thoại
-                  </strong>{" "}
-                  để điền hai số bên dưới, hoặc nhập tay (nhờ con cháu lấy trên
-                  bản đồ). Nút{" "}
-                  <strong className="font-semibold text-[hsl(150,12%,28%)]">
-                    Tìm từ địa chỉ
-                  </strong>{" "}
-                  sẽ sớm tự điền từ địa chỉ bạn ghi.
                 </p>
               </div>
 
@@ -353,7 +338,7 @@ export default function FarmUpsertForm({
                   ) : (
                     <Crosshair className="h-4 w-4" />
                   )}
-                  Lấy vị trí điện thoại
+                  Lấy vị trí từ thiết bị
                 </Button>
               </div>
 
