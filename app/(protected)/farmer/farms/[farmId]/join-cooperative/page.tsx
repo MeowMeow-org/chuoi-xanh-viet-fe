@@ -19,7 +19,9 @@ const PAGE_SIZE = 8;
 
 export default function JoinCooperativeListPage() {
   const params = useParams<{ farmId: string }>();
-  const farmId = Array.isArray(params.farmId) ? params.farmId[0] : params.farmId;
+  const farmId = Array.isArray(params.farmId)
+    ? params.farmId[0]
+    : params.farmId;
   const router = useRouter();
 
   const [page, setPage] = useState(1);
@@ -35,11 +37,28 @@ export default function JoinCooperativeListPage() {
     setPage(1);
   }, [debouncedSearch]);
 
-  const { farms, isLoading: farmsLoading } = useMyFarmsQuery({ page: 1, limit: 100 });
-  const farm = useMemo(() => farms.find((f) => f.id === farmId), [farms, farmId]);
+  const { farms, isLoading: farmsLoading } = useMyFarmsQuery({
+    page: 1,
+    limit: 100,
+  });
+  const farm = useMemo(
+    () => farms.find((f) => f.id === farmId),
+    [farms, farmId],
+  );
 
-  const { data, isLoading: htxLoading, isError: htxError } = useQuery({
-    queryKey: ["cooperative", "htx-list", "join", page, PAGE_SIZE, debouncedSearch],
+  const {
+    data,
+    isLoading: htxLoading,
+    isError: htxError,
+  } = useQuery({
+    queryKey: [
+      "cooperative",
+      "htx-list",
+      "join",
+      page,
+      PAGE_SIZE,
+      debouncedSearch,
+    ],
     queryFn: () =>
       cooperativeService.getActiveCooperatives({
         page,
@@ -85,8 +104,8 @@ export default function JoinCooperativeListPage() {
           Chọn hợp tác xã
         </h1>
         <p className="mt-1 text-sm text-[hsl(150,8%,40%)]">
-          Nông trại <strong>{farm.name}</strong> — chọn HTX và bấm đăng ký để xác nhận
-          thông tin và gửi đơn.
+          Nông trại <strong>{farm.name}</strong> — chọn HTX và bấm đăng ký để
+          xác nhận thông tin và gửi đơn.
         </p>
       </div>
 

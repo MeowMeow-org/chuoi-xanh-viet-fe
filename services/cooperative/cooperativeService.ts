@@ -62,10 +62,10 @@ export const cooperativeService = {
   getMyMemberships: async (
     query?: GetCooperativeMembershipsQuery,
   ): Promise<PaginatedResponse<CooperativeMembership>> => {
-    return axiosInstance.get<
-      PaginatedResponse<CooperativeMembership>,
-      PaginatedResponse<CooperativeMembership>
-    >("/cooperative/members", { params: query });
+    /** Interceptor trả về payload đã unwrap. */
+    return (await axiosInstance.get("/cooperative/members", {
+      params: query,
+    })) as unknown as PaginatedResponse<CooperativeMembership>;
   },
 
   approveMembership: async (

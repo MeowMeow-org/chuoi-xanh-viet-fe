@@ -148,7 +148,7 @@ export default function SeasonDetailPage() {
     // (BE cũng kiểm, đây chỉ là UX để báo sớm trước khi call API).
     if ((to === "ready_to_anchor" || to === "anchored") && yieldMissing) {
       toast.error(
-        "Cần nhập sản lượng thực tế (actual_yield) và đơn vị trước khi neo mùa vụ",
+        "Vui lòng nhập sản lượng thu hoạch thực tế và đơn vị tính trước khi «Hoàn thành thu hoạch» hoặc «Đăng nhật ký».",
       );
       return;
     }
@@ -653,8 +653,9 @@ function YieldCard({
 
       {showWarning && !editing && (
         <p className="mt-3 text-xs text-amber-700">
-          Bạn cần nhập sản lượng thực tế trước khi chuyển sang trạng thái
-          &quot;Sẵn sàng neo&quot; hoặc neo lên blockchain.
+          Nhập sản lượng thu hoạch thực tế và đơn vị tính (rồi bấm Lưu) trước khi
+          bấm «Hoàn thành thu hoạch» hoặc «Đăng nhật ký» — hai bước này lần lượt
+          chốt mùa vụ và ghi nhận lên blockchain.
         </p>
       )}
 

@@ -1,20 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Search, Users } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/shared/Pagination";
 import { useCooperativeMembershipsQuery } from "@/hooks/useCooperativeMemberships";
 
+const PAGE_SIZE = 8;
+
 export default function CooperativeHouseholdsPage() {
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
   const { items, pagination, isLoading, error } = useCooperativeMembershipsQuery(
     {
       status: "approved",
       page,
-      limit: 8,
+      limit: PAGE_SIZE,
+      searchTerm: debouncedSearch || undefined,
     },
   );
 
@@ -26,6 +42,24 @@ export default function CooperativeHouseholdsPage() {
           Danh sách hộ đã được duyệt và gắn với hợp tác xã.
         </p>
       </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          className="pl-9"
+          placeholder="Tìm theo tên chủ hộ, email, SĐT, tên trại, địa chỉ…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Tìm nông hộ"
+        />
+      </div>
+
+      {!isLoading && !error && pagination != null && pagination.total > 0 && (
+        <p className="text-xs text-muted-foreground">
+          {pagination.total} nông hộ
+          {debouncedSearch ? ` · lọc «${debouncedSearch}»` : ""}
+        </p>
+      )}
 
       {isLoading && (
         <div className="grid gap-3">
@@ -52,7 +86,11 @@ export default function CooperativeHouseholdsPage() {
         <Card>
           <CardContent className="flex flex-col items-center gap-2 p-8 text-center text-sm text-muted-foreground">
             <Users className="h-10 w-10 text-[hsl(142,71%,45%)]/50" />
-            <p>Chưa có nông hộ nào được duyệt.</p>
+            <p>
+              {debouncedSearch
+                ? `Không có nông hộ khớp «${debouncedSearch}».`
+                : "Chưa có nông hộ nào được duyệt."}
+            </p>
           </CardContent>
         </Card>
       )}

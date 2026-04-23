@@ -43,4 +43,8 @@ export const chatService = {
     );
     return data;
   },
+
+  markConversationRead: async (conversationId: string): Promise<void> => {
+    await axiosInstance.post(`/chat/conversations/${conversationId}/read`, {});
+  },
 };

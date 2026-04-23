@@ -70,6 +70,19 @@ export const useSuggestShopMutation = () => {
   });
 };
 
+export const useSuggestProductListingMutation = () => {
+  return useMutation({
+    mutationFn: ({
+      shopId,
+      saleUnitId,
+    }: {
+      shopId: string;
+      saleUnitId: string;
+    }) => shopService.suggestProductListing(shopId, saleUnitId),
+    onError: () => {},
+  });
+};
+
 export const useAddProductMutation = () => {
   const qc = useQueryClient();
   return useMutation({

@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
 import { useLogoutMutation } from "@/hooks/useAuth";
+import { useChatUnreadBadge } from "@/hooks/useChatUnread";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
 import { selectCartCount, useCartStore } from "@/store/useCartStore";
@@ -155,6 +156,9 @@ export default function ConsumerLayout({
   const { data: unreadNotifs = 0 } = useNotificationUnreadCount({
     enabled: !isGuest,
   });
+  const { chatConversationsWithUnread } = useChatUnreadBadge(
+    !isGuest && isConsumer,
+  );
   const consumerName = user?.fullName || "Người mua";
   const consumerEmail = user?.email || "";
 
@@ -317,14 +321,21 @@ export default function ConsumerLayout({
                     viewAllHref="/consumer/notifications"
                     unreadCount={unreadNotifs}
                   />
-                  <Link href="/consumer/messages">
+                  <Link href="/consumer/messages" className="relative">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9"
+                      className="relative h-9 w-9"
                       title="Tin nhắn"
                     >
                       <MessageSquare className="h-4 w-4" />
+                      {chatConversationsWithUnread > 0 && (
+                        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-destructive-foreground tabular-nums">
+                          {chatConversationsWithUnread > 99
+                            ? "99+"
+                            : chatConversationsWithUnread}
+                        </span>
+                      )}
                     </Button>
                   </Link>
                 </>
@@ -495,6 +506,21 @@ export default function ConsumerLayout({
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
+                    {item.to === "/consumer/messages" &&
+                      chatConversationsWithUnread > 0 && (
+                        <span
+                          className={cn(
+                            "ml-auto rounded-none px-1.5 py-0.5 text-[10px] font-medium tabular-nums",
+                            isActive(item.to)
+                              ? "bg-white/20 text-white"
+                              : "bg-destructive/15 text-destructive",
+                          )}
+                        >
+                          {chatConversationsWithUnread > 99
+                            ? "99+"
+                            : chatConversationsWithUnread}
+                        </span>
+                      )}
                     {item.to === "/consumer/notifications" &&
                       unreadNotifs > 0 && (
                         <span

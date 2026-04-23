@@ -139,6 +139,12 @@ export interface ShopSuggestResult {
   suggestedDescription: string;
 }
 
+/** GET /shop/:shopId/suggest-product?sale_unit_id= */
+export interface ProductListingSuggestResult {
+  suggestedDescription: string;
+  suggestedPriceVnd: number;
+}
+
 export interface AvailableSeasonForProduct {
   id: string;
   code: string;
