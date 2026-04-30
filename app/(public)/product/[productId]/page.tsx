@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -157,8 +157,11 @@ export default function PublicProductPage() {
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
+  const bringToFront = useCartStore((s) => s.bringToFront);
+  const setSelectedProductIds = useCartStore((s) => s.setSelectedProductIds);
   const requireAuth = useRequireAuth();
   const role = useAuthStore((s) => s.user?.role);
+  const queryClient = useQueryClient();
   const isConsumer = role === "consumer";
 
   const { data: product, isLoading } = useQuery({
@@ -197,6 +200,7 @@ export default function PublicProductPage() {
           : role === "cooperative"
             ? "/cooperative/messages"
             : "/consumer/messages";
+      void queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
       router.push(`${msgRoute}?c=${conversation.id}`);
     },
   });
@@ -259,6 +263,7 @@ export default function PublicProductPage() {
       },
       qty,
     );
+    bringToFront(product.id);
     toast.success("Đã thêm vào giỏ hàng", {
       description: `${product.name} x${qty}`,
     });
@@ -287,6 +292,8 @@ export default function PublicProductPage() {
       },
       qty,
     );
+    bringToFront(product.id);
+    setSelectedProductIds([product.id]);
     toast.success("Đã thêm vào giỏ hàng", {
       description: `${product.name} x${qty}`,
     });
