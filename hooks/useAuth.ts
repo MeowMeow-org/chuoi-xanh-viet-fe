@@ -3,22 +3,22 @@ import {
   LoginPayload,
   RegisterPayload,
   User,
-} from "@/services/auth";
-import { authService } from "@/services/auth/authService";
-import { clearAuthCookies, saveAuthCookies } from "@/services/auth/storage";
-import { useAuthStore } from "@/store/useAuthStore";
-import { toast } from "@/components/ui/toast";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+} from '@/services/auth';
+import { authService } from '@/services/auth/authService';
+import { clearAuthCookies, saveAuthCookies } from '@/services/auth/storage';
+import { useAuthStore } from '@/store/useAuthStore';
+import { toast } from '@/components/ui/toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const resolveRoleRoute = (role: string | undefined): string | null => {
   const normalizedRole = role?.trim().toLowerCase();
 
-  if (normalizedRole === "admin") return "/admin";
-  if (normalizedRole === "farmer") return "/farmer";
-  if (normalizedRole === "consumer") return "/consumer";
-  if (normalizedRole === "cooperative") {
-    return "/cooperative";
+  if (normalizedRole === 'admin') return '/admin';
+  if (normalizedRole === 'farmer') return '/farmer';
+  if (normalizedRole === 'consumer') return '/consumer';
+  if (normalizedRole === 'cooperative') {
+    return '/cooperative';
   }
 
   return null;
@@ -29,8 +29,8 @@ const sanitizeNext = (value: string | null): string | null => {
   if (!value) return null;
   try {
     const decoded = decodeURIComponent(value);
-    if (!decoded.startsWith("/")) return null;
-    if (decoded.startsWith("//")) return null;
+    if (!decoded.startsWith('/')) return null;
+    if (decoded.startsWith('//')) return null;
     return decoded;
   } catch {
     return null;
@@ -51,9 +51,9 @@ export const useRegisterMutation = () => {
         user: res.user,
       });
       saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
-      toast.success("Đăng ký thành công");
+      toast.success('Đăng ký thành công');
       const roleRoute = resolveRoleRoute(res.user.role);
-      router.replace(roleRoute ?? "/");
+      router.replace(roleRoute ?? '/');
     },
     onError: () => {},
   });
@@ -73,10 +73,11 @@ export const useLoginMutation = () => {
         user: res.user,
       });
       saveAuthCookies({ accessToken: res.accessToken, role: res.user.role });
-      toast.success("Đăng nhập thành công");
-      const next = sanitizeNext(searchParams?.get("next") ?? null);
+      toast.success('Đăng nhập thành công');
+      const next = sanitizeNext(searchParams?.get('next') ?? null);
       const roleRoute = resolveRoleRoute(res.user.role);
-      router.replace(next ?? roleRoute ?? "/");
+      const destination = next && next !== '/' ? next : (roleRoute ?? '/');
+      router.replace(destination);
     },
     onError: () => {},
   });
@@ -95,15 +96,15 @@ export const useLogoutMutation = () => {
       void useAuthStore.persist.clearStorage();
       clearAuthCookies();
       queryClient.removeQueries();
-      router.replace("/login");
-      toast.success("Đăng xuất thành công");
+      router.replace('/');
+      toast.success('Đăng xuất thành công');
     },
     onError: () => {},
   });
 };
 
 export const authQueryKeys = {
-  me: ["auth", "me"] as const,
+  me: ['auth', 'me'] as const,
 };
 
 export const useMeQuery = (enabled = true) => {
@@ -132,7 +133,7 @@ export const usePatchMeMutation = () => {
         user,
       });
       void queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
-      toast.success("Đã cập nhật hồ sơ");
+      toast.success('Đã cập nhật hồ sơ');
     },
     onError: () => {},
   });
@@ -146,7 +147,7 @@ export const useChangePasswordMutation = () => {
   >({
     mutationFn: (payload) => authService.changePassword(payload),
     onSuccess: () => {
-      toast.success("Đã đổi mật khẩu");
+      toast.success('Đã đổi mật khẩu');
     },
     onError: () => {},
   });
