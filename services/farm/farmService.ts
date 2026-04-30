@@ -8,7 +8,6 @@ function toCreateFarmBody(payload: CreateFarmPayload): Record<string, unknown> {
     name: payload.name,
   };
   if (payload.areaHa !== undefined) body.area_ha = payload.areaHa;
-  if (payload.cropMain !== undefined) body.crop_main = payload.cropMain;
   if (payload.province !== undefined) body.province = payload.province;
   if (payload.district !== undefined) body.district = payload.district;
   if (payload.ward !== undefined) body.ward = payload.ward;

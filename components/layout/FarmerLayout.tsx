@@ -16,11 +16,13 @@ import {
   User,
   Users,
   X,
+  Package,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
 import { useLogoutMutation } from "@/hooks/useAuth";
+import { useChatUnreadBadge } from "@/hooks/useChatUnread";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
 import { cn } from "@/lib/utils";
@@ -56,6 +58,7 @@ export default function FarmerLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { data: unreadNotifs = 0 } = useNotificationUnreadCount();
+  const { chatConversationsWithUnread } = useChatUnreadBadge(true);
   const { mutate: logout, isPending: isLoggingOut } = useLogoutMutation();
   const user = useAuthStore((state) => state.user);
 
@@ -118,9 +121,26 @@ export default function FarmerLayout({
                   viewAllHref="/farmer/notifications"
                   unreadCount={unreadNotifs}
                 />
-                <Link href="/farmer/messages">
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Link href="/farmer/messages" className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative h-9 w-9"
+                    title="Tin nhắn"
+                  >
                     <MessageCircle className="size-5" />
+                    {chatConversationsWithUnread > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-destructive-foreground tabular-nums">
+                        {chatConversationsWithUnread > 99
+                          ? "99+"
+                          : chatConversationsWithUnread}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+                <Link href="/farmer/orders">
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Package className="size-5" />
                   </Button>
                 </Link>
               </div>
@@ -249,6 +269,14 @@ export default function FarmerLayout({
                     >
                       <Icon className="h-5 w-5" />
                       {item.label}
+                      {item.href === "/farmer/messages" &&
+                        chatConversationsWithUnread > 0 && (
+                          <span className="ml-auto rounded-full bg-destructive px-1.5 py-0.5 text-[10px] text-white tabular-nums">
+                            {chatConversationsWithUnread > 99
+                              ? "99+"
+                              : chatConversationsWithUnread}
+                          </span>
+                        )}
                       {item.href === "/farmer/notifications" &&
                         unreadNotifs > 0 && (
                           <span className="ml-auto rounded-full bg-[hsl(142,71%,45%)] px-1.5 py-0.5 text-[10px] text-white tabular-nums">

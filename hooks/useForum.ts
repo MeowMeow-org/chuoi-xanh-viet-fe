@@ -81,6 +81,7 @@ export function useCreateForumPostMutation() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
     },
+    onError: () => {},
   });
 }
 
@@ -98,6 +99,7 @@ export function useUpdateForumPostMutation() {
       void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
       void qc.invalidateQueries({ queryKey: forumQueryKeys.post(data.id) });
     },
+    onError: () => {},
   });
 }
 
@@ -108,6 +110,7 @@ export function useDeleteForumPostMutation() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
     },
+    onError: () => {},
   });
 }
 
@@ -122,6 +125,7 @@ export function useCreateForumCommentMutation(postId: string) {
       });
       void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
     },
+    onError: () => {},
   });
 }
 
@@ -140,6 +144,7 @@ export function useUpdateForumCommentMutation(postId: string) {
         queryKey: forumQueryKeys.comments(postId),
       });
     },
+    onError: () => {},
   });
 }
 
@@ -154,5 +159,6 @@ export function useDeleteForumCommentMutation(postId: string) {
       });
       void qc.invalidateQueries({ queryKey: ["forum", "posts"] });
     },
+    onError: () => {},
   });
 }

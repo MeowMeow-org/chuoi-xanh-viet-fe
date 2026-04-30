@@ -10,6 +10,7 @@ import type {
   PublicProduct,
   PublicProductDetail,
   ShopSuggestResult,
+  ProductListingSuggestResult,
   ShopSummary,
 } from "./index";
 
@@ -219,6 +220,18 @@ export const shopService = {
       "/shop/suggest",
       { params: { farm_id: farmId } },
     );
+  },
+
+  suggestProductListing: async (
+    shopId: string,
+    saleUnitId: string,
+  ): Promise<ProductListingSuggestResult> => {
+    return axiosInstance.get<
+      ProductListingSuggestResult,
+      ProductListingSuggestResult
+    >(`/shop/${shopId}/suggest-product`, {
+      params: { sale_unit_id: saleUnitId },
+    });
   },
 
   getAvailableSeasons: async (): Promise<AvailableSeasonForProduct[]> => {

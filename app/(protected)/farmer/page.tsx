@@ -30,7 +30,8 @@ export default function FarmerPage() {
   const productMetaQueries = useQueries({
     queries: shops.map((shop) => ({
       queryKey: [...farmerShopKeys.shopProducts(shop.id), "count-only"],
-      queryFn: () => shopService.getShopProducts(shop.id, { page: 1, limit: 1 }),
+      queryFn: () =>
+        shopService.getShopProducts(shop.id, { page: 1, limit: 1 }),
       enabled: shops.length > 0,
     })),
   });
@@ -69,14 +70,14 @@ export default function FarmerPage() {
       label: "Đơn hàng",
       value: orderCount,
       icon: Package,
-      hint: "Tất cả đơn từ khách",
+      hint: "Tất cả đơn từ người tiêu dùng",
     },
     {
       href: "/farmer/marketplace",
       label: "Sản phẩm",
       value: productCount,
       icon: Tags,
-      hint: "Tổng SKU trên các gian hàng",
+      hint: "Tổng số mặt hàng đang bán trên các gian hàng",
     },
   ] as const;
 
@@ -87,12 +88,13 @@ export default function FarmerPage() {
           Tổng quan
         </h1>
         <p className="text-sm text-muted-foreground">
-          Nhanh số liệu nông trại, gian hàng, đơn hàng và sản phẩm của bạn.
+          Xem nhanh nông trại, gian hàng, đơn từ khách và sản phẩm đang đăng
+          bán.
         </p>
       </header>
 
       {loading ? (
-        <div className="flex min-h-[200px] items-center justify-center rounded-2xl border border-[hsl(142,15%,88%)] bg-white">
+        <div className="flex min-h-50 items-center justify-center rounded-2xl border border-[hsl(142,15%,88%)] bg-white">
           <Loader2 className="h-8 w-8 animate-spin text-[hsl(142,50%,40%)]" />
         </div>
       ) : (

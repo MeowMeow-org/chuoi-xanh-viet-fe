@@ -101,6 +101,7 @@ export const useCreateCoopCertMutation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate", "coop"] });
     },
+    onError: () => {},
   });
 };
 
@@ -117,6 +118,7 @@ export const useUpdateCoopCertMutation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate", "coop"] });
     },
+    onError: () => {},
   });
 };
 
@@ -127,6 +129,7 @@ export const useDeleteCoopCertMutation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate", "coop"] });
     },
+    onError: () => {},
   });
 };
 
@@ -143,6 +146,7 @@ export const useRevokeCoopCertMutation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate", "coop"] });
     },
+    onError: () => {},
   });
 };
 
@@ -165,6 +169,7 @@ export const useAddScopeFarmMutation = () => {
       });
       qc.invalidateQueries({ queryKey: ["certificate", "farm-badges"] });
     },
+    onError: () => {},
   });
 };
 
@@ -187,6 +192,7 @@ export const useRemoveScopeFarmMutation = () => {
       });
       qc.invalidateQueries({ queryKey: ["certificate", "farm-badges"] });
     },
+    onError: () => {},
   });
 };
 
@@ -210,6 +216,7 @@ export const useCreateFarmCertMutation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate", "farm"] });
     },
+    onError: () => {},
   });
 };
 
@@ -238,10 +245,21 @@ export const usePendingFarmCertsForAdminQuery = (q?: {
 export const useApproveFarmCertMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: certificateService.approveFarmCert,
+    mutationFn: ({
+      certificateId,
+      note,
+    }: {
+      certificateId: string;
+      note?: string;
+    }) =>
+      certificateService.approveFarmCert(
+        certificateId,
+        note?.trim() ? { note: note.trim() } : {},
+      ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate"] });
     },
+    onError: () => {},
   });
 };
 
@@ -258,6 +276,7 @@ export const useRejectFarmCertMutation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate"] });
     },
+    onError: () => {},
   });
 };
 
@@ -274,5 +293,6 @@ export const useRevokeFarmCertMutation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["certificate"] });
     },
+    onError: () => {},
   });
 };

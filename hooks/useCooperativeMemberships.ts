@@ -35,13 +35,23 @@ export const useApproveMembershipMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (membershipId: string) =>
-      cooperativeService.approveMembership(membershipId),
+    mutationFn: ({
+      membershipId,
+      note,
+    }: {
+      membershipId: string;
+      note?: string;
+    }) =>
+      cooperativeService.approveMembership(
+        membershipId,
+        note?.trim() ? { note: note.trim() } : {},
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: cooperativeMembershipQueryKeys.all,
       });
     },
+    onError: () => {},
   });
 };
 
@@ -61,5 +71,6 @@ export const useRejectMembershipMutation = () => {
         queryKey: cooperativeMembershipQueryKeys.all,
       });
     },
+    onError: () => {},
   });
 };

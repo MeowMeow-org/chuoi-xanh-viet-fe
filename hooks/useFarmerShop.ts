@@ -3,10 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/toast";
 
-import type {
-  AddProductPayload,
-  CreateShopPayload,
-} from "@/services/shop";
+import type { AddProductPayload, CreateShopPayload } from "@/services/shop";
 import { shopService } from "@/services/shop/shopService";
 
 export const farmerShopKeys = {
@@ -62,14 +59,27 @@ export const useCreateShopMutation = () => {
       void qc.invalidateQueries({ queryKey: farmerShopKeys.mine });
       toast.success("Đã tạo gian hàng");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: () => {},
   });
 };
 
 export const useSuggestShopMutation = () => {
   return useMutation({
     mutationFn: (farmId: string) => shopService.suggestShop(farmId),
-    onError: (e: Error) => toast.error(e.message),
+    onError: () => {},
+  });
+};
+
+export const useSuggestProductListingMutation = () => {
+  return useMutation({
+    mutationFn: ({
+      shopId,
+      saleUnitId,
+    }: {
+      shopId: string;
+      saleUnitId: string;
+    }) => shopService.suggestProductListing(shopId, saleUnitId),
+    onError: () => {},
   });
 };
 
@@ -84,7 +94,9 @@ export const useAddProductMutation = () => {
       payload: AddProductPayload;
     }) => shopService.addProduct(shopId, payload),
     onSuccess: (_data, { shopId }) => {
-      void qc.invalidateQueries({ queryKey: farmerShopKeys.shopProducts(shopId) });
+      void qc.invalidateQueries({
+        queryKey: farmerShopKeys.shopProducts(shopId),
+      });
       void qc.invalidateQueries({
         queryKey: farmerShopKeys.availableSaleUnits(shopId),
       });
@@ -93,7 +105,6 @@ export const useAddProductMutation = () => {
       });
       toast.success("Đã thêm sản phẩm");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: () => {},
   });
 };
-

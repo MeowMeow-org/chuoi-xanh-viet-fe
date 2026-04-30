@@ -162,15 +162,20 @@ export default function FarmerNewShopPage() {
 
       {!loading && farms.length === 0 && (
         <Card>
-          <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            Bạn chưa có nông trại.{" "}
-            <Link
-              href="/farmer/farms"
-              className="font-medium text-primary underline"
-            >
-              Tạo nông trại
-            </Link>{" "}
-            trước khi mở gian hàng.
+          <CardContent className="space-y-3 p-6 text-center text-sm">
+            <p className="text-muted-foreground">
+              Mỗi gian hàng gắn với một nông trại. Hiện tài khoản chưa có nông
+              trại nào — hãy tạo nông trại trước, rồi quay lại đây để mở gian
+              hàng.
+            </p>
+            <p>
+              <Link
+                href="/farmer/farms/create"
+                className="font-semibold text-blue-600 underline decoration-blue-600/40 underline-offset-2 hover:text-blue-700 hover:decoration-blue-700"
+              >
+                Tạo nông trại mới
+              </Link>
+            </p>
           </CardContent>
         </Card>
       )}
@@ -213,7 +218,7 @@ export default function FarmerNewShopPage() {
                 <p className="mt-1 truncate text-lg font-semibold">
                   {shopName.trim() || "Tên gian hàng của bạn"}
                 </p>
-                <p className="mt-0.5 line-clamp-2 min-w-0 w-full break-words text-xs text-muted-foreground">
+                <p className="mt-0.5 line-clamp-2 min-w-0 w-full wrap-break-word text-xs text-muted-foreground">
                   {shopDesc.trim() ||
                     "Mô tả ngắn sẽ hiển thị cho người mua trên chợ."}
                 </p>

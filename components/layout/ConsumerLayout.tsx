@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
 import { useLogoutMutation } from "@/hooks/useAuth";
+import { useChatUnreadBadge } from "@/hooks/useChatUnread";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/useAuthStore";
 import { selectCartCount, useCartStore } from "@/store/useCartStore";
@@ -155,6 +156,9 @@ export default function ConsumerLayout({
   const { data: unreadNotifs = 0 } = useNotificationUnreadCount({
     enabled: !isGuest,
   });
+  const { chatConversationsWithUnread } = useChatUnreadBadge(
+    !isGuest && isConsumer,
+  );
   const consumerName = user?.fullName || "Người mua";
   const consumerEmail = user?.email || "";
 
@@ -242,18 +246,27 @@ export default function ConsumerLayout({
               .map((item) => {
                 const to =
                   item.publicHome && isConsumer ? "/consumer" : item.to;
+                const active = isActive(to);
                 return (
                   <Link
                     key={item.to}
                     href={to}
-                    className={`flex min-w-28 items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive(to)
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    }`}
+                    className={cn(
+                      "flex min-w-28 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm leading-none transition-colors",
+                      active
+                        ? "bg-[hsl(142,71%,45%)]/18 font-semibold shadow-[inset_0_0_0_1px_hsl(142,50%,80%)]"
+                        : "font-medium text-[hsl(150,6%,38%)] hover:bg-[hsl(120,10%,92%)] hover:text-[hsl(150,10%,18%)]",
+                    )}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
+                    <item.icon
+                      className={cn(
+                        "h-4 w-4",
+                        active && "text-[hsl(142,71%,34%)]",
+                      )}
+                    />
+                    <span className={active ? "text-[hsl(142,71%,34%)]" : ""}>
+                      {item.label}
+                    </span>
                   </Link>
                 );
               })}
@@ -308,14 +321,21 @@ export default function ConsumerLayout({
                     viewAllHref="/consumer/notifications"
                     unreadCount={unreadNotifs}
                   />
-                  <Link href="/consumer/messages">
+                  <Link href="/consumer/messages" className="relative">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9"
+                      className="relative h-9 w-9"
                       title="Tin nhắn"
                     >
                       <MessageSquare className="h-4 w-4" />
+                      {chatConversationsWithUnread > 0 && (
+                        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-destructive-foreground tabular-nums">
+                          {chatConversationsWithUnread > 99
+                            ? "99+"
+                            : chatConversationsWithUnread}
+                        </span>
+                      )}
                     </Button>
                   </Link>
                 </>
@@ -331,21 +351,11 @@ export default function ConsumerLayout({
                   </Link>
                   <Link
                     href="/register"
-                    className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                    className="inline-flex h-9 items-center rounded-lg bg-[hsl(142,71%,45%)] px-3 text-sm font-semibold text-white! transition hover:bg-[hsl(142,71%,40%)]"
                   >
                     Đăng ký
                   </Link>
                 </div>
-              )}
-
-              {user && !isConsumer && role && (
-                <Link
-                  href={ROLE_HOME[role]}
-                  className="ml-2 inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-semibold text-foreground hover:bg-accent"
-                >
-                  <ArrowLeftRight className="h-4 w-4" />
-                  Về trang {ROLE_LABEL[role]}
-                </Link>
               )}
 
               {user && (
@@ -367,12 +377,12 @@ export default function ConsumerLayout({
                         <User className="h-4 w-4 text-primary" />
                       )}
                     </div>
-                    <span className="max-w-[10rem] truncate text-sm font-medium">
+                    <span className="max-w-40 truncate text-sm font-medium">
                       {consumerName}
                     </span>
                   </div>
                   <div
-                    className="pointer-events-none invisible absolute right-0 top-full z-[60] pt-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
+                    className="pointer-events-none invisible absolute right-0 top-full z-60 pt-1 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:visible group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:opacity-100"
                     role="menu"
                   >
                     <div className="w-52 rounded-lg border bg-popover py-1 text-popover-foreground shadow-md">
@@ -462,16 +472,18 @@ export default function ConsumerLayout({
               .map((item) => {
                 const to =
                   item.publicHome && isConsumer ? "/consumer" : item.to;
+                const active = isActive(to);
                 return (
                   <Link
                     key={item.to}
                     href={to}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
-                      isActive(to)
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent"
-                    }`}
+                    className={cn(
+                      "flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors",
+                      active
+                        ? "bg-[hsl(142,71%,45%)] text-white"
+                        : "text-muted-foreground hover:bg-[hsl(120,10%,92%)]",
+                    )}
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
@@ -485,22 +497,39 @@ export default function ConsumerLayout({
                     key={item.to}
                     href={item.to}
                     onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors ${
+                    className={cn(
+                      "flex items-center gap-3 rounded-none px-4 py-3 text-base font-medium transition-colors",
                       isActive(item.to)
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent"
-                    }`}
+                        ? "bg-[hsl(142,71%,45%)] text-white"
+                        : "text-muted-foreground hover:bg-[hsl(120,10%,92%)]",
+                    )}
                   >
                     <item.icon className="h-5 w-5" />
                     {item.label}
+                    {item.to === "/consumer/messages" &&
+                      chatConversationsWithUnread > 0 && (
+                        <span
+                          className={cn(
+                            "ml-auto rounded-none px-1.5 py-0.5 text-[10px] font-medium tabular-nums",
+                            isActive(item.to)
+                              ? "bg-white/20 text-white"
+                              : "bg-destructive/15 text-destructive",
+                          )}
+                        >
+                          {chatConversationsWithUnread > 99
+                            ? "99+"
+                            : chatConversationsWithUnread}
+                        </span>
+                      )}
                     {item.to === "/consumer/notifications" &&
                       unreadNotifs > 0 && (
                         <span
-                          className={`ml-auto rounded-none px-1.5 py-0.5 text-[10px] font-medium tabular-nums ${
+                          className={cn(
+                            "ml-auto rounded-none px-1.5 py-0.5 text-[10px] font-medium tabular-nums",
                             isActive(item.to)
-                              ? "bg-primary-foreground/20 text-primary-foreground"
-                              : "bg-primary/15 text-primary"
-                          }`}
+                              ? "bg-white/20 text-white"
+                              : "bg-[hsl(142,71%,45%)]/15 text-[hsl(142,71%,34%)]",
+                          )}
                         >
                           {unreadNotifs > 99 ? "99+" : unreadNotifs}
                         </span>
@@ -508,16 +537,6 @@ export default function ConsumerLayout({
                   </Link>
                 ))}
               </div>
-            )}
-            {user && !isConsumer && role && (
-              <Link
-                href={ROLE_HOME[role]}
-                onClick={() => setMenuOpen(false)}
-                className="mt-2 flex items-center gap-3 rounded-none border-t px-4 py-3 text-base font-medium text-foreground hover:bg-accent"
-              >
-                <ArrowLeftRight className="h-5 w-5" />
-                Về trang {ROLE_LABEL[role]}
-              </Link>
             )}
             {user && (
               <>
@@ -558,7 +577,7 @@ export default function ConsumerLayout({
                 <Link
                   href="/register"
                   onClick={() => setMenuOpen(false)}
-                  className="inline-flex items-center justify-center rounded-none bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                  className="inline-flex items-center justify-center rounded-none bg-[hsl(142,71%,45%)] px-3 py-2.5 text-sm font-semibold text-white! transition hover:bg-[hsl(142,71%,40%)]"
                 >
                   Đăng ký
                 </Link>

@@ -8,6 +8,7 @@ import {
   ImagePlus,
   Loader2,
   Plus,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
@@ -22,6 +23,7 @@ import {
   useAddProductMutation,
   useAvailableSaleUnitsQuery,
   useMyShopsQuery,
+  useSuggestProductListingMutation,
 } from "@/hooks/useFarmerShop";
 import { uploadService } from "@/services/upload/uploadService";
 
@@ -43,6 +45,7 @@ export default function FarmerShopAddProductPage({
   const { data: saleUnits, isLoading: saleUnitsLoading } =
     useAvailableSaleUnitsQuery(shop?.id, !!shop);
   const addProduct = useAddProductMutation();
+  const suggestListing = useSuggestProductListingMutation();
 
   const [prodSaleUnitId, setProdSaleUnitId] = useState("");
   const [prodName, setProdName] = useState("");
@@ -86,6 +89,30 @@ export default function FarmerShopAddProductPage({
 
   const nameCount = prodName.length;
   const descCount = prodDesc.length;
+
+  const handleSuggestListing = async () => {
+    if (!shop?.id) return;
+    const saleUnitId = prodSaleUnitId || saleUnitIdFromUrl;
+    if (!saleUnitId) {
+      toast.error("Chọn lô đã phân (có QR) để gợi ý");
+      return;
+    }
+    try {
+      const s = await suggestListing.mutateAsync({
+        shopId: shop.id,
+        saleUnitId,
+      });
+      setProdDesc((s.suggestedDescription ?? "").slice(0, 250));
+      const p = s.suggestedPriceVnd;
+      setProdPrice(
+        typeof p === "number" && Number.isFinite(p)
+          ? String(Number.isInteger(p) ? p : Math.round(p * 100) / 100)
+          : "",
+      );
+    } catch {
+      /* toast từ axios */
+    }
+  };
 
   const handleAddProduct = async () => {
     if (!shop?.id) return;
@@ -270,9 +297,31 @@ export default function FarmerShopAddProductPage({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="p-price" className="text-sm font-medium">
-                Giá (VNĐ) <span className="text-destructive">*</span>
-              </Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="p-price" className="text-sm font-medium">
+                  Giá (VNĐ) <span className="text-destructive">*</span>
+                </Label>
+                <button
+                  type="button"
+                  disabled={
+                    !effectiveSaleUnitId ||
+                    suggestListing.isPending ||
+                    saleUnitsLoading
+                  }
+                  onClick={() => void handleSuggestListing()}
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                >
+                  {suggestListing.isPending ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                  Gợi ý AI
+                </button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Gợi ý điền mô tả cho người mua và giá theo đơn vị lô (vd. đ/kg).
+              </p>
               <Input
                 id="p-price"
                 inputMode="decimal"

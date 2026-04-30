@@ -29,14 +29,17 @@ export default function JoinCooperativeConfirmPage() {
   const { farms, isLoading: farmsLoading } = useMyFarmsQuery({ page: 1, limit: 100 });
   const farm = useMemo(() => farms.find((f) => f.id === farmId), [farms, farmId]);
 
-  const { data: cooperatives = [] } = useQuery({
-    queryKey: ["cooperative", "htx-list", "join"],
-    queryFn: () => cooperativeService.getActiveCooperatives({ limit: 100 }),
+  const {
+    data: htxResult,
+    isLoading: htxLoading,
+    isError: htxError,
+  } = useQuery({
+    queryKey: ["cooperative", "htx", "by-id", htxId],
+    queryFn: () =>
+      cooperativeService.getActiveCooperatives({ id: htxId, page: 1, limit: 1 }),
+    enabled: Boolean(htxId),
   });
-  const selectedHtx = useMemo(
-    () => cooperatives.find((c) => c.id === htxId),
-    [cooperatives, htxId],
-  );
+  const selectedHtx = htxResult?.items[0];
 
   const { mutate: submitJoin, isPending } = useRequestCooperativeJoinMutation();
 
@@ -53,10 +56,24 @@ export default function JoinCooperativeConfirmPage() {
       "—"
     : "—";
 
-  if (farmsLoading || !farm) {
+  if (farmsLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
         <Loader2 className="h-8 w-8 animate-spin text-[hsl(142,71%,45%)]" />
+      </div>
+    );
+  }
+
+  if (!farm) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 px-4 py-6">
+        <p className="text-sm text-muted-foreground">
+          Không tìm thấy nông trại này hoặc bạn không có quyền truy cập (kiểm tra
+          lại đường dẫn / tài khoản nông dân).
+        </p>
+        <Link href="/farmer/farms" className={cn(buttonVariants({ variant: "outline" }))}>
+          Về danh sách trại
+        </Link>
       </div>
     );
   }
@@ -65,11 +82,37 @@ export default function JoinCooperativeConfirmPage() {
     return null;
   }
 
+  if (htxLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center px-4">
+        <Loader2 className="h-8 w-8 animate-spin text-[hsl(142,71%,45%)]" />
+      </div>
+    );
+  }
+
+  if (htxError) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 px-4 py-6">
+        <p className="text-sm text-muted-foreground">
+          Không tải được danh sách hợp tác xã. Kiểm tra kết nối mạng và API
+          backend.
+        </p>
+        <Link
+          href={`/farmer/farms/${farmId}/join-cooperative`}
+          className={cn(buttonVariants({ variant: "outline" }))}
+        >
+          Thử lại từ danh sách
+        </Link>
+      </div>
+    );
+  }
+
   if (!selectedHtx) {
     return (
       <div className="mx-auto max-w-lg space-y-4 px-4 py-6">
         <p className="text-sm text-muted-foreground">
-          Không tìm thấy hợp tác xã này.
+          Không tìm thấy hợp tác xã này trong danh sách khả dụng (có thể đã ngừng
+          hoạt động, hoặc mã không còn hợp lệ).
         </p>
         <Link
           href={`/farmer/farms/${farmId}/join-cooperative`}

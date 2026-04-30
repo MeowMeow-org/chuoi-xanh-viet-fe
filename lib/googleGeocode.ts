@@ -1,6 +1,6 @@
 /**
- * Google Geocoding API — cần bật "Geocoding API" trong Google Cloud
- * và biến môi trường NEXT_PUBLIC_GOOGLE_MAPS_API_KEY (nên giới hạn theo HTTP referrer).
+ * Địa chỉ → tọa độ qua `/api/geocode/search` (Google hoặc Nominatim trên server).
+ * Không gọi maps.googleapis.com trực tiếp từ trình duyệt — tránh CORS / hạn chế referrer.
  */
 export type AddressParts = {
   address?: string;
@@ -29,55 +29,50 @@ export type GeocodeResult = {
 export async function geocodeVietnamAddress(
   query: string,
 ): Promise<GeocodeResult | null> {
-  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
-  if (!key) {
-    throw new Error("MISSING_GOOGLE_KEY");
-  }
+  const q = query.trim();
+  if (!q) return null;
 
-  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
-  url.searchParams.set("address", query);
-  url.searchParams.set("key", key);
-  url.searchParams.set("region", "vn");
-  url.searchParams.set("language", "vi");
+  const res = await fetch(
+    `/api/geocode/search?${new URLSearchParams({ q })}`,
+    { method: "GET" },
+  );
 
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    throw new Error("GEOCODE_HTTP");
-  }
-
-  const data = (await res.json()) as {
-    status: string;
-    results?: Array<{
-      formatted_address?: string;
-      geometry?: { location?: { lat: number; lng: number } };
-    }>;
-    error_message?: string;
+  let data: {
+    lat?: number;
+    lng?: number;
+    formattedAddress?: string;
+    message?: string;
   };
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    throw new Error(`GEOCODE_${res.status}`);
+  }
 
-  if (data.status === "ZERO_RESULTS" || !data.results?.length) {
+  if (res.status === 404) {
     return null;
   }
 
-  if (data.status === "REQUEST_DENIED") {
-    throw new Error("GOOGLE_DENIED");
+  if (!res.ok) {
+    const m = data.message?.trim() || "";
+    if (res.status === 403 && /REQUEST_DENIED|denied/i.test(m)) {
+      throw new Error("GOOGLE_DENIED");
+    }
+    throw new Error(m || `GEOCODE_${res.status}`);
   }
 
-  if (data.status !== "OK") {
-    throw new Error(data.error_message || data.status || "GEOCODE_FAIL");
-  }
-
-  const loc = data.results[0].geometry?.location;
   if (
-    loc == null ||
-    typeof loc.lat !== "number" ||
-    typeof loc.lng !== "number"
+    typeof data.lat !== "number" ||
+    typeof data.lng !== "number" ||
+    Number.isNaN(data.lat) ||
+    Number.isNaN(data.lng)
   ) {
     return null;
   }
 
   return {
-    lat: loc.lat,
-    lng: loc.lng,
-    formattedAddress: data.results[0].formatted_address,
+    lat: data.lat,
+    lng: data.lng,
+    formattedAddress: data.formattedAddress,
   };
 }

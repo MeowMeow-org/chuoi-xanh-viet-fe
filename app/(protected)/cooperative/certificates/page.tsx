@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -84,6 +85,25 @@ const coopCertFooterActionText =
   "min-h-10 w-full justify-center px-3 py-2.5 !text-[13px] !font-medium !leading-[1.35] tracking-normal";
 
 export default function CooperativeCertificatesPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab =
+    searchParams.get("tab") === "pending" ? "pending" : "coop-certs";
+  const highlightFarmCert = searchParams.get("highlightFarmCert");
+
+  const onTabChange = (value: string) => {
+    const p = new URLSearchParams(searchParams.toString());
+    if (value === "pending") {
+      p.set("tab", "pending");
+    } else {
+      p.delete("tab");
+      p.delete("highlightFarmCert");
+    }
+    const q = p.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  };
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
       <div className="space-y-1.5">
@@ -100,7 +120,7 @@ export default function CooperativeCertificatesPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="coop-certs">
+      <Tabs value={activeTab} onValueChange={onTabChange}>
         <TabsList className="mb-4 w-full justify-start sm:w-auto">
           <TabsTrigger value="coop-certs">Chứng chỉ của HTX</TabsTrigger>
           <TabsTrigger value="pending">Duyệt hộ viên</TabsTrigger>
@@ -111,7 +131,7 @@ export default function CooperativeCertificatesPage() {
         </TabsContent>
 
         <TabsContent value="pending">
-          <PendingFarmCertsSection />
+          <PendingFarmCertsSection highlightFarmCertId={highlightFarmCert} />
         </TabsContent>
       </Tabs>
     </div>
@@ -199,7 +219,13 @@ function CoopCertsSection() {
                           variant={
                             c.status === "active" ? "default" : "outline"
                           }
-                          className="h-6 px-2 text-[11px] font-medium"
+                          className={cn(
+                            "h-6 px-2 text-[11px] font-medium",
+                            c.status === "expired" &&
+                              "border-red-300 bg-red-50 font-semibold text-red-700",
+                            c.status === "revoked" &&
+                              "border-red-300 bg-red-50 font-semibold text-red-800",
+                          )}
                         >
                           {c.status === "active"
                             ? "Hiệu lực"
@@ -355,6 +381,7 @@ function CoopCertCreateForm({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<CoopCertCreateFormValues>({
     resolver: zodResolver(coopCertCreateSchema),
@@ -511,17 +538,21 @@ function CoopCertCreateForm({
           <Controller
             name="file"
             control={control}
-            render={({ field: { onChange, onBlur, name, ref } }) => (
+            render={({ field: { name, ref } }) => (
               <Input
                 id="coop-cert-file"
                 ref={ref}
                 name={name}
-                onBlur={onBlur}
                 type="file"
                 accept="application/pdf,image/*"
                 aria-invalid={!!errors.file}
                 onChange={(e) => {
-                  onChange(e.target.files?.[0]);
+                  const f = e.target.files?.[0];
+                  setValue("file", f, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true,
+                  });
                 }}
               />
             )}
@@ -615,25 +646,70 @@ function DeleteCoopCertDialog({
   );
 }
 
-function PendingFarmCertsSection() {
+function PendingFarmCertsSection({
+  highlightFarmCertId,
+}: {
+  highlightFarmCertId: string | null;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const query = usePendingFarmCertsForCoopQuery({ page: 1, limit: 100 });
   const [rejectTarget, setRejectTarget] = useState<FarmCertificate | null>(
+    null,
+  );
+  const [approveTarget, setApproveTarget] = useState<FarmCertificate | null>(
     null,
   );
   const approveMutation = useApproveFarmCertMutation();
 
   const items = query.data?.items ?? [];
 
-  const handleApprove = async (id: string) => {
-    try {
-      await approveMutation.mutateAsync(id);
-      toast.success("Đã duyệt chứng chỉ");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Không thể duyệt";
-      toast.error(message);
-    }
-  };
+  useEffect(() => {
+    if (!highlightFarmCertId || query.isLoading || items.length === 0) return;
+    if (!items.some((c) => c.id === highlightFarmCertId)) return;
+
+    const elId = `pending-farm-cert-${highlightFarmCertId}`;
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add(
+        "ring-2",
+        "ring-[hsl(142,71%,42%)]",
+        "ring-offset-2",
+        "rounded-xl",
+      );
+      window.setTimeout(() => {
+        el.classList.remove(
+          "ring-2",
+          "ring-[hsl(142,71%,42%)]",
+          "ring-offset-2",
+          "rounded-xl",
+        );
+      }, 2800);
+    }, 150);
+
+    const strip = window.setTimeout(() => {
+      const p = new URLSearchParams(searchParams.toString());
+      if (!p.has("highlightFarmCert")) return;
+      p.delete("highlightFarmCert");
+      const q = p.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    }, 3200);
+
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(strip);
+    };
+  }, [
+    highlightFarmCertId,
+    items,
+    pathname,
+    query.isLoading,
+    router,
+    searchParams,
+  ]);
 
   return (
     <div className="space-y-3">
@@ -653,7 +729,8 @@ function PendingFarmCertsSection() {
         items.map((c) => (
           <Card
             key={c.id}
-            className="overflow-hidden border-[hsl(142,15%,88%)] bg-white shadow-sm transition-shadow hover:shadow-md"
+            id={`pending-farm-cert-${c.id}`}
+            className="overflow-hidden border-[hsl(142,15%,88%)] bg-white shadow-sm transition-shadow hover:shadow-md scroll-mt-24"
           >
             <CardContent className="p-0">
               <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
@@ -746,7 +823,7 @@ function PendingFarmCertsSection() {
                 <Button
                   size="sm"
                   className="h-9 gap-1.5 text-[13px] font-medium"
-                  onClick={() => handleApprove(c.id)}
+                  onClick={() => setApproveTarget(c)}
                 >
                   <UserCheck className="h-3.5 w-3.5" />
                   Duyệt
@@ -767,6 +844,24 @@ function PendingFarmCertsSection() {
       )}
 
       <Dialog
+        open={!!approveTarget}
+        onOpenChange={(open) => !open && setApproveTarget(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          {approveTarget && (
+            <ApproveFarmCertForm
+              certificate={approveTarget}
+              onCancel={() => setApproveTarget(null)}
+              onSuccess={() => {
+                setApproveTarget(null);
+                toast.success("Đã duyệt chứng chỉ");
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={!!rejectTarget}
         onOpenChange={(open) => !open && setRejectTarget(null)}
       >
@@ -774,7 +869,8 @@ function PendingFarmCertsSection() {
           {rejectTarget && (
             <RejectForm
               certificate={rejectTarget}
-              onDone={() => {
+              onCancel={() => setRejectTarget(null)}
+              onSuccess={() => {
                 setRejectTarget(null);
                 toast.success("Đã từ chối");
               }}
@@ -786,12 +882,76 @@ function PendingFarmCertsSection() {
   );
 }
 
-function RejectForm({
+function ApproveFarmCertForm({
   certificate,
-  onDone,
+  onCancel,
+  onSuccess,
 }: {
   certificate: FarmCertificate;
-  onDone: () => void;
+  onCancel: () => void;
+  onSuccess: () => void;
+}) {
+  const [note, setNote] = useState("");
+  const approveMutation = useApproveFarmCertMutation();
+
+  const handleSubmit = async () => {
+    try {
+      await approveMutation.mutateAsync({
+        certificateId: certificate.id,
+        note: note.trim() || undefined,
+      });
+      onSuccess();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Không thể duyệt";
+      toast.error(message);
+    }
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Duyệt chứng chỉ</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-2">
+        <Label>Ghi chú gửi nông hộ (tùy chọn)</Label>
+        <Textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Ví dụ: Đã đối chiếu giấy, vui lòng cập nhật badge trên gian hàng…"
+          rows={3}
+        />
+      </div>
+      <DialogFooter className="gap-2 sm:gap-0">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Hủy
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={approveMutation.isPending}
+          className="gap-1"
+        >
+          {approveMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Check className="h-4 w-4" />
+          )}
+          Xác nhận duyệt
+        </Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+function RejectForm({
+  certificate,
+  onCancel,
+  onSuccess,
+}: {
+  certificate: FarmCertificate;
+  onCancel: () => void;
+  onSuccess: () => void;
 }) {
   const [reason, setReason] = useState("");
   const rejectMutation = useRejectFarmCertMutation();
@@ -806,7 +966,7 @@ function RejectForm({
         certificateId: certificate.id,
         reason: reason.trim(),
       });
-      onDone();
+      onSuccess();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Không thể từ chối";
@@ -827,8 +987,17 @@ function RejectForm({
           placeholder="Ghi rõ lý do để nông hộ điều chỉnh..."
         />
       </div>
-      <DialogFooter>
+      <DialogFooter className="gap-2 sm:gap-0">
         <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={rejectMutation.isPending}
+        >
+          Hủy
+        </Button>
+        <Button
+          type="button"
           onClick={handleSubmit}
           disabled={rejectMutation.isPending}
           className="gap-1"

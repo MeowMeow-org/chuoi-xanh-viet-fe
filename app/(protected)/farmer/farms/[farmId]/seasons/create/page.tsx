@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
@@ -12,10 +12,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMyFarmsQuery } from "@/hooks/useFarm";
 import { useCreateSeasonMutation } from "@/hooks/useSeason";
+import { cn } from "@/lib/utils";
 
-/** Cùng chuẩn với FarmUpsertForm / tạo nông trại */
-const farmFieldClass =
-  "rounded-lg border border-input aria-invalid:border-destructive focus-visible:ring-1 focus-visible:ring-ring/50 focus-visible:aria-invalid:ring-destructive/40 aria-invalid:ring-1 aria-invalid:ring-destructive/25";
+/**
+ * Input mùa vụ: gọn, invalid nhẹ (tránh chồng ring với ui/input — dễ bị “đỏ lòm”).
+ */
+const seasonFieldClass = cn(
+  "my-0 h-10 min-h-10 rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm",
+  "placeholder:text-muted-foreground/90",
+  "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/25",
+  "aria-invalid:border-destructive/55 aria-invalid:bg-destructive/[0.04] aria-invalid:ring-1 aria-invalid:ring-destructive/20",
+);
 
 const farmButtonClass =
   "cursor-pointer focus-visible:ring-1 focus-visible:ring-ring/50 disabled:cursor-not-allowed";
@@ -41,6 +48,22 @@ function utcDayFromYmd(ymd: string): number | null {
   if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d))
     return null;
   return Date.UTC(y, mo - 1, d);
+}
+
+function validateHarvestAfterStart(
+  harvestYmd: string,
+  startYmd: string,
+): true | string {
+  const h = harvestYmd.trim();
+  const s = startYmd.trim();
+  if (!h || !s) return true;
+  const tH = utcDayFromYmd(h);
+  const tS = utcDayFromYmd(s);
+  if (tH == null || tS == null) return "Ngày không hợp lệ.";
+  if (tH < tS) {
+    return "Ngày thu hoạch dự kiến không được trước ngày bắt đầu vụ.";
+  }
+  return true;
 }
 
 type FormValues = {
@@ -87,6 +110,9 @@ export default function CreateSeasonPage() {
       yieldUnit: "kg",
     },
   });
+
+  /** Bắt buộc thu hoạch chỉ báo lỗi khi đã blur ô hoặc đã bấm gửi (deps đổi startDate không làm “required” sớm). */
+  const harvestCommittedRef = useRef(false);
 
   const yieldUnitWatch = watch("yieldUnit");
 
@@ -204,21 +230,9 @@ export default function CreateSeasonPage() {
           </h1>
           <p className="mt-1 text-sm leading-relaxed text-[hsl(150,8%,40%)]">
             {farm
-              ? `Nông trại: ${farm.name} — mã vụ do hệ thống gán (6 chữ cái + 6 số); cần cây trồng, ngày bắt đầu và năng suất dự kiến.`
+              ? `Tạo mùa vụ mới cho nông trại ${farm.name}. Khi lưu, hệ thống sẽ tự gán mã vụ (6 chữ cái và 6 số). Vui lòng điền cây trồng, ngày bắt đầu và năng suất dự kiến.`
               : "Đang tải thông tin nông trại..."}
           </p>
-          {farm && (
-            <p className="mt-2 text-sm leading-relaxed text-[hsl(150,8%,40%)]">
-              <span className="font-semibold text-[hsl(150,12%,22%)]">
-                Cây trồng chính{" "}
-              </span>
-              <span className="text-[hsl(150,10%,28%)]">
-                {farm.cropMain?.trim()
-                  ? farm.cropMain.trim()
-                  : "— chưa khai báo trên hồ sơ trại"}
-              </span>
-            </p>
-          )}
         </div>
       </div>
 
@@ -228,24 +242,45 @@ export default function CreateSeasonPage() {
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            <div className="space-y-1">
-              <Input
-                className={farmFieldClass}
-                placeholder="Cây trồng / vụ chính"
-                maxLength={120}
-                aria-invalid={errors.cropName ? true : undefined}
-                disabled={farmsLoading || !farm}
-                {...register("cropName", {
-                  required: "Nhập cây trồng / vụ chính",
-                })}
-              />
-              <p className="text-xs leading-relaxed text-[hsl(150,8%,40%)]">
-                Một mùa vụ chỉ ghi <span className="font-medium">một loại cây</span>.
+            <div className="space-y-2">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="season-crop"
+                  className="block text-xs font-medium text-[hsl(150,10%,35%)]"
+                >
+                  Cây trồng / vụ chính{" "}
+                  <span className="text-destructive" aria-hidden>
+                    *
+                  </span>
+                </label>
+                <Input
+                  id="season-crop"
+                  className={seasonFieldClass}
+                  placeholder="Ví dụ: chuối tiêu, lúa OM18…"
+                  maxLength={120}
+                  aria-invalid={errors.cropName ? true : undefined}
+                  disabled={farmsLoading || !farm}
+                  {...register("cropName", {
+                    required: "Vui lòng nhập loại cây trồng.",
+                  })}
+                />
+                {errors.cropName ? (
+                  <p
+                    className="text-xs font-medium text-destructive"
+                    role="alert"
+                  >
+                    {errors.cropName.message}
+                  </p>
+                ) : null}
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Một mùa vụ chỉ ghi{" "}
+                <span className="font-medium text-foreground/80">
+                  một loại cây
+                </span>
+                .
               </p>
             </div>
-            {errors.cropName && (
-              <p className="text-sm text-red-600">{errors.cropName.message}</p>
-            )}
 
             <div className="space-y-2">
               <p className="text-xs font-medium text-[hsl(150,10%,35%)]">
@@ -253,13 +288,13 @@ export default function CreateSeasonPage() {
               </p>
               <Input
                 type="date"
-                className={farmFieldClass}
+                className={seasonFieldClass}
                 aria-invalid={errors.startDate ? true : undefined}
                 disabled={farmsLoading || !farm}
                 {...register("startDate", { required: "Chọn ngày bắt đầu" })}
               />
               {errors.startDate && (
-                <p className="text-sm text-red-600">
+                <p className="text-xs font-medium text-destructive" role="alert">
                   {errors.startDate.message}
                 </p>
               )}
@@ -280,15 +315,27 @@ export default function CreateSeasonPage() {
                 <Input
                   id="expected-harvest"
                   type="date"
-                  className={farmFieldClass}
+                  className={seasonFieldClass}
                   aria-invalid={errors.expectedHarvestDate ? true : undefined}
                   disabled={farmsLoading || !farm}
                   {...register("expectedHarvestDate", {
-                    required: "Chọn ngày dự kiến thu hoạch",
+                    deps: ["startDate"],
+                    onBlur: () => {
+                      harvestCommittedRef.current = true;
+                    },
+                    validate: (v, fv) => {
+                      const h = String(v ?? "").trim();
+                      if (!h) {
+                        return harvestCommittedRef.current
+                          ? "Chọn ngày dự kiến thu hoạch"
+                          : true;
+                      }
+                      return validateHarvestAfterStart(h, fv.startDate ?? "");
+                    },
                   })}
                 />
                 {errors.expectedHarvestDate && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-xs font-medium text-destructive" role="alert">
                     {errors.expectedHarvestDate.message}
                   </p>
                 )}
@@ -305,7 +352,7 @@ export default function CreateSeasonPage() {
                 </label>
                 <Input
                   id="estimated-yield"
-                  className={farmFieldClass}
+                  className={seasonFieldClass}
                   inputMode="decimal"
                   placeholder="Ví dụ: 1500"
                   aria-invalid={errors.estimatedYield ? true : undefined}
@@ -318,14 +365,13 @@ export default function CreateSeasonPage() {
                       const n = Number(t);
                       if (Number.isNaN(n))
                         return "Năng suất dự kiến phải là số";
-                      if (n <= 0)
-                        return "Năng suất dự kiến phải lớn hơn 0";
+                      if (n <= 0) return "Năng suất dự kiến phải lớn hơn 0";
                       return true;
                     },
                   })}
                 />
                 {errors.estimatedYield && (
-                  <p className="text-sm text-red-600">
+                  <p className="text-xs font-medium text-destructive" role="alert">
                     {errors.estimatedYield.message}
                   </p>
                 )}
@@ -342,7 +388,7 @@ export default function CreateSeasonPage() {
                 </label>
                 <Input
                   id="actual-yield"
-                  className={farmFieldClass}
+                  className={seasonFieldClass}
                   inputMode="decimal"
                   placeholder="Để trống nếu chưa thu"
                   disabled={farmsLoading || !farm}
@@ -398,4 +444,3 @@ export default function CreateSeasonPage() {
     </div>
   );
 }
-

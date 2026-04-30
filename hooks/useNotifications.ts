@@ -60,6 +60,7 @@ export function useMarkNotificationReadMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
     },
+    onError: () => {},
   });
 }
 
@@ -71,5 +72,6 @@ export function useMarkAllNotificationsReadMutation() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
     },
+    onError: () => {},
   });
 }

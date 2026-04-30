@@ -21,19 +21,10 @@ export default function RegisterPage() {
             Chuỗi Xanh Việt
           </p>
         </div>
-        <h1 className="mt-4 text-3xl font-extrabold leading-tight text-[hsl(150,16%,12%)]">
-          Tạo tài khoản mới.
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-[hsl(150,8%,34%)]">
-          Bắt đầu hành trình truy xuất minh bạch và quản lý mùa vụ trên nền tảng
-          số.
-        </p>
 
-        <div className="mt-6">
-          <Suspense fallback={<div className="text-sm text-muted-foreground">Đang tải biểu mẫu...</div>}>
-            <RegisterForm />
-          </Suspense>
-        </div>
+        <Suspense fallback={<div className="mt-4 text-sm text-muted-foreground">Đang tải biểu mẫu...</div>}>
+          <RegisterForm />
+        </Suspense>
 
         <p className="mt-4 text-center text-sm text-[hsl(150,8%,34%)]">
           Đã có tài khoản?{" "}

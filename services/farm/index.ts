@@ -34,7 +34,6 @@ export interface GetMyFarmsQuery {
 export interface CreateFarmPayload {
   name: string;
   areaHa?: number;
-  cropMain?: string;
   province?: string;
   district?: string;
   ward?: string;

@@ -131,17 +131,17 @@ export default function FarmerShopDetailPage({
                     </p>
                     {shop.farms?.cooperative_members?.[0]?.cooperative_user
                       ?.full_name && (
-                      <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                        <Users className="h-3 w-3 shrink-0" />
-                        HTX:{" "}
-                        <span className="truncate font-medium text-foreground">
-                          {
-                            shop.farms.cooperative_members[0]
-                              .cooperative_user.full_name
-                          }
-                        </span>
-                      </p>
-                    )}
+                        <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                          <Users className="h-3 w-3 shrink-0" />
+                          HTX:{" "}
+                          <span className="truncate font-medium text-foreground">
+                            {
+                              shop.farms.cooperative_members[0]
+                                .cooperative_user.full_name
+                            }
+                          </span>
+                        </p>
+                      )}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
@@ -157,38 +157,40 @@ export default function FarmerShopDetailPage({
                     <ExternalLink className="h-3.5 w-3.5" />
                     Xem trang công khai
                   </Link>
-                  <Link
-                    href={`/farmer/marketplace/shops/${shop.id}/add`}
-                    className={cn(
-                      buttonVariants({ size: "sm" }),
-                      "inline-flex shrink-0 gap-1.5",
-                    )}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Thêm sản phẩm
-                  </Link>
+                  <div className="text-white">
+                    <Link
+                      href={`/farmer/marketplace/shops/${shop.id}/add`}
+                      className={cn(
+                        buttonVariants({ size: "sm" }),
+                        "inline-flex shrink-0 gap-1.5",
+                      )}
+                    >
+                      <Plus className="h-4 w-4" />
+                      Thêm sản phẩm
+                    </Link>
+                  </div>
                 </div>
               </div>
               {(shop.badges?.some((b) => b.active && b.sources.length > 0) ||
                 shop.description) && (
-                <div className="border-t pt-3 space-y-3">
-                  <CertificateBadge
-                    badges={shop.badges}
-                    farmId={shop.farms?.id}
-                    variant="row"
-                  />
-                  {shop.description ? (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Giới thiệu gian hàng
-                      </p>
-                      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground wrap-break-word">
-                        {shop.description}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              )}
+                  <div className="border-t pt-3 space-y-3">
+                    <CertificateBadge
+                      badges={shop.badges}
+                      farmId={shop.farms?.id}
+                      variant="row"
+                    />
+                    {shop.description ? (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Giới thiệu gian hàng
+                        </p>
+                        <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground wrap-break-word">
+                          {shop.description}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
             </CardContent>
           </Card>
 

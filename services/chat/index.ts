@@ -13,6 +13,11 @@ export interface ChatConversation {
   participant2: ChatParticipant;
   createdAt: string;
   updatedAt: string;
+  /** Tin từ đối phương chưa đọc (theo mốc đã đọc trên server) */
+  unreadCount?: number;
+  lastMessagePreview?: string | null;
+  lastMessageAt?: string | null;
+  lastMessageSenderUserId?: string | null;
 }
 
 export interface ChatMessage {

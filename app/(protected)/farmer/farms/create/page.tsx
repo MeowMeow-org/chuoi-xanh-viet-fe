@@ -17,7 +17,7 @@ export default function CreateFarmPage() {
   return (
     <FarmUpsertForm
       title="Tạo nông trại mới"
-      description="Nhập địa chỉ, bấm tìm tọa độ — hệ thống cần kinh độ và vĩ độ để lưu vị trí."
+      description="Ghi đủ địa chỉ (tỉnh, huyện, xã, đường). Bấm Lấy vị trí điện thoại hoặc nhập tọa độ tay — để lưu đúng điểm trên bản đồ."
       backHref="/farmer/farms"
       defaultValues={defaultValues}
       submitLabel="Tạo nông trại"
@@ -37,4 +37,3 @@ export default function CreateFarmPage() {
     />
   );
 }
-

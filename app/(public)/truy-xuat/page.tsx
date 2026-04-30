@@ -35,7 +35,7 @@ export default function PublicTraceLookupPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="VD: CXV-XXXXXX hoặc mã đầy đủ"
-              className="h-12 pl-10"
+              className="my-0 h-12 pl-10"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}

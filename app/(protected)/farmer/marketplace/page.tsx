@@ -35,8 +35,7 @@ export default function FarmerMarketplacePage() {
             Gian hàng của tôi
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Mỗi nông trại có 1 gian hàng riêng để giữ nguyên câu chuyện nguồn
-            gốc.
+            Mỗi nông trại có 1 gian hàng riêng để bán sản phẩm.
           </p>
         </div>
         {canOpenMore && (
@@ -44,7 +43,7 @@ export default function FarmerMarketplacePage() {
             href="/farmer/marketplace/new"
             className={cn(
               buttonVariants({ size: "sm" }),
-              "inline-flex shrink-0 gap-1.5",
+              "inline-flex shrink-0 gap-1.5 text-white!",
             )}
           >
             <Plus className="h-4 w-4" />
@@ -62,15 +61,21 @@ export default function FarmerMarketplacePage() {
 
       {!loading && farms.length === 0 && (
         <Card>
-          <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            Bạn chưa có nông trại.{" "}
-            <Link
-              href="/farmer/farms"
-              className="font-medium text-primary underline"
-            >
-              Tạo nông trại
-            </Link>{" "}
-            trước khi mở gian hàng.
+          <CardContent className="space-y-3 p-6 text-center text-sm">
+            <p className="text-muted-foreground">
+              Hiện tại bạn chưa có nông trại nào — hãy tạo nông trại{" "}
+              <Link
+                href="/farmer/farms/create"
+                className={cn(
+                  "inline font-semibold text-green-600! underline decoration-green-600/50! underline-offset-[3px]!",
+                  "transition-colors hover:text-green-700! hover:decoration-green-700/60!",
+                  "focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600/35 focus-visible:ring-offset-2",
+                )}
+              >
+                tại đây
+              </Link>
+              .
+            </p>
           </CardContent>
         </Card>
       )}
@@ -87,13 +92,13 @@ export default function FarmerMarketplacePage() {
                 Mở gian hàng đầu tiên để bắt đầu đăng sản phẩm.
               </p>
             </div>
-            <Link
+            {/* <Link
               href="/farmer/marketplace/new"
-              className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}
+              className={cn(buttonVariants({ size: "sm" }), "gap-1.5 text-white!")}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 text-white" />
               Mở gian hàng
-            </Link>
+            </Link> */}
           </CardContent>
         </Card>
       )}

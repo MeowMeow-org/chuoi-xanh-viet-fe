@@ -8,6 +8,8 @@ import { ArrowLeft, Loader2, MessageSquare, Send, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useChatConversationsQuery } from "@/hooks/useChatUnread";
+import { cn } from "@/lib/utils";
 import { chatService } from "@/services/chat/chatService";
 import type { ChatConversation, ChatMessage } from "@/services/chat";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -46,11 +48,7 @@ export default function FarmerMessagesPage() {
   const [composerValue, setComposerValue] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const conversationsQuery = useQuery({
-    queryKey: ["chat-conversations"],
-    queryFn: () => chatService.listConversations(),
-    refetchInterval: 15_000,
-  });
+  const conversationsQuery = useChatConversationsQuery();
 
   const messagesQuery = useQuery({
     queryKey: ["chat-messages", selectedId],
@@ -96,31 +94,59 @@ export default function FarmerMessagesPage() {
 
   useEffect(() => {
     if (!selectedId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await chatService.markConversationRead(selectedId);
+        if (cancelled) return;
+        queryClient.setQueryData<ChatConversation[]>(
+          ["chat-conversations"],
+          (old) =>
+            old?.map((c) =>
+              c.id === selectedId ? { ...c, unreadCount: 0 } : c,
+            ) ?? old,
+        );
+      } catch {
+        if (!cancelled) {
+          void queryClient.invalidateQueries({
+            queryKey: ["chat-conversations"],
+          });
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId, messages.length, queryClient]);
+
+  useEffect(() => {
+    if (!selectedId) return;
     const socket = connectChatSocketWithToken();
     const onMessage = (msg: ChatMessage) => {
-      if (msg.conversationId !== selectedId) return;
-      queryClient.setQueryData<
-        Awaited<ReturnType<typeof chatService.listMessages>>
-      >(["chat-messages", selectedId], (old) => {
-        if (!old) {
+      if (msg.conversationId === selectedId) {
+        queryClient.setQueryData<
+          Awaited<ReturnType<typeof chatService.listMessages>>
+        >(["chat-messages", selectedId], (old) => {
+          if (!old) {
+            return {
+              items: [msg],
+              meta: { page: 1, limit: 100, total: 1, totalPages: 1 },
+            };
+          }
+          if (old.items.some((m) => m.id === msg.id)) return old;
+          const total = old.meta.total + 1;
           return {
-            items: [msg],
-            meta: { page: 1, limit: 100, total: 1, totalPages: 1 },
+            ...old,
+            items: [...old.items, msg],
+            meta: {
+              ...old.meta,
+              total,
+              totalPages: Math.max(1, Math.ceil(total / old.meta.limit)),
+            },
           };
-        }
-        if (old.items.some((m) => m.id === msg.id)) return old;
-        const total = old.meta.total + 1;
-        return {
-          ...old,
-          items: [...old.items, msg],
-          meta: {
-            ...old.meta,
-            total,
-            totalPages: Math.max(1, Math.ceil(total / old.meta.limit)),
-          },
-        };
-      });
-      queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
+        });
+      }
+      void queryClient.invalidateQueries({ queryKey: ["chat-conversations"] });
     };
 
     socket.emit("chat:join", { conversationId: selectedId });
@@ -174,6 +200,9 @@ export default function FarmerMessagesPage() {
               ) : (
                 conversations.map((conv) => {
                   const peer = getPeer(conv, userId);
+                  const unread = conv.unreadCount ?? 0;
+                  const hasUnread = unread > 0;
+                  const timeIso = conv.lastMessageAt ?? conv.updatedAt;
                   return (
                     <button
                       key={conv.id}
@@ -182,20 +211,52 @@ export default function FarmerMessagesPage() {
                         conv.id === selectedId ? "bg-accent" : ""
                       }`}
                     >
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <User className="h-5 w-5 text-primary" />
+                      <div className="relative h-10 w-10 shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="h-5 w-5 text-primary" />
+                        </div>
+                        {hasUnread && (
+                          <span
+                            className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-card bg-primary"
+                            aria-hidden
+                          />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline gap-2">
-                          <p className="font-medium text-sm truncate">
+                          <p
+                            className={cn(
+                              "truncate text-sm",
+                              hasUnread
+                                ? "font-semibold text-foreground"
+                                : "font-medium",
+                            )}
+                          >
                             {peer.fullName ?? "Người dùng"}
                           </p>
-                          <span className="text-[10px] text-muted-foreground shrink-0">
-                            {formatTime(conv.updatedAt)}
-                          </span>
+                          <div className="flex shrink-0 items-center gap-1">
+                            {hasUnread && (
+                              <span className="rounded-full bg-primary px-1.5 py-0 text-[10px] font-semibold text-primary-foreground tabular-nums">
+                                {unread > 99 ? "99+" : unread}
+                              </span>
+                            )}
+                            <span className="text-[10px] text-muted-foreground">
+                              {formatTime(timeIso)}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate capitalize">
-                          {peer.role}
+                        <p
+                          className={cn(
+                            "mt-0.5 truncate text-xs",
+                            hasUnread
+                              ? "font-medium text-foreground/90"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          <span className="capitalize">{peer.role}</span>
+                          {conv.lastMessagePreview?.trim()
+                            ? ` · ${conv.lastMessagePreview}`
+                            : ""}
                         </p>
                       </div>
                     </button>

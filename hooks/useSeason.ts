@@ -51,6 +51,7 @@ export const useCreateSeasonMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: seasonQueryKeys.all });
     },
+    onError: () => {},
   });
 };
 
@@ -66,6 +67,7 @@ export const useChangeSeasonStatusMutation = () => {
       );
       void queryClient.invalidateQueries({ queryKey: ["season", "list"] });
     },
+    onError: () => {},
   });
 };
 
@@ -79,6 +81,7 @@ export const useUpdateSeasonMutation = () => {
       queryClient.setQueryData(seasonQueryKeys.detail(updated.id), updated);
       void queryClient.invalidateQueries({ queryKey: ["season", "list"] });
     },
+    onError: () => {},
   });
 };
 
@@ -92,5 +95,6 @@ export const useDeleteSeasonMutation = () => {
       queryClient.removeQueries({ queryKey: seasonQueryKeys.detail(seasonId) });
       await queryClient.invalidateQueries({ queryKey: ["season", "list"] });
     },
+    onError: () => {},
   });
 };

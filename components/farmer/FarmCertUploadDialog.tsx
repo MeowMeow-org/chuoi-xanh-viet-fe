@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Controller, useForm, type SubmitErrorHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
 import { BadgeCheck, Loader2, Upload } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +18,15 @@ import {
 import { FancySelect } from "@/components/ui/fancy-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/toast";
 
 import { useCreateFarmCertMutation } from "@/hooks/useCertificate";
 import { uploadService } from "@/services/upload/uploadService";
-import { farmCertUploadFormSchema } from "@/schemas/certificateSchema";
+import {
+  farmCertUploadDefaults,
+  farmCertUploadFormSchema,
+  type FarmCertUploadFormValues,
+} from "@/schemas/certificateSchema";
 import { cn } from "@/lib/utils";
 import { type CertType } from "@/services/certificate";
 
@@ -43,6 +51,8 @@ const CERT_TYPE_OPTIONS: Array<{ value: CertType; label: string }> = [
   { value: "other", label: "Khác" },
 ];
 
+const errText = "text-xs text-destructive";
+
 export function FarmCertUploadDialog({
   open,
   onOpenChange,
@@ -51,86 +61,68 @@ export function FarmCertUploadDialog({
   fixedFarmName,
   onSuccess,
 }: Props) {
-  const [farmId, setFarmId] = useState<string>(fixedFarmId ?? farms[0]?.id ?? "");
+  const [farmId, setFarmId] = useState<string>(
+    fixedFarmId ?? farms[0]?.id ?? "",
+  );
   const [type, setType] = useState<CertType>("vietgap");
-  const [certNo, setCertNo] = useState("");
-  const [issuer, setIssuer] = useState("");
-  const [issuedAt, setIssuedAt] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<
-    "certNo" | "issuer" | "issuedAt" | "expiresAt" | "file",
-    string
-  >>>({});
 
   const createMutation = useCreateFarmCertMutation();
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<FarmCertUploadFormValues>({
+    resolver: zodResolver(farmCertUploadFormSchema),
+    defaultValues: farmCertUploadDefaults,
+    mode: "onBlur",
+    /** Sau khi có lỗi / đổi giá trị (đặc biệt file): validate lại ngay, không chờ blur chỗ khác */
+    reValidateMode: "onChange",
+  });
 
   const farmOptions = useMemo(
     () => farms.map((f) => ({ value: f.id, label: f.name })),
     [farms],
   );
 
-  const resetForm = () => {
-    setType("vietgap");
-    setCertNo("");
-    setIssuer("");
-    setIssuedAt("");
-    setExpiresAt("");
-    setFile(null);
-    setFieldErrors({});
-    if (!fixedFarmId) {
-      setFarmId(farms[0]?.id ?? "");
-    }
-  };
-
   const handleOpenChange = (next: boolean) => {
-    if (!next) resetForm();
+    if (!next) {
+      reset(farmCertUploadDefaults);
+      setType("vietgap");
+      if (!fixedFarmId) setFarmId(farms[0]?.id ?? "");
+    }
     onOpenChange(next);
   };
 
-  const handleSubmit = async () => {
+  const onInvalid: SubmitErrorHandler<FarmCertUploadFormValues> = (errs) => {
+    const msg =
+      errs.expiresAt?.message ??
+      errs.issuedAt?.message ??
+      errs.certNo?.message ??
+      errs.issuer?.message ??
+      errs.file?.message;
+    if (msg) toast.error(String(msg));
+  };
+
+  const onSubmit = async (data: FarmCertUploadFormValues) => {
     const effectiveFarmId = fixedFarmId ?? farmId;
     if (!effectiveFarmId) {
       toast.error("Vui lòng chọn nông trại");
       return;
     }
 
-    const parsed = farmCertUploadFormSchema.safeParse({
-      certNo,
-      issuer,
-      issuedAt,
-      expiresAt,
-      file,
-    });
-    if (!parsed.success) {
-      const flat = parsed.error.flatten();
-      setFieldErrors({
-        certNo: flat.fieldErrors.certNo?.[0],
-        issuer: flat.fieldErrors.issuer?.[0],
-        issuedAt: flat.fieldErrors.issuedAt?.[0],
-        expiresAt: flat.fieldErrors.expiresAt?.[0],
-        file: flat.fieldErrors.file?.[0],
-      });
-      const first =
-        flat.fieldErrors.certNo?.[0] ??
-        flat.fieldErrors.issuer?.[0] ??
-        flat.fieldErrors.issuedAt?.[0] ??
-        flat.fieldErrors.expiresAt?.[0] ??
-        flat.fieldErrors.file?.[0] ??
-        "Vui lòng kiểm tra thông tin";
-      toast.error(first);
+    const certFile = data.file;
+    if (!(certFile instanceof File)) {
+      toast.error("Thiếu file chứng chỉ");
       return;
     }
-    setFieldErrors({});
 
     try {
       setUploading(true);
-      const certFile = parsed.data.file;
-      if (!(certFile instanceof File)) {
-        toast.error("Thiếu file chứng chỉ");
-        return;
-      }
       const up = await uploadService.uploadDocuments([certFile]);
       const fileUrl = up.items[0]?.url;
       if (!fileUrl) throw new Error("Không lấy được URL file");
@@ -138,17 +130,16 @@ export function FarmCertUploadDialog({
       await createMutation.mutateAsync({
         farm_id: effectiveFarmId,
         type,
-        certificate_no: parsed.data.certNo.trim(),
-        issuer: parsed.data.issuer.trim(),
-        issued_at: parsed.data.issuedAt,
-        expires_at: parsed.data.expiresAt,
+        certificate_no: data.certNo.trim(),
+        issuer: data.issuer.trim(),
+        issued_at: data.issuedAt,
+        expires_at: data.expiresAt,
         file_url: fileUrl,
       });
 
       toast.success("Đã nộp chứng chỉ, vui lòng chờ duyệt");
-      resetForm();
       onSuccess?.();
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Không thể nộp chứng chỉ";
@@ -168,7 +159,11 @@ export function FarmCertUploadDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <form
+          className="space-y-3"
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
+          noValidate
+        >
           {fixedFarmId ? (
             <div className="space-y-1.5">
               <Label>Nông trại</Label>
@@ -199,116 +194,149 @@ export function FarmCertUploadDialog({
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
-              <Label>Số giấy</Label>
+              <Label htmlFor="farm-cert-no">Số giấy</Label>
               <Input
-                value={certNo}
-                onChange={(e) => {
-                  setCertNo(e.target.value);
-                  setFieldErrors((p) => ({ ...p, certNo: undefined }));
-                }}
+                id="farm-cert-no"
+                autoComplete="off"
                 placeholder="VD: VG-0001/2025"
-                aria-invalid={!!fieldErrors.certNo}
-                className={cn(fieldErrors.certNo && "border-destructive")}
+                aria-invalid={!!errors.certNo}
+                className={cn(errors.certNo && "border-destructive")}
+                {...register("certNo")}
               />
-              {fieldErrors.certNo ? (
-                <p className="text-xs text-destructive">{fieldErrors.certNo}</p>
+              {errors.certNo ? (
+                <p className={errText} role="alert">
+                  {errors.certNo.message}
+                </p>
               ) : null}
             </div>
             <div className="space-y-1.5">
-              <Label>Đơn vị cấp</Label>
+              <Label htmlFor="farm-cert-issuer">Đơn vị cấp</Label>
               <Input
-                value={issuer}
-                onChange={(e) => {
-                  setIssuer(e.target.value);
-                  setFieldErrors((p) => ({ ...p, issuer: undefined }));
-                }}
+                id="farm-cert-issuer"
+                autoComplete="organization"
                 placeholder="TT Kỹ thuật..."
-                aria-invalid={!!fieldErrors.issuer}
-                className={cn(fieldErrors.issuer && "border-destructive")}
+                aria-invalid={!!errors.issuer}
+                className={cn(errors.issuer && "border-destructive")}
+                {...register("issuer")}
               />
-              {fieldErrors.issuer ? (
-                <p className="text-xs text-destructive">{fieldErrors.issuer}</p>
+              {errors.issuer ? (
+                <p className={errText} role="alert">
+                  {errors.issuer.message}
+                </p>
               ) : null}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
-              <Label>Ngày cấp</Label>
-              <Input
-                type="date"
-                value={issuedAt}
-                onChange={(e) => {
-                  setIssuedAt(e.target.value);
-                  setFieldErrors((p) => ({
-                    ...p,
-                    issuedAt: undefined,
-                    expiresAt: undefined,
-                  }));
-                }}
-                aria-invalid={!!fieldErrors.issuedAt}
-                className={cn(fieldErrors.issuedAt && "border-destructive")}
+              <Label htmlFor="farm-cert-issued">Ngày cấp</Label>
+              <Controller
+                name="issuedAt"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id="farm-cert-issued"
+                    format="DD/MM/YYYY"
+                    placeholder="dd/mm/yyyy"
+                    value={field.value ? dayjs(field.value, "YYYY-MM-DD") : null}
+                    className={cn(
+                      "h-10 w-full rounded-md border border-input bg-background",
+                      errors.issuedAt && "border-destructive",
+                    )}
+                    onChange={(value) => {
+                      field.onChange(value ? value.format("YYYY-MM-DD") : "");
+                    }}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
-              {fieldErrors.issuedAt ? (
-                <p className="text-xs text-destructive">{fieldErrors.issuedAt}</p>
+              {errors.issuedAt ? (
+                <p className={errText} role="alert">
+                  {errors.issuedAt.message}
+                </p>
               ) : null}
             </div>
             <div className="space-y-1.5">
-              <Label>Hiệu lực đến</Label>
-              <Input
-                type="date"
-                value={expiresAt}
-                onChange={(e) => {
-                  setExpiresAt(e.target.value);
-                  setFieldErrors((p) => ({
-                    ...p,
-                    expiresAt: undefined,
-                    issuedAt: undefined,
-                  }));
-                }}
-                aria-invalid={!!fieldErrors.expiresAt}
-                className={cn(fieldErrors.expiresAt && "border-destructive")}
+              <Label htmlFor="farm-cert-expires">Hiệu lực đến</Label>
+              <Controller
+                name="expiresAt"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    id="farm-cert-expires"
+                    format="DD/MM/YYYY"
+                    placeholder="dd/mm/yyyy"
+                    value={field.value ? dayjs(field.value, "YYYY-MM-DD") : null}
+                    className={cn(
+                      "h-10 w-full rounded-md border border-input bg-background",
+                      errors.expiresAt && "border-destructive",
+                    )}
+                    onChange={(value) => {
+                      field.onChange(value ? value.format("YYYY-MM-DD") : "");
+                    }}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
-              {fieldErrors.expiresAt ? (
-                <p className="text-xs text-destructive">
-                  {fieldErrors.expiresAt}
+              {errors.expiresAt ? (
+                <p className={errText} role="alert">
+                  {errors.expiresAt.message}
                 </p>
               ) : null}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label>File (PDF / ảnh)</Label>
-            <Input
-              type="file"
-              accept="application/pdf,image/*"
-              onChange={(e) => {
-                setFile(e.target.files?.[0] ?? null);
-                setFieldErrors((p) => ({ ...p, file: undefined }));
-              }}
-              aria-invalid={!!fieldErrors.file}
-              className={cn(fieldErrors.file && "border-destructive")}
+            <Label htmlFor="farm-cert-file">File PDF</Label>
+            <Controller
+              name="file"
+              control={control}
+              render={({ field: { name, ref } }) => (
+                <Input
+                  id="farm-cert-file"
+                  ref={ref}
+                  name={name}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  aria-invalid={!!errors.file}
+                  className={cn(errors.file && "border-destructive")}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null;
+                    setValue("file", f, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
+                  }}
+                />
+              )}
             />
-            {fieldErrors.file ? (
-              <p className="text-xs text-destructive">{fieldErrors.file}</p>
+            {errors.file ? (
+              <p className={errText} role="alert">
+                {errors.file.message}
+              </p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Tối đa 15 MB. Định dạng: PDF hoặc ảnh (JPEG, PNG, WebP, GIF).
+                Tối đa 15 MB. Định dạng: PDF.
               </p>
             )}
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button onClick={handleSubmit} disabled={uploading} className="gap-1">
-            {uploading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )}
-            Nộp chứng chỉ
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={uploading}
+              className="gap-1"
+            >
+              {uploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              Nộp chứng chỉ
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

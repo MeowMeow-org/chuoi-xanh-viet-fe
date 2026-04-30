@@ -5,50 +5,76 @@ import type {
   CooperativeMembership,
   GetCooperativeMembershipsQuery,
 } from "@/services/cooperative";
-import type { PaginatedResponse } from "@/types";
+import type { PaginatedResponse, PaginationMeta } from "@/types";
 
-type CooperativeListResponse =
-  | CooperativeAccount[]
-  | {
-      items?: CooperativeAccount[];
-      data?: CooperativeAccount[];
-    };
+
+function mapCooperativeAccount(
+  item: CooperativeAccount & { fullName?: string },
+): CooperativeAccount {
+  return {
+    ...item,
+    full_name: item.fullName ?? item.full_name,
+  };
+}
 
 export const cooperativeService = {
   getActiveCooperatives: async (params?: {
     page?: number;
     limit?: number;
-  }): Promise<CooperativeAccount[]> => {
-    const response = await axiosInstance.get<
-      CooperativeListResponse,
-      CooperativeListResponse
-    >("/cooperative/htx", {
-      params: { page: params?.page ?? 1, limit: params?.limit ?? 100 },
-    });
+    searchTerm?: string;
+    id?: string;
+  }): Promise<PaginatedResponse<CooperativeAccount>> => {
+    type HtxListPayload = {
+      items: (CooperativeAccount & { fullName?: string })[];
+      meta: PaginationMeta;
+    };
+    /** Interceptor trả về `data` đã unwrap, không phải AxiosResponse. */
+    const response = (await axiosInstance.get<HtxListPayload>(
+      "/cooperative/htx",
+      {
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 10,
+          ...(params?.searchTerm?.trim()
+            ? { searchTerm: params.searchTerm.trim() }
+            : {}),
+          ...(params?.id ? { id: params.id } : {}),
+        },
+      },
+    )) as unknown as HtxListPayload;
 
-    const raw = Array.isArray(response)
-      ? response
-      : response.items ?? response.data ?? [];
+    const items = (response.items ?? []).map(mapCooperativeAccount);
+    const meta = response.meta;
 
-    return raw.map((item: CooperativeAccount & { fullName?: string }) => ({
-      ...item,
-      full_name: item.fullName ?? item.full_name,
-    }));
+    return {
+      items,
+      meta: meta ?? {
+        page: params?.page ?? 1,
+        limit: params?.limit ?? 10,
+        total: items.length,
+        totalPages: items.length > 0 ? 1 : 0,
+        previousPage: null,
+        nextPage: null,
+      },
+    };
   },
 
   getMyMemberships: async (
     query?: GetCooperativeMembershipsQuery,
   ): Promise<PaginatedResponse<CooperativeMembership>> => {
-    return axiosInstance.get<
-      PaginatedResponse<CooperativeMembership>,
-      PaginatedResponse<CooperativeMembership>
-    >("/cooperative/members", { params: query });
+    /** Interceptor trả về payload đã unwrap. */
+    return (await axiosInstance.get("/cooperative/members", {
+      params: query,
+    })) as unknown as PaginatedResponse<CooperativeMembership>;
   },
 
-  approveMembership: async (membershipId: string): Promise<void> => {
+  approveMembership: async (
+    membershipId: string,
+    body?: { note?: string },
+  ): Promise<void> => {
     await axiosInstance.post<unknown, unknown>(
       `/cooperative/members/${membershipId}/approve`,
-      {},
+      body ?? {},
     );
   },
 
