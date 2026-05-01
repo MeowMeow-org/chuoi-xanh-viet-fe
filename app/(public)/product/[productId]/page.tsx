@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,8 @@ import {
   Zap,
   Store,
   Star,
+  MapPin,
+  Navigation,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { shopService } from "@/services/shop/shopService";
@@ -26,10 +29,31 @@ import { reviewService } from "@/services/review/reviewService";
 import { chatService } from "@/services/chat/chatService";
 import { useCartStore } from "@/store/useCartStore";
 import { cn } from "@/lib/utils";
+import { MAP_DIALOG_VIEWPORT_CLASS } from "@/lib/mapDialogViewport";
 import type { ShopReview } from "@/services/review";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuthStore } from "@/store/useAuthStore";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { isVietmapClientEnabled } from "@/lib/vietmapClientEnabled";
+
+const VietMapRoutePreview = dynamic(
+  () => import("@/components/maps/VietMapRoutePreview"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[160px] items-center justify-center rounded-lg border border-[hsl(142,18%,88%)] bg-muted/40">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </div>
+    ),
+  },
+);
 
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
@@ -71,6 +95,144 @@ function formatActivityAgo(iso: string) {
   const days = Math.floor(hrs / 24);
   if (days < 7) return `${days} ngày trước`;
   return formatJoinedAgo(iso);
+}
+
+function buildFarmLocationQuery(farm: {
+  address?: string | null;
+  ward?: string | null;
+  district?: string | null;
+  province?: string | null;
+}): string {
+  return [farm.address, farm.ward, farm.district, farm.province]
+    .map((s) => (typeof s === "string" ? s.trim() : ""))
+    .filter(Boolean)
+    .join(", ");
+}
+
+/** Google Maps — chỉ đường tới đích (không truyền origin → app/web thường dùng vị trí hiện tại). */
+function googleMapsOpenDirectionsHref(destination: string): string {
+  const params = new URLSearchParams({
+    api: "1",
+    destination: destination.trim(),
+    travelmode: "driving",
+  });
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+}
+
+/** Bản đồ nhúng + link ngoài (GPS ưu tiên, không có thì theo địa chỉ). */
+function farmMapEmbedAndLink(farm: {
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  ward?: string | null;
+  district?: string | null;
+  province?: string | null;
+}): { embedSrc: string; externalHref: string; precise: boolean } | null {
+  const lat =
+    farm.latitude != null && Number.isFinite(farm.latitude)
+      ? farm.latitude
+      : null;
+  const lng =
+    farm.longitude != null && Number.isFinite(farm.longitude)
+      ? farm.longitude
+      : null;
+  const q = buildFarmLocationQuery(farm);
+
+  if (lat != null && lng != null) {
+    const embedSrc = `https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+    const externalHref = googleMapsOpenDirectionsHref(`${lat},${lng}`);
+    return { embedSrc, externalHref, precise: true };
+  }
+  if (q.trim().length > 0) {
+    const embedSrc = `https://www.google.com/maps?q=${encodeURIComponent(q)}&z=14&output=embed`;
+    const externalHref = googleMapsOpenDirectionsHref(q.trim());
+    return { embedSrc, externalHref, precise: false };
+  }
+  return null;
+}
+
+/** Đích cho Google Maps chỉ đường: `lat,lng` hoặc địa chỉ đầy đủ. */
+function farmDirectionsDestination(farm: {
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  ward?: string | null;
+  district?: string | null;
+  province?: string | null;
+}): string | null {
+  const lat =
+    farm.latitude != null && Number.isFinite(farm.latitude)
+      ? farm.latitude
+      : null;
+  const lng =
+    farm.longitude != null && Number.isFinite(farm.longitude)
+      ? farm.longitude
+      : null;
+  if (lat != null && lng != null) return `${lat},${lng}`;
+  const q = buildFarmLocationQuery(farm).trim();
+  return q.length > 0 ? q : null;
+}
+
+/** Tọa đích cho Route API (GPS trại hoặc geocode VietMap server). */
+async function resolveFarmLatLngForRouting(farm: {
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  ward?: string | null;
+  district?: string | null;
+  province?: string | null;
+}): Promise<{ lat: number; lng: number } | null> {
+  const lat0 =
+    farm.latitude != null && Number.isFinite(farm.latitude)
+      ? farm.latitude
+      : null;
+  const lng0 =
+    farm.longitude != null && Number.isFinite(farm.longitude)
+      ? farm.longitude
+      : null;
+  if (lat0 != null && lng0 != null) return { lat: lat0, lng: lng0 };
+
+  const q = buildFarmLocationQuery(farm).trim();
+  if (q.length < 2) return null;
+
+  try {
+    const res = await fetch(
+      `/api/vietmap/geocode?${new URLSearchParams({ q })}`,
+    );
+    const body = (await res.json().catch(() => ({}))) as {
+      lat?: number;
+      lng?: number;
+    };
+    if (!res.ok) return null;
+    const lat = Number(body.lat);
+    const lng = Number(body.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Google Maps Embed API — chỉ đường trong iframe (không rời trang).
+ * Cần `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` và bật **Maps Embed API** trên Google Cloud,
+ * giới hạn referrer domain của site.
+ * @see https://developers.google.com/maps/documentation/embed/embedding-map#directions_mode
+ */
+function buildGoogleDirectionsEmbedSrc(
+  apiKey: string,
+  originLat: number,
+  originLng: number,
+  destination: string,
+  mode: "driving" | "walking" | "bicycling" = "driving",
+): string {
+  const params = new URLSearchParams({
+    key: apiKey.trim(),
+    origin: `${originLat},${originLng}`,
+    destination,
+    mode,
+  });
+  return `https://www.google.com/maps/embed/v1/directions?${params.toString()}`;
 }
 
 function ReviewStarsRow({ rating }: { rating: number }) {
@@ -156,6 +318,17 @@ export default function PublicProductPage() {
   const { productId } = useParams<{ productId: string }>();
   const router = useRouter();
   const [qty, setQty] = useState(1);
+  const [farmMapOpen, setFarmMapOpen] = useState(false);
+  const [directionsLoading, setDirectionsLoading] = useState(false);
+  const [directionsEmbedSrc, setDirectionsEmbedSrc] = useState<string | null>(
+    null,
+  );
+  const [vietmapDirections, setVietmapDirections] = useState<{
+    originLat: number;
+    originLng: number;
+    destLat: number;
+    destLng: number;
+  } | null>(null);
   const addItem = useCartStore((s) => s.addItem);
   const bringToFront = useCartStore((s) => s.bringToFront);
   const setSelectedProductIds = useCartStore((s) => s.setSelectedProductIds);
@@ -205,6 +378,88 @@ export default function PublicProductPage() {
     },
   });
 
+  const openDirectionsFromCurrentLocation = useCallback(() => {
+    const farm = product?.shop?.farm;
+    if (!farm) return;
+    if (!farmDirectionsDestination(farm)) {
+      toast.error("Chưa có địa chỉ hoặc tọa độ để chỉ đường.");
+      return;
+    }
+
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("Trình duyệt không hỗ trợ định vị.");
+      return;
+    }
+
+    setDirectionsLoading(true);
+    setDirectionsEmbedSrc(null);
+    setVietmapDirections(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude: oLat, longitude: oLng } = pos.coords;
+        void (async () => {
+          try {
+            const destPt = await resolveFarmLatLngForRouting(farm);
+            if (!destPt) {
+              toast.error(
+                "Không xác định được điểm đến (thiếu GPS nông trại hoặc geocode thất bại).",
+              );
+              return;
+            }
+
+            if (isVietmapClientEnabled()) {
+              setVietmapDirections({
+                originLat: oLat,
+                originLng: oLng,
+                destLat: destPt.lat,
+                destLng: destPt.lng,
+              });
+              return;
+            }
+
+            const dest = farmDirectionsDestination(farm);
+            if (!dest) return;
+
+            const embedKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+            if (embedKey) {
+              setDirectionsEmbedSrc(
+                buildGoogleDirectionsEmbedSrc(
+                  embedKey,
+                  oLat,
+                  oLng,
+                  dest,
+                  "driving",
+                ),
+              );
+              return;
+            }
+
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${oLat},${oLng}&destination=${encodeURIComponent(dest)}&travelmode=driving`;
+            window.open(url, "_blank", "noopener,noreferrer");
+            toast.info(
+              "Đang mở Google Maps trong tab mới. Bật VietMap (NEXT_PUBLIC_VIETMAP_ENABLED + key Route/Geocode) hoặc NEXT_PUBLIC_GOOGLE_MAPS_API_KEY để xem chỉ đường trong trang.",
+            );
+          } finally {
+            setDirectionsLoading(false);
+          }
+        })();
+      },
+      (err) => {
+        setDirectionsLoading(false);
+        const denied = err.code === err.PERMISSION_DENIED;
+        toast.error(
+          denied
+            ? "Cần cho phép truy cập vị trí để chỉ đường từ chỗ bạn đang đứng."
+            : err.code === err.POSITION_UNAVAILABLE
+              ? "Không xác định được vị trí hiện tại."
+              : "Hết thời gian chờ vị trí. Thử lại hoặc bật GPS.",
+        );
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60_000 },
+    );
+  }, [product?.shop?.farm]);
+
   if (isLoading) {
     return (
       <ConsumerLayout>
@@ -239,6 +494,9 @@ export default function PublicProductPage() {
   const reviewItems: ShopReview[] = productReviewsQuery.data?.items ?? [];
   const productTotal = shopProductsMetaQuery.data?.meta.total ?? 0;
   const chatPeerId = product.shop.farm?.ownerUserId;
+  const farmMapInfo = product.shop.farm
+    ? farmMapEmbedAndLink(product.shop.farm)
+    : null;
 
   const addToCart = () => {
     if (
@@ -550,6 +808,22 @@ export default function PublicProductPage() {
                   <Store className="size-3.5 shrink-0" aria-hidden />
                   <span className="leading-none">Xem gian hàng</span>
                 </Link>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="inline-flex h-8 flex-row items-center justify-center gap-2 px-3 text-xs leading-none"
+                  disabled={!farmMapInfo}
+                  onClick={() => farmMapInfo && setFarmMapOpen(true)}
+                  title={
+                    farmMapInfo
+                      ? undefined
+                      : "Nông hộ chưa có địa chỉ hoặc tọa độ để hiển thị bản đồ"
+                  }
+                >
+                  <MapPin className="size-3.5 shrink-0" aria-hidden />
+                  <span className="leading-none">Xem bản đồ</span>
+                </Button>
               </div>
             </div>
 
@@ -710,6 +984,129 @@ export default function PublicProductPage() {
           )}
         </section>
       </div>
+
+      <Dialog
+        open={farmMapOpen}
+        onOpenChange={(open) => {
+          setFarmMapOpen(open);
+          if (!open) {
+            setDirectionsLoading(false);
+            setDirectionsEmbedSrc(null);
+            setVietmapDirections(null);
+          }
+        }}
+      >
+        <DialogContent
+          showCloseButton
+          className="max-h-[92vh] w-full gap-3 overflow-y-auto p-4 sm:max-w-[min(96vw,800px)]"
+        >
+          <DialogHeader>
+            <DialogTitle>Vị trí nông hộ</DialogTitle>
+            <DialogDescription className="space-y-1">
+              <span className="block font-medium text-foreground">
+                {product.shop.farm?.name ?? product.shop.name}
+              </span>
+              {product.shop.farm &&
+                buildFarmLocationQuery(product.shop.farm).trim().length > 0 && (
+                  <span className="block text-muted-foreground">
+                    {buildFarmLocationQuery(product.shop.farm)}
+                  </span>
+                )}
+              {farmMapInfo && !farmMapInfo.precise && (
+                <span className="block text-xs text-amber-800/90">
+                  Bản đồ theo địa chỉ (ước lượng), không có tọa độ GPS chính xác.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {farmMapInfo && (
+            <>
+              {(vietmapDirections || directionsEmbedSrc) && (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-foreground">
+                      Chỉ đường (trên trang)
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => {
+                        setDirectionsEmbedSrc(null);
+                        setVietmapDirections(null);
+                      }}
+                    >
+                      Đóng lộ trình
+                    </Button>
+                  </div>
+                  {vietmapDirections && (
+                    <VietMapRoutePreview
+                      originLat={vietmapDirections.originLat}
+                      originLng={vietmapDirections.originLng}
+                      destLat={vietmapDirections.destLat}
+                      destLng={vietmapDirections.destLng}
+                      vehicle="motorcycle"
+                    />
+                  )}
+                  {directionsEmbedSrc && (
+                    <div className={MAP_DIALOG_VIEWPORT_CLASS}>
+                      <iframe
+                        title="Chỉ đường tới nông hộ (Google)"
+                        src={directionsEmbedSrc}
+                        className="absolute inset-0 h-full w-full border-0"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+              {!(vietmapDirections || directionsEmbedSrc) && (
+                <div className={MAP_DIALOG_VIEWPORT_CLASS}>
+                  <iframe
+                    title="Bản đồ vị trí nông hộ"
+                    src={farmMapInfo.embedSrc}
+                    className="absolute inset-0 h-full w-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  disabled={directionsLoading}
+                  onClick={() => openDirectionsFromCurrentLocation()}
+                >
+                  {directionsLoading ? (
+                    <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden />
+                  ) : (
+                    <Navigation className="size-3.5 shrink-0" aria-hidden />
+                  )}
+                  Chỉ đường tới đây
+                </Button>
+                <a
+                  href={farmMapInfo.externalHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "inline-flex items-center gap-2 no-underline",
+                  )}
+                >
+                  <MapPin className="size-3.5 shrink-0" aria-hidden />
+                  Chỉ đường trên Google Maps
+                </a>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {showBuyingActions && (
         <div className="fixed bottom-16 left-0 right-0 z-40 border-t bg-card p-3 md:bottom-0 lg:hidden">

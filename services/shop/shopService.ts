@@ -48,6 +48,8 @@ type RawProductRow = {
       ward: string | null;
       address?: string | null;
       crop_main?: string | null;
+      latitude?: string | number | null;
+      longitude?: string | number | null;
     } | null;
   } | null;
   seasons?: {
@@ -69,6 +71,12 @@ type RawProductRow = {
   review_count?: number;
   rank_score?: number;
 };
+
+function parseOptionalCoord(v: unknown): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
 
 const parseCertifications = (raw: unknown): string[] => {
   if (Array.isArray(raw)) return raw.filter((v) => typeof v === "string");
@@ -117,6 +125,8 @@ const mapProduct = (row: RawProductRow): PublicProduct => ({
               ward: row.shops.farms.ward,
               address: row.shops.farms.address ?? null,
               cropMain: row.shops.farms.crop_main ?? null,
+              latitude: parseOptionalCoord(row.shops.farms.latitude),
+              longitude: parseOptionalCoord(row.shops.farms.longitude),
             }
           : null,
         averageRating: row.shops.average_rating ?? null,
