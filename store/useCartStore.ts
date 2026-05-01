@@ -17,6 +17,7 @@ export interface CartItem {
 
 type CartState = {
   items: CartItem[];
+  selectedProductIds: string[];
   hasHydrated: boolean;
 };
 
@@ -28,6 +29,9 @@ type CartActions = {
   removeByShop: (shopId: string) => void;
   clear: () => void;
   setHasHydrated: (v: boolean) => void;
+  toggleSelectItem: (productId: string) => void;
+  setSelectedProductIds: (ids: string[]) => void;
+  bringToFront: (productId: string) => void;
 };
 
 /**
@@ -55,6 +59,7 @@ export const useCartStore = create<CartState & CartActions>()(
     persist(
       (set) => ({
         items: [],
+        selectedProductIds: [],
         hasHydrated: false,
 
         addItem: (item, quantity) =>
@@ -98,14 +103,37 @@ export const useCartStore = create<CartState & CartActions>()(
         removeItem: (productId) =>
           set((state) => ({
             items: state.items.filter((i) => i.productId !== productId),
+            selectedProductIds: state.selectedProductIds.filter((id) => id !== productId),
           })),
 
         removeByShop: (shopId) =>
+          set((state) => {
+            const removed = state.items.filter((i) => i.shopId === shopId).map((i) => i.productId);
+            return {
+              items: state.items.filter((i) => i.shopId !== shopId),
+              selectedProductIds: state.selectedProductIds.filter((id) => !removed.includes(id)),
+            };
+          }),
+
+        clear: () => set({ items: [], selectedProductIds: [] }),
+
+        toggleSelectItem: (productId) =>
           set((state) => ({
-            items: state.items.filter((i) => i.shopId !== shopId),
+            selectedProductIds: state.selectedProductIds.includes(productId)
+              ? state.selectedProductIds.filter((id) => id !== productId)
+              : [...state.selectedProductIds, productId],
           })),
 
-        clear: () => set({ items: [] }),
+        setSelectedProductIds: (ids) => set({ selectedProductIds: ids }),
+
+        bringToFront: (productId) =>
+          set((state) => {
+            const idx = state.items.findIndex((i) => i.productId === productId);
+            if (idx <= 0) return {};
+            const item = state.items[idx];
+            const rest = state.items.filter((_, i) => i !== idx);
+            return { items: [item, ...rest] };
+          }),
 
         setHasHydrated: (v) => set({ hasHydrated: v }),
       }),
@@ -127,3 +155,8 @@ export const selectCartCount = (state: CartState) =>
 /** Tổng tiền hàng (chưa tính ship). */
 export const selectCartSubtotal = (state: CartState) =>
   state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+export const selectSelectedSubtotal = (state: CartState & CartActions) =>
+  state.items
+    .filter((i) => state.selectedProductIds.includes(i.productId))
+    .reduce((sum, i) => sum + i.price * i.quantity, 0);

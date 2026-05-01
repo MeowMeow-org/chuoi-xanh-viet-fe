@@ -95,8 +95,15 @@ function MessagesPageInner() {
   const messages: ChatMessage[] = messagesQuery.data?.items ?? [];
 
   useEffect(() => {
+    if (selectedId) return;
+    const last = localStorage.getItem("consumer_last_conversation");
+    const target = last ?? conversations[0]?.id;
+    if (target) router.replace(`/consumer/messages?c=${target}`);
+  }, [selectedId, conversations, router]);
+
+  useEffect(() => {
     if (!selectedId) return;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "instant" });
   }, [selectedId, messages.length]);
 
   useEffect(() => {
@@ -165,6 +172,7 @@ function MessagesPageInner() {
   }, [selectedId, queryClient]);
 
   const handleSelect = (id: string) => {
+    localStorage.setItem("consumer_last_conversation", id);
     router.replace(`/consumer/messages?c=${id}`);
   };
 
@@ -281,7 +289,7 @@ function MessagesPageInner() {
 
             {/* Right pane: thread */}
             <section
-              className={`flex flex-col ${
+              className={`flex flex-col min-h-0 ${
                 selectedId ? "flex" : "hidden md:flex"
               }`}
             >

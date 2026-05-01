@@ -88,8 +88,15 @@ export default function FarmerMessagesPage() {
   const messages: ChatMessage[] = messagesQuery.data?.items ?? [];
 
   useEffect(() => {
+    if (selectedId) return;
+    const last = localStorage.getItem("farmer_last_conversation");
+    const target = last ?? conversations[0]?.id;
+    if (target) router.replace(`/farmer/messages?chat=${target}`);
+  }, [selectedId, conversations, router]);
+
+  useEffect(() => {
     if (!selectedId) return;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "instant" });
   }, [selectedId, messages.length]);
 
   useEffect(() => {
@@ -158,6 +165,7 @@ export default function FarmerMessagesPage() {
   }, [selectedId, queryClient]);
 
   const handleSelect = (id: string) => {
+    localStorage.setItem("farmer_last_conversation", id);
     router.replace(`/farmer/messages?chat=${id}`);
   };
 
@@ -267,7 +275,7 @@ export default function FarmerMessagesPage() {
           </aside>
 
           <section
-            className={`flex flex-col ${selectedId ? "flex" : "hidden md:flex"}`}
+            className={`flex flex-col min-h-0 ${selectedId ? "flex" : "hidden md:flex"}`}
           >
             {selectedConversation ? (
               <>

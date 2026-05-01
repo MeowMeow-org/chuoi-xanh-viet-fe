@@ -21,7 +21,6 @@ import {
 import { toast } from "@/components/ui/toast";
 import {
   groupCartByShop,
-  selectCartSubtotal,
   useCartStore,
 } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -53,12 +52,18 @@ const paymentMethods: Array<{
 
 export default function ConsumerCheckoutPage() {
   const router = useRouter();
-  const items = useCartStore((s) => s.items);
+  const allItems = useCartStore((s) => s.items);
+  const selectedProductIds = useCartStore((s) => s.selectedProductIds);
   const hasHydrated = useCartStore((s) => s.hasHydrated);
   const clearCart = useCartStore((s) => s.clear);
   const removeByShop = useCartStore((s) => s.removeByShop);
-  const subtotal = useCartStore(selectCartSubtotal);
   const user = useAuthStore((s) => s.user);
+
+  // Use only selected items; fall back to all if nothing was selected (direct navigation).
+  const items = selectedProductIds.length > 0
+    ? allItems.filter((i) => selectedProductIds.includes(i.productId))
+    : allItems;
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
