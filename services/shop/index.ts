@@ -7,6 +7,9 @@ export interface ShopFarmInfo {
   ward: string | null;
   address?: string | null;
   cropMain?: string | null;
+  /** Tọa độ nông trại (nếu đã khai báo trên hệ thống) */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface ShopInfo {

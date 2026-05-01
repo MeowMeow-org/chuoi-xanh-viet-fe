@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ArrowLeft, Crosshair, Loader2, MapPin } from "lucide-react";
@@ -20,6 +21,20 @@ import type { CreateFarmPayload, Farm } from "@/services/farm";
 import type { FarmFormValues } from "@/components/farmer/farm-form-types";
 import { VietnamAddressFields } from "@/components/farmer/VietnamAddressFields";
 import { FancySelect, type FancyOption } from "@/components/ui/fancy-select";
+import { buildGeocodeQuery, geocodeVietnamAddress } from "@/lib/googleGeocode";
+import type { VietMapLocationPickerProps } from "@/components/maps/VietMapLocationPicker";
+
+const VietMapLocationPicker = dynamic<VietMapLocationPickerProps>(
+  () => import("@/components/maps/VietMapLocationPicker"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex min-h-[280px] h-[360px] max-h-[55vh] w-full items-center justify-center rounded-xl border border-[hsl(142,20%,88%)] bg-[hsl(140,14%,93%)]">
+        <Loader2 className="h-8 w-8 animate-spin text-[hsl(142,35%,38%)]" />
+      </div>
+    ),
+  },
+);
 
 export type { FarmFormValues };
 
@@ -148,9 +163,76 @@ export default function FarmUpsertForm({
     defaultValues,
   });
   const areaUnit = useWatch({ control, name: "areaUnit" }) ?? "m2";
+  const watchedLat = useWatch({ control, name: "latitude" }) ?? "";
+  const watchedLng = useWatch({ control, name: "longitude" }) ?? "";
 
-  const fillFromAddressSearch = () => {
-    toast.info("Tính năng đang được phát triển.");
+  const fillFromAddressSearch = async () => {
+    const values = getValues();
+    const q = buildGeocodeQuery({
+      address: values.address,
+      ward: values.ward,
+      district: values.district,
+      province: values.province,
+    });
+    if (!q.trim()) {
+      toast.error(
+        "Nhập ít nhất địa chỉ chi tiết hoặc xã/phường, quận/huyện, tỉnh.",
+      );
+      return;
+    }
+
+    setGeoLoading(true);
+    try {
+      const params = new URLSearchParams({ q });
+      const la = Number(String(values.latitude ?? "").trim());
+      const lo = Number(String(values.longitude ?? "").trim());
+      if (Number.isFinite(la) && Number.isFinite(lo)) {
+        params.set("focusLat", String(la));
+        params.set("focusLon", String(lo));
+      }
+
+      let res = await fetch(`/api/vietmap/geocode?${params.toString()}`);
+      if (res.status === 503) {
+        const alt = await geocodeVietnamAddress(q);
+        if (!alt) {
+          toast.error("Không tìm thấy địa chỉ (Google/OSM).");
+          return;
+        }
+        setValue("latitude", String(alt.lat), { shouldValidate: true });
+        setValue("longitude", String(alt.lng), { shouldValidate: true });
+        toast.success(
+          alt.formattedAddress
+            ? `Đã ghim: ${alt.formattedAddress}`
+            : "Đã cập nhật tọa độ.",
+        );
+        return;
+      }
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          message?: string;
+        };
+        toast.error(body.message?.trim() || "Geocode lỗi");
+        return;
+      }
+
+      const data = (await res.json()) as {
+        lat: number;
+        lng: number;
+        formattedAddress?: string;
+      };
+      setValue("latitude", String(data.lat), { shouldValidate: true });
+      setValue("longitude", String(data.lng), { shouldValidate: true });
+      toast.success(
+        data.formattedAddress
+          ? `Đã ghim (VietMap): ${data.formattedAddress}`
+          : "Đã cập nhật tọa độ (VietMap).",
+      );
+    } catch {
+      toast.error("Không gọi được dịch vụ địa chỉ.");
+    } finally {
+      setGeoLoading(false);
+    }
   };
 
   const fillFromGeolocation = async () => {
@@ -320,7 +402,7 @@ export default function FarmUpsertForm({
                   size="sm"
                   className={`${farmButtonClass} w-full gap-2 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]`}
                   disabled={geoLoading}
-                  onClick={fillFromAddressSearch}
+                  onClick={() => void fillFromAddressSearch()}
                 >
                   <MapPin className="h-4 w-4" />
                   Tìm từ địa chỉ
@@ -340,6 +422,25 @@ export default function FarmUpsertForm({
                   )}
                   Lấy vị trí từ thiết bị
                 </Button>
+              </div>
+
+              <div className="relative z-0 mt-1 min-w-0 w-full">
+                <VietMapLocationPicker
+                  latitude={
+                    typeof watchedLat === "string" ? watchedLat : ""
+                  }
+                  longitude={
+                    typeof watchedLng === "string" ? watchedLng : ""
+                  }
+                  onCoordinateChange={(la, lo) => {
+                    setValue("latitude", String(la), {
+                      shouldValidate: true,
+                    });
+                    setValue("longitude", String(lo), {
+                      shouldValidate: true,
+                    });
+                  }}
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
