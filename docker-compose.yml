@@ -2,8 +2,18 @@
 # `docker compose pull` sẽ cố kéo image đó từ Docker Hub và báo "pull access denied".
 # Chỉ `build` → Compose tự gắn tag (vd. project_web). Bật "Build" khi deploy stack.
 #
-# Nginx (service `proxy`): cổng công khai 80 → reverse proxy vào Next (`web:3000`).
-# API/Socket.IO vẫn do trình duyệt gọi thẳng NEXT_PUBLIC_API_URL (BE riêng), không đi qua Nginx FE này trừ khi bạn cấu hình thêm location /v1/...
+# Nginx (proxy): 80 + 443 — TLS = Let's Encrypt trên HOST Droplet.
+#
+# Lần đầu (thiếu file cert thì container proxy không start):
+#   1. SSH: sudo mkdir -p /var/www/certbot
+#   2. Portainer: Stop stack (hoặc chỉ proxy) để giải phóng cổng 80.
+#   3. sudo apt update && sudo apt install -y certbot
+#   4. sudo certbot certonly --standalone -d chuoixanhviet.site -d www.chuoixanhviet.site
+#   5. Firewall mở TCP 80 + 443. Pull and redeploy stack.
+#
+# Gia hạn: xem tài liệu certbot renew; có thể cron: certbot renew && docker restart chuoi-xanh-viet-fe-proxy
+#
+# API khi FE là https cần NEXT_PUBLIC_API_URL dạng https (subdomain API + cert tương tự).
 services:
   web:
     container_name: chuoi-xanh-viet-fe
@@ -50,6 +60,12 @@ services:
         condition: service_healthy
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      # Chứng chứng Let's Encrypt trên host (không đẩy private key lên Git).
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Webroot cho ACME gia hạn: certbot -w /var/www/certbot
+      - /var/www/certbot:/var/www/certbot:ro
     restart: unless-stopped
     networks:
       - chuoi-xanh-viet
