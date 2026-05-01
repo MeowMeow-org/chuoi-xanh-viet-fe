@@ -1,96 +1,310 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { Bot, ShieldCheck, ShoppingCart, Leaf } from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowRight, MapPin, CheckCircle2, QrCode } from 'lucide-react';
 
-import ConsumerLayout from "@/components/layout/ConsumerLayout";
+import ConsumerLayout from '@/components/layout/ConsumerLayout';
+
+function FadeIn({
+  children,
+  className,
+  delay = 0,
+  from = 'bottom',
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  from?: 'bottom' | 'left' | 'right';
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.12 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const translate = {
+    bottom: 'translateY(28px)',
+    left: 'translateX(-24px)',
+    right: 'translateX(24px)',
+  }[from];
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'none' : translate,
+        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+const logEntries = [
+  {
+    date: '28 thg 4, 2026',
+    action: 'Bón phân NPK (lần 3)',
+    location: 'Bảo Lộc, Lâm Đồng',
+    badge: 'Đạt chuẩn',
+  },
+  {
+    date: '22 thg 4, 2026',
+    action: 'Phun thuốc BVTV',
+    location: 'Bảo Lộc, Lâm Đồng',
+    badge: 'Trong giới hạn',
+  },
+  {
+    date: '15 thg 4, 2026',
+    action: 'Gieo hạt Arabica',
+    location: 'Bảo Lộc, Lâm Đồng',
+    badge: 'Ghi nhận',
+  },
+];
+
+const steps = [
+  {
+    n: '01',
+    title: 'Nhà nông ghi nhật ký',
+    desc: 'Mỗi lần gieo, bón, tưới, xịt đều được ghi kèm GPS và ảnh thực địa. Thời gian do máy chủ cấp — không ai chỉnh được tay.',
+  },
+  {
+    n: '02',
+    title: 'Hợp tác xã kiểm tra',
+    desc: 'HTX nhận nhắc lịch tự động trước mỗi đợt thu hoạch. Kết quả Đạt / Cần bổ sung ghi thẳng vào mùa vụ.',
+  },
+  {
+    n: '03',
+    title: 'Lô hàng lên blockchain',
+    desc: 'Mỗi lô nhận mã CXV-xxx và QR riêng. Hash dữ liệu được anchor lên Sepolia — bất kỳ ai cũng verify được.',
+  },
+  {
+    n: '04',
+    title: 'Người mua xác minh',
+    desc: 'Quét QR trên bao bì để xem đầy đủ nhật ký canh tác, kết quả kiểm tra HTX, chứng nhận VietGAP và tồn kho.',
+  },
+];
 
 export default function HomeClient() {
   return (
     <ConsumerLayout>
-      <section className="gradient-hero px-4 pb-16 pt-10 sm:px-6 lg:px-8 lg:pb-20 lg:pt-16">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_1fr]">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[hsl(142,15%,88%)] bg-white px-4 py-1.5 text-sm font-medium text-[hsl(142,50%,25%)]">
-              WebDev Adventure 2026 - Nhóm Meow Meow
-            </div>
-            <div className="space-y-4">
-              <h1 className="max-w-xl text-3xl font-extrabold leading-tight tracking-tight text-[hsl(150,10%,15%)] md:text-5xl">
-                <span className="text-gradient-green">Chuỗi Xanh Việt</span>
-                <br />
-                <span>Nền tảng Truy xuất Nguồn gốc</span>
-              </h1>
-              <p className="max-w-lg text-base leading-relaxed text-[hsl(150,5%,45%)] md:text-lg">
-                Kết nối nhà nông, hợp tác xã và người tiêu dùng qua hệ thống AI
-                và Blockchain. Minh bạch từ thao tác canh tác thực tế đến bước
-                thanh toán tại gian hàng.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/register"
-                className="inline-flex h-14 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] px-8 text-base font-bold text-white!"
-              >
-                Đăng ký nông hộ
-              </Link>
-              <Link
-                href="/marketplace"
-                className="inline-flex h-14 items-center justify-center rounded-xl border border-[hsl(142,15%,88%)] bg-white px-8 text-base font-bold text-[hsl(150,10%,15%)]"
-              >
-                Mua sản phẩm
-              </Link>
-            </div>
-          </div>
+      {/* ─── HERO ─────────────────────────────────────────────── */}
+      <section className='relative overflow-hidden bg-gradient-to-b from-[hsl(142,22%,96%)] to-white'>
+        {/* Watermark vegetables */}
+        <Image
+          src='/icons/carot.png'
+          alt=''
+          aria-hidden
+          width={208}
+          height={208}
+          className='pointer-events-none select-none absolute -left-10 -top-4 w-52 -rotate-12 opacity-[0.055] blur-[0.5px]'
+        />
+        <Image
+          src='/icons/bo.png'
+          alt=''
+          aria-hidden
+          width={256}
+          height={256}
+          className='pointer-events-none select-none absolute -left-6 bottom-8  w-64 rotate-6   opacity-[0.05]  blur-[0.5px]'
+        />
+        <Image
+          src='/icons/cam.png'
+          alt=''
+          aria-hidden
+          width={224}
+          height={224}
+          className='pointer-events-none select-none absolute -right-8 -top-6   w-56 rotate-12  opacity-[0.055] blur-[0.5px]'
+        />
+        <Image
+          src='/icons/catim.png'
+          alt=''
+          aria-hidden
+          width={176}
+          height={176}
+          className='pointer-events-none select-none absolute -right-4 bottom-4 w-44 -rotate-8  opacity-[0.05]  blur-[0.5px]'
+        />
 
-          <div className="dashboard-card self-start rounded-2xl border border-[hsl(142,15%,88%)] p-4 shadow-md lg:max-w-xl lg:justify-self-center">
-            <div className="rounded-xl bg-[hsl(142,71%,45%)] p-5 text-white">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/75">
-                Cơ sở lý thuyết
+        <div className='mx-auto max-w-7xl px-4 pb-20 pt-14 sm:px-6 lg:px-8 lg:pb-28 lg:pt-20'>
+          <div className='grid items-start gap-14 lg:grid-cols-[1fr_400px] lg:gap-20'>
+            {/* Left */}
+            <FadeIn
+              from='left'
+              className='flex flex-col gap-7 lg:pt-6'
+            >
+              <p className='text-[11px] font-semibold uppercase tracking-[0.18em] text-[hsl(142,45%,40%)]'>
+                WebDev Adventure 2026 · Nhóm Meow Meow
               </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {[
-                  {
-                    icon: Leaf,
-                    title: "Truy xuất nguồn gốc",
-                    desc: "Minh bạch theo mùa vụ và mã QR.",
-                  },
-                  {
-                    icon: ShieldCheck,
-                    title: "Quản trị chất lượng",
-                    desc: "Chuẩn hóa VietGAP & GlobalGAP.",
-                  },
-                  {
-                    icon: ShoppingCart,
-                    title: "Sàn thương mại B2C",
-                    desc: "Giao dịch trực tiếp, phân quyền bảo mật.",
-                  },
-                  // {
-                  //   icon: Users,
-                  //   title: "Kết nối cộng đồng",
-                  //   desc: "Không gian hợp tác và chia sẻ kiến thức.",
-                  // },
-                  {
-                    icon: Bot,
-                    title: "Trợ lý AI thông minh",
-                    desc: "Phân tích dữ liệu và hỗ trợ quyết định.",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.title}
-                    className="flex min-h-28 flex-col gap-3 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-sm"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/18 text-white shadow-sm ring-1 ring-white/20">
-                      <item.icon className="h-5 w-5" aria-hidden />
-                    </div>
-                    <div className="min-w-0 space-y-1">
-                      <p className="text-sm font-bold leading-snug text-white sm:text-[15px]">
-                        {item.title}
-                      </p>
-                      <p className="text-xs leading-relaxed text-white/78 sm:text-sm">
-                        {item.desc}
-                      </p>
-                    </div>
+
+              <h1 className='text-[2.6rem] font-extrabold leading-[1.1] tracking-tight text-[hsl(150,10%,11%)] sm:text-5xl lg:text-[3.2rem]'>
+                Nông sản Việt —<br />
+                <span className='text-gradient-green'>minh bạch</span> từ đất
+                <br />
+                đến tay bạn.
+              </h1>
+
+              <p className='max-w-[420px] text-[17px] leading-[1.8] text-[hsl(150,5%,45%)]'>
+                Chuỗi Xanh Việt kết nối nhà nông, hợp tác xã và người tiêu dùng
+                qua hệ thống truy xuất nguồn gốc dựa trên AI và blockchain.
+              </p>
+
+              <div className='flex flex-wrap gap-3'>
+                <Link
+                  href='/register'
+                  className='inline-flex h-11 items-center justify-center rounded-xl bg-[hsl(142,62%,41%)] px-6 text-sm font-semibold text-white! transition-colors hover:bg-[hsl(142,62%,37%)]'
+                >
+                  Đăng ký tham gia
+                </Link>
+                <Link
+                  href='/marketplace'
+                  className='inline-flex h-11 items-center justify-center rounded-xl border border-[hsl(142,15%,86%)] bg-white px-6 text-sm font-semibold text-[hsl(150,10%,20%)] transition hover:border-[hsl(142,35%,72%)] hover:bg-[hsl(142,15%,97%)]'
+                >
+                  Xem sản phẩm
+                </Link>
+              </div>
+            </FadeIn>
+
+            {/* Right — realistic crop-log mockup */}
+            <FadeIn
+              from='right'
+              delay={160}
+              className='relative'
+            >
+              <div className='absolute -inset-4 -z-10 rounded-3xl bg-[hsl(142,30%,88%)]/40 blur-2xl' />
+              <div className='overflow-hidden rounded-2xl border border-[hsl(142,14%,89%)] bg-white shadow-md shadow-[hsl(142,20%,50%)]/8'>
+                {/* Header */}
+                <div className='flex items-center justify-between border-b border-[hsl(142,10%,93%)] px-4 py-3.5'>
+                  <div>
+                    <p className='text-[13px] font-semibold text-[hsl(150,10%,18%)]'>
+                      Nhật ký canh tác
+                    </p>
+                    <p className='text-[11px] text-[hsl(150,5%,54%)]'>
+                      Lô CXV-2412 · Cà phê Arabica
+                    </p>
                   </div>
+                  <span className='flex items-center gap-1.5 rounded-full bg-[hsl(142,38%,93%)] px-2.5 py-1 text-[11px] font-semibold text-[hsl(142,52%,31%)]'>
+                    <span className='h-1.5 w-1.5 rounded-full bg-[hsl(142,62%,41%)]' />
+                    Đang canh tác
+                  </span>
+                </div>
+
+                {/* Entries */}
+                <div className='divide-y divide-[hsl(142,8%,95%)]'>
+                  {logEntries.map((entry, i) => (
+                    <div
+                      key={i}
+                      className='flex items-start gap-3 px-4 py-3.5'
+                    >
+                      <div className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[hsl(142,32%,94%)]'>
+                        <CheckCircle2 className='h-3.5 w-3.5 text-[hsl(142,58%,40%)]' />
+                      </div>
+                      <div className='min-w-0 flex-1'>
+                        <div className='flex items-center justify-between gap-2'>
+                          <p className='truncate text-[13px] font-semibold text-[hsl(150,10%,17%)]'>
+                            {entry.action}
+                          </p>
+                          <span className='shrink-0 rounded-full bg-[hsl(142,32%,93%)] px-2 py-0.5 text-[10px] font-semibold text-[hsl(142,52%,31%)]'>
+                            {entry.badge}
+                          </span>
+                        </div>
+                        <div className='mt-0.5 flex items-center gap-1.5 text-[11px] text-[hsl(150,5%,54%)]'>
+                          <span>{entry.date}</span>
+                          <span className='text-[hsl(150,5%,72%)]'>·</span>
+                          <MapPin className='h-2.5 w-2.5 shrink-0' />
+                          <span>{entry.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer — blockchain anchor */}
+                <div className='flex items-center gap-3 border-t border-[hsl(142,10%,93%)] bg-[hsl(142,18%,97%)] px-4 py-3.5'>
+                  <div className='grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[hsl(150,10%,18%)]'>
+                    <QrCode className='h-5 w-5 text-white' />
+                  </div>
+                  <div>
+                    <p className='text-[12px] font-semibold text-[hsl(150,10%,18%)]'>
+                      Xác minh trên Sepolia
+                    </p>
+                    <p className='text-[11px] tabular-nums text-[hsl(150,5%,52%)]'>
+                      Hash 0x7f3a…c92d · Neo 28/04/2026
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      <section className='border-t border-[hsl(142,10%,92%)] bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-24'>
+        <div className='mx-auto max-w-5xl'>
+          <div className='grid gap-12 lg:grid-cols-[280px_1fr] lg:gap-20'>
+            <FadeIn
+              from='left'
+              className='lg:pt-1'
+            >
+              <h2 className='text-2xl font-extrabold tracking-tight text-[hsl(150,10%,11%)] md:text-3xl'>
+                Hành trình của một lô hàng
+              </h2>
+              <p className='mt-3 text-sm leading-relaxed text-[hsl(150,5%,48%)]'>
+                Từ khi hạt giống gieo xuống đến khi lên kệ — mọi bước đều được
+                ghi lại và ai cũng kiểm chứng được.
+              </p>
+
+              <Link
+                href='/truy-xuat'
+                className='mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-[hsl(142,55%,36%)] transition hover:text-[hsl(142,55%,30%)]'
+              >
+                <QrCode className='h-3.5 w-3.5' />
+                Tra cứu lô hàng
+                <ArrowRight className='h-3.5 w-3.5' />
+              </Link>
+            </FadeIn>
+
+            <div className='relative'>
+              <div className='absolute left-[15px] top-3 bottom-6 w-px bg-[hsl(142,18%,90%)]' />
+
+              <div className='space-y-8'>
+                {steps.map((step, idx) => (
+                  <FadeIn
+                    key={step.n}
+                    delay={idx * 110}
+                    className='flex gap-5'
+                  >
+                    {/* Number */}
+                    <div className='relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-white bg-[hsl(142,62%,41%)] shadow-sm'>
+                      <span className='text-[10px] font-bold leading-none text-white'>
+                        {step.n}
+                      </span>
+                    </div>
+                    {/* Content */}
+                    <div className='pt-0.5 pb-2'>
+                      <h3 className='text-[15px] font-bold text-[hsl(150,10%,15%)]'>
+                        {step.title}
+                      </h3>
+                      <p className='mt-1.5 text-sm leading-relaxed text-[hsl(150,5%,48%)]'>
+                        {step.desc}
+                      </p>
+                    </div>
+                  </FadeIn>
                 ))}
               </div>
             </div>
@@ -98,164 +312,40 @@ export default function HomeClient() {
         </div>
       </section>
 
-      <section className="border-t border-[hsl(142,15%,90%)] bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[hsl(142,50%,30%)]">
-              Cách hệ thống hoạt động
-            </p>
-            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-[hsl(150,10%,15%)] md:text-3xl">
-              Từ nhà nông đến bàn ăn — minh bạch từng bước
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-[hsl(150,5%,45%)]">
-              Nhật ký thực địa, kiểm tra HTX, chứng nhận VietGAP và mã lô QR đều
-              được neo (anchor) trên blockchain để người mua kiểm chứng độc lập.
-            </p>
-          </div>
-
-          <div className="mt-10 grid gap-4 md:mt-14 md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-            {[
-              {
-                step: "01",
-                title: "Nông hộ ghi nhật ký",
-                desc: "Ghi từng lần gieo, bón, xịt, tưới. Hệ thống tự gắn GPS, ảnh thực địa và thời gian máy chủ — không thể chỉnh tay.",
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6"
-                    aria-hidden
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z" />
-                  </svg>
-                ),
-              },
-              {
-                step: "02",
-                title: "Hợp tác xã kiểm tra",
-                desc: "HTX nhận nhắc lịch tự động (14 ngày / 7 ngày trước thu hoạch) và ghi kết quả Đạt / Cần bổ sung vào mùa vụ.",
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6"
-                    aria-hidden
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                ),
-              },
-              {
-                step: "03",
-                title: "Phân lô &amp; neo chuỗi",
-                desc: "Mỗi lô bán nhận mã CXV-xxx và QR riêng. Hash dữ liệu mùa vụ được anchor lên Sepolia — ai cũng verify được.",
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6"
-                    aria-hidden
-                  >
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                    <path d="M14 14h3v3" />
-                    <path d="M21 17v4h-4" />
-                    <path d="M17 21h-3" />
-                  </svg>
-                ),
-              },
-              {
-                step: "04",
-                title: "Người mua tra cứu",
-                desc: "Quét QR trên bao bì hoặc nhập mã tại trang Tra cứu — xem đầy đủ nhật ký, kiểm tra HTX, chứng nhận và tồn kho còn lại.",
-                icon: (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6"
-                    aria-hidden
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.3-4.3" />
-                  </svg>
-                ),
-              },
-            ].map((item) => (
-              <div
-                key={item.step}
-                className="group relative flex h-full flex-col gap-3 rounded-2xl border border-[hsl(142,15%,90%)] bg-[hsl(120,22%,97%)] p-5 transition hover:-translate-y-0.5 hover:border-[hsl(142,50%,70%)] hover:shadow-md"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)] text-white shadow-sm">
-                    {item.icon}
-                  </div>
-                  <span className="text-xs font-bold tracking-widest text-[hsl(142,50%,55%)]">
-                    {item.step}
-                  </span>
-                </div>
-                <h3 className="text-base font-bold leading-tight text-[hsl(150,10%,18%)]">
-                  {item.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-[hsl(150,5%,42%)]">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[hsl(142,35%,75%)] bg-[hsl(120,40%,97%)] px-6 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
+      <section className='border-t border-[hsl(142,10%,92%)] bg-[hsl(142,22%,96%)] px-4 py-14 sm:px-6 lg:px-8 lg:py-20'>
+        <div className='mx-auto max-w-5xl'>
+          <FadeIn className='grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16'>
             <div>
-              <p className="text-sm font-bold text-[hsl(142,50%,25%)]">
-                Có mã lô trong tay?
+              <p className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[hsl(142,45%,40%)]'>
+                Bắt đầu miễn phí
               </p>
-              <p className="mt-1 text-xs text-[hsl(150,5%,45%)]">
-                Nhập mã CXV-xxx hoặc quét QR để xem toàn bộ hành trình của lô hàng —
-                không cần đăng nhập.
+              <h2 className='mt-3 text-2xl font-extrabold tracking-tight text-[hsl(150,10%,11%)] md:text-3xl'>
+                Tham gia xây dựng nông nghiệp
+                <br className='hidden sm:block' /> minh bạch hơn.
+              </h2>
+              <p className='mt-3 max-w-lg text-base leading-relaxed text-[hsl(150,5%,46%)]'>
+                Dù bạn là nông hộ muốn ghi nhật ký, HTX cần quản lý chứng nhận,
+                hay người mua muốn biết rõ nguồn gốc — Chuỗi Xanh Việt có chỗ
+                cho bạn.
               </p>
             </div>
-            <Link
-              href="/truy-xuat"
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[hsl(142,71%,45%)] px-6 text-sm font-bold text-white! transition hover:bg-[hsl(142,71%,40%)]"
-            >
-              Tra cứu ngay
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-                aria-hidden
+
+            <div className='flex shrink-0 flex-col gap-2.5 sm:flex-row lg:flex-col'>
+              <Link
+                href='/register'
+                className='inline-flex h-11 items-center justify-center rounded-xl bg-[hsl(142,62%,41%)] px-7 text-sm font-semibold text-white! transition-colors hover:bg-[hsl(142,62%,37%)]'
               >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
+                Đăng ký miễn phí
+              </Link>
+              <Link
+                href='/marketplace'
+                className='inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-[hsl(142,18%,82%)] bg-white px-7 text-sm font-semibold text-[hsl(150,10%,20%)] transition hover:border-[hsl(142,38%,68%)]'
+              >
+                Khám phá sản phẩm
+                <ArrowRight className='h-3.5 w-3.5' />
+              </Link>
+            </div>
+          </FadeIn>
         </div>
       </section>
     </ConsumerLayout>

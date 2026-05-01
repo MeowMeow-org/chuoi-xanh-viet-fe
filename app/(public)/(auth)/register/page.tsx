@@ -1,41 +1,30 @@
-import { Suspense } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Suspense } from 'react';
+import Link from 'next/link';
 
-import RegisterForm from "@/components/auth/RegisterForm";
+import RegisterForm from '@/components/auth/RegisterForm';
 
 export default function RegisterPage() {
   return (
-    <main className="min-h-screen bg-[hsl(120,20%,98%)] px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-      <div className="mx-auto w-full max-w-xl rounded-2xl border border-[hsl(142,20%,85%)] bg-white p-6 shadow-md ring-1 ring-black/5 sm:p-8">
-        <div className="relative mb-4 flex min-h-10 items-center justify-center sm:min-h-11">
-          <Link
-            href="/"
-            className="absolute left-0 top-1/2 inline-flex -translate-y-1/2 items-center gap-1.5 rounded-lg border border-[hsl(142,20%,80%)] px-3 py-1.5 text-xs font-semibold text-[hsl(150,12%,28%)] transition hover:bg-[hsl(120,20%,96%)]"
-            aria-label="Về trang chủ"
-            title="Về trang chủ"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-          </Link>
-          <p className="rounded-full bg-[hsl(142,71%,45%)]/12 px-4 py-1.5 text-sm font-bold uppercase tracking-wider text-[hsl(142,65%,34%)] sm:text-base">
-            Chuỗi Xanh Việt
-          </p>
-        </div>
+    <div className='w-full rounded-2xl border border-[hsl(142,20%,85%)] bg-white/95 p-6 shadow-xl ring-1 ring-black/5 backdrop-blur-sm sm:p-8'>
+      <Suspense
+        fallback={
+          <div className='mt-4 text-sm text-[hsl(150,8%,45%)]'>
+            Đang tải biểu mẫu…
+          </div>
+        }
+      >
+        <RegisterForm />
+      </Suspense>
 
-        <Suspense fallback={<div className="mt-4 text-sm text-muted-foreground">Đang tải biểu mẫu...</div>}>
-          <RegisterForm />
-        </Suspense>
-
-        <p className="mt-4 text-center text-sm text-[hsl(150,8%,34%)]">
-          Đã có tài khoản?{" "}
-          <Link
-            href="/login"
-            className="font-semibold text-[hsl(142,65%,34%)] hover:underline"
-          >
-            Đăng nhập ngay
-          </Link>
-        </p>
-      </div>
-    </main>
+      <p className='mt-4 text-center text-sm text-[hsl(150,8%,34%)]'>
+        Đã có tài khoản?{' '}
+        <Link
+          href='/login'
+          className='font-semibold text-[hsl(142,65%,34%)] hover:underline'
+        >
+          Đăng nhập ngay
+        </Link>
+      </p>
+    </div>
   );
 }
