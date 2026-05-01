@@ -40,15 +40,16 @@ services:
       - chuoi-xanh-viet
 
   proxy:
-    image: nginx:1.27-alpine
     container_name: chuoi-xanh-viet-fe-proxy
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    pull_policy: build
     depends_on:
       web:
         condition: service_healthy
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
     networks:
       - chuoi-xanh-viet
