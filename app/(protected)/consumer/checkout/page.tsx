@@ -45,20 +45,20 @@ const paymentMethods: Array<{
   hint?: string;
   icon: typeof Banknote;
 }> = [
-  { id: "cod", label: "Tiền mặt khi nhận (COD)", icon: Banknote },
-  {
-    id: "vnpay",
-    label: "Ví điện tử VNPay",
-    hint: "Thẻ ATM, Tài khoản ngân hàng, QR Code",
-    icon: CreditCard,
-  },
-  {
-    id: "payos",
-    label: "Cổng thanh toán PayOS",
-    hint: "Chuyển khoản QR siêu tốc 24/7",
-    icon: Wallet,
-  },
-];
+    { id: "cod", label: "Tiền mặt khi nhận (COD)", icon: Banknote },
+    {
+      id: "vnpay",
+      label: "Ví điện tử VNPay",
+      hint: "Thẻ ATM, Tài khoản ngân hàng, QR Code",
+      icon: CreditCard,
+    },
+    {
+      id: "payos",
+      label: "Cổng thanh toán PayOS",
+      hint: "Chuyển khoản QR siêu tốc 24/7",
+      icon: Wallet,
+    },
+  ];
 
 export default function ConsumerCheckoutPage() {
   const router = useRouter();
@@ -169,8 +169,8 @@ export default function ConsumerCheckoutPage() {
     return (
       <ConsumerLayout>
         <div className="container py-32 flex flex-col items-center justify-center gap-6">
-           <div className="h-10 w-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-           <p className="text-muted-foreground font-medium text-sm tracking-wide">Đang tải thông tin thanh toán...</p>
+          <div className="h-10 w-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-muted-foreground font-medium text-sm tracking-wide">Đang tải thông tin thanh toán...</p>
         </div>
       </ConsumerLayout>
     );
@@ -179,25 +179,25 @@ export default function ConsumerCheckoutPage() {
   if (ordered) {
     return (
       <ConsumerLayout>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="container py-32 text-center space-y-10 max-w-lg mx-auto"
         >
           <div className="relative">
-             <motion.div 
-               initial={{ scale: 0 }}
-               animate={{ scale: 1 }}
-               transition={{ type: "spring", damping: 15, stiffness: 300, delay: 0.1 }}
-               className="h-20 w-20 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/10 flex items-center justify-center mx-auto relative z-10"
-             >
-                <CheckCircle2 className="h-10 w-10 text-white" />
-             </motion.div>
-             <motion.div 
-                animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0, 0.2] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 h-20 w-20 rounded-full bg-emerald-500 mx-auto -z-0"
-             />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", damping: 15, stiffness: 300, delay: 0.1 }}
+              className="h-20 w-20 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/10 flex items-center justify-center mx-auto relative z-10"
+            >
+              <CheckCircle2 className="h-10 w-10 text-white" />
+            </motion.div>
+            <motion.div
+              animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0, 0.2] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 h-20 w-20 rounded-full bg-emerald-500 mx-auto -z-0"
+            />
           </div>
 
           <div className="space-y-4">
@@ -224,10 +224,10 @@ export default function ConsumerCheckoutPage() {
     <ConsumerLayout>
       <div className="container py-10 pb-40 space-y-10 max-w-4xl mx-auto">
         <div className="flex items-center gap-6">
-           <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-muted/30 hover:bg-muted transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-           </Button>
-           <h1 className="text-4xl font-black tracking-tight text-foreground/90">Thanh toán</h1>
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-muted/30 hover:bg-muted transition-colors">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Thanh toán</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -236,63 +236,63 @@ export default function ConsumerCheckoutPage() {
             <section className="space-y-6">
               <div className="flex items-center gap-3 px-2">
                 <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                   <MapPin className="h-4 w-4 text-primary" />
+                  <MapPin className="h-4 w-4 text-primary" />
                 </div>
-                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Thông tin nhận hàng</h2>
+                <h2 className="text-xs font-black uppercase tracking-[0.2em]">Thông tin nhận hàng</h2>
               </div>
               <Card className="border border-border/40 shadow-sm rounded-3xl bg-card/50 overflow-hidden">
                 <CardContent className="p-8 space-y-6">
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div className="space-y-2.5">
-                        <Label htmlFor="name" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Người nhận hàng</Label>
-                        <div className="relative group">
-                          <User className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
-                          <Input
-                            id="name"
-                            className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
-                            placeholder="Nhập họ tên..."
-                            value={displayName}
-                            onChange={(e) => setName(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2.5">
-                        <Label htmlFor="phone" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Số điện thoại</Label>
-                        <div className="relative group">
-                          <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
-                          <Input
-                            id="phone"
-                            className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
-                            placeholder="Nhập số điện thoại..."
-                            value={displayPhone}
-                            onChange={(e) => setPhone(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                   </div>
-                   <div className="space-y-2.5">
-                      <Label htmlFor="address" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Địa chỉ giao hàng</Label>
-                      <Textarea
-                        id="address"
-                        className="rounded-2xl border-border/80 focus-visible:ring-primary/10 min-h-[120px] resize-none p-4.5 bg-background font-medium leading-relaxed"
-                        placeholder="Vui lòng nhập địa chỉ chi tiết để shipper dễ tìm nhé..."
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                      />
-                   </div>
-                   <div className="space-y-2.5 pt-2">
-                      <Label htmlFor="note" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Ghi chú (tùy chọn)</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2.5">
+                      <Label htmlFor="name" className="text-[11px] font-black uppercase tracking-wider pl-1">Người nhận hàng</Label>
                       <div className="relative group">
-                        <StickyNote className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
                         <Input
-                          id="note"
+                          id="name"
                           className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
-                          placeholder="Yêu cầu riêng về đóng gói hoặc giao hàng..."
-                          value={note}
-                          onChange={(e) => setNote(e.target.value)}
+                          placeholder="Nhập họ tên..."
+                          value={displayName}
+                          onChange={(e) => setName(e.target.value)}
                         />
                       </div>
-                   </div>
+                    </div>
+                    <div className="space-y-2.5">
+                      <Label htmlFor="phone" className="text-[11px] font-black uppercase tracking-wider pl-1">Số điện thoại</Label>
+                      <div className="relative group">
+                        <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
+                        <Input
+                          id="phone"
+                          className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                          placeholder="Nhập số điện thoại..."
+                          value={displayPhone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2.5">
+                    <Label htmlFor="address" className="text-[11px] font-black uppercase tracking-wider pl-1">Địa chỉ giao hàng</Label>
+                    <Textarea
+                      id="address"
+                      className="rounded-2xl border-border/80 focus-visible:ring-primary/10 min-h-[120px] resize-none p-4.5 bg-background font-medium leading-relaxed"
+                      placeholder="Vui lòng nhập địa chỉ chi tiết để shipper dễ tìm nhé..."
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2.5 pt-2">
+                    <Label htmlFor="note" className="text-[11px] font-black uppercase tracking-wider pl-1">Ghi chú (tùy chọn)</Label>
+                    <div className="relative group">
+                      <StickyNote className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
+                      <Input
+                        id="note"
+                        className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                        placeholder="Yêu cầu riêng về đóng gói hoặc giao hàng..."
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </section>
@@ -301,9 +301,9 @@ export default function ConsumerCheckoutPage() {
             <section className="space-y-6">
               <div className="flex items-center gap-3 px-2">
                 <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                   <CreditCard className="h-4 w-4 text-primary" />
+                  <CreditCard className="h-4 w-4 text-primary" />
                 </div>
-                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Phương thức thanh toán</h2>
+                <h2 className="text-xs font-black uppercase tracking-[0.2em]">Phương thức thanh toán</h2>
               </div>
               <div className="grid gap-3.5">
                 {paymentMethods.map((m) => (
@@ -331,12 +331,12 @@ export default function ConsumerCheckoutPage() {
                     </div>
                     <AnimatePresence>
                       {payment === m.id && (
-                        <motion.div 
+                        <motion.div
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           className="absolute right-6"
                         >
-                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                          <CheckCircle2 className="h-5 w-5 text-primary" />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -349,11 +349,11 @@ export default function ConsumerCheckoutPage() {
           <div className="lg:col-span-5 space-y-10">
             {/* Order Summary Card */}
             <section className="space-y-6 sticky top-10">
-               <div className="flex items-center gap-3 px-2">
+              <div className="flex items-center gap-3 px-2">
                 <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                   <ShoppingBag className="h-4 w-4 text-primary" />
+                  <ShoppingBag className="h-4 w-4 text-primary" />
                 </div>
-                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Tóm tắt đơn hàng</h2>
+                <h2 className="text-xs font-black uppercase tracking-[0.2em]">Tóm tắt đơn hàng</h2>
               </div>
               <Card className="border border-border/40 shadow-sm rounded-[2.5rem] overflow-hidden bg-card/60 backdrop-blur-sm">
                 <CardContent className="p-0">
@@ -371,7 +371,7 @@ export default function ConsumerCheckoutPage() {
                               <span className="font-extrabold text-xs uppercase tracking-widest">{group.shopName}</span>
                             </div>
                             <span className="text-[9px] font-black italic text-muted-foreground bg-muted p-1 px-2 rounded-md">
-                               {group.items.length} SẢN PHẨM
+                              {group.items.length} SẢN PHẨM
                             </span>
                           </div>
                           <div className="space-y-4">
@@ -381,21 +381,21 @@ export default function ConsumerCheckoutPage() {
                                 className="flex gap-4 text-sm"
                               >
                                 <div className="h-12 w-12 rounded-2xl bg-muted border border-border/30 overflow-hidden shrink-0">
-                                   {item.imageUrl && <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />}
+                                  {item.imageUrl && <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />}
                                 </div>
                                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                   <p className="font-bold truncate text-foreground/90">{item.productName}</p>
-                                   <div className="flex justify-between items-center mt-0.5">
-                                      <p className="text-[10px] text-muted-foreground font-bold">Số lượng: {item.quantity}</p>
-                                      <p className="font-extrabold text-sm text-foreground/80">{(item.price * item.quantity).toLocaleString("vi-VN")} đ</p>
-                                   </div>
+                                  <p className="font-bold truncate text-foreground/90">{item.productName}</p>
+                                  <div className="flex justify-between items-center mt-0.5">
+                                    <p className="text-[10px] text-muted-foreground font-bold">Số lượng: {item.quantity}</p>
+                                    <p className="font-extrabold text-sm text-foreground/80">{(item.price * item.quantity).toLocaleString("vi-VN")} đ</p>
+                                  </div>
                                 </div>
                               </div>
                             ))}
                           </div>
                           <div className="flex justify-between text-[11px] font-extrabold text-primary bg-primary/[0.03] p-3 rounded-2xl border border-primary/5 italic">
                             <span className="flex items-center gap-2">
-                               <Truck className="h-3.5 w-3.5" /> PHÍ GIAO KIỆN NÀY
+                              <Truck className="h-3.5 w-3.5" /> PHÍ GIAO KIỆN NÀY
                             </span>
                             <span>{SHIPPING_FEE_PER_SHOP.toLocaleString("vi-VN")} đ</span>
                           </div>
@@ -406,29 +406,29 @@ export default function ConsumerCheckoutPage() {
 
                   <div className="bg-primary/[0.04] p-10 space-y-5 border-t border-primary/10">
                     <div className="space-y-3.5">
-                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase tracking-widest opacity-60">
+                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase opacity-60">
                         <span>Giá trị hàng hóa</span>
                         <span className="text-foreground/70">{subtotal.toLocaleString("vi-VN")} đ</span>
                       </div>
-                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase tracking-widest opacity-60">
+                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase opacity-60">
                         <span>Vận chuyển ({groups.length} kiện)</span>
                         <span className="text-foreground/70">{shippingFee.toLocaleString("vi-VN")} đ</span>
                       </div>
                     </div>
                     <div className="h-px bg-primary/10 my-3" />
                     <div className="space-y-2">
-                       <div className="flex justify-between items-end">
-                          <span className="text-sm font-black uppercase tracking-[0.2em] text-primary">Tổng thực trả</span>
-                          <span className="text-4xl font-black text-primary tracking-tighter leading-none">
-                            {(subtotal + shippingFee).toLocaleString("vi-VN")}
-                          </span>
-                       </div>
+                      <div className="flex justify-between items-end">
+                        <span className="text-sm font-black uppercase text-primary">Tổng đơn hàng</span>
+                        <span className="text-4xl font-black text-primary tracking-tighter leading-none">
+                          {(subtotal + shippingFee).toLocaleString("vi-VN")}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-8 pt-0 bg-primary/[0.04]">
                     <Button
-                      className="w-full h-16 rounded-full text-base font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] transition-all uppercase tracking-[0.2em] group"
+                      className="w-full h-16 rounded-full text-base font-black active:scale-[0.97] transition-all uppercase tracking-[0.2em] group"
                       onClick={placeOrder}
                       disabled={mutation.isPending}
                     >
@@ -439,13 +439,13 @@ export default function ConsumerCheckoutPage() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-3">
-                           <span>Hoàn tất đặt hàng</span>
-                           <ChevronRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
+                          <span>Hoàn tất</span>
+                          <ChevronRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
                         </div>
                       )}
                     </Button>
-                    <p className="text-[10px] text-primary/40 font-bold text-center mt-4 uppercase tracking-[0.1em] italic">
-                       An toàn - Bảo mật - Chất lượng nông sản
+                    <p className="text-[10px] font-bold text-center mt-4 uppercase italic">
+                      An toàn - Bảo mật - Chất lượng nông sản
                     </p>
                   </div>
                 </CardContent>

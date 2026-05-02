@@ -13,13 +13,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { 
-  Package, 
-  Loader2, 
-  XCircle, 
-  Star, 
-  ChevronRight, 
-  ShoppingBag, 
+import {
+  Package,
+  Loader2,
+  XCircle,
+  Star,
+  ChevronRight,
+  ShoppingBag,
   Calendar,
   CreditCard,
   MapPin,
@@ -30,28 +30,28 @@ import { orderService } from "@/services/order/orderService";
 import type { Order, OrderStatus } from "@/services/order";
 
 const statusMap: Record<OrderStatus, { label: string; color: string; icon: any }> = {
-  pending: { 
-    label: "Chờ xác nhận", 
+  pending: {
+    label: "Chờ xác nhận",
     color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800",
     icon: Calendar
   },
-  confirmed: { 
-    label: "Đã xác nhận", 
+  confirmed: {
+    label: "Đã xác nhận",
     color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800",
     icon: Package
   },
-  shipping: { 
-    label: "Đang giao", 
+  shipping: {
+    label: "Đang giao",
     color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800",
     icon: Loader2
   },
-  delivered: { 
-    label: "Đã giao", 
+  delivered: {
+    label: "Đã giao",
     color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
     icon: ShoppingBag
   },
-  cancelled: { 
-    label: "Đã hủy", 
+  cancelled: {
+    label: "Đã hủy",
     color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800",
     icon: XCircle
   },
@@ -159,7 +159,7 @@ export default function ConsumerOrdersPage() {
             <p className="text-muted-foreground animate-pulse">Đang tải danh sách đơn hàng...</p>
           </div>
         ) : orders.length === 0 ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-24 border-2 border-dashed rounded-3xl bg-muted/5"
@@ -171,7 +171,7 @@ export default function ConsumerOrdersPage() {
             <p className="text-muted-foreground max-w-xs mx-auto mb-8">
               Bạn chưa có đơn hàng nào trong mục này. Bắt đầu mua sắm ngay để ủng hộ nông dân nhé!
             </p>
-            <Link 
+            <Link
               href="/"
               className={cn(buttonVariants({ variant: "default" }), "rounded-full px-8")}
             >
@@ -220,7 +220,7 @@ export default function ConsumerOrdersPage() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-2 text-right">
-                            <Badge className={cn("px-3 py-1 text-xs font-semibold rounded-full border shadow-sm", status.color)}>
+                            <Badge className={cn("px-3 py-1 text-xs font-semibold rounded-full", status.color)}>
                               <StatusIcon className="h-3 w-3 mr-1.5" />
                               {status.label}
                             </Badge>
@@ -330,7 +330,7 @@ export default function ConsumerOrdersPage() {
                                   {total.toLocaleString("vi-VN")}đ
                                 </span>
                                 <span className="text-[10px] text-muted-foreground italic">
-                                  (Phí ship: {SHIPPING_FEE.toLocaleString("vi-VN")}đ)
+                                  (Phí giao hàng: {SHIPPING_FEE.toLocaleString("vi-VN")}đ)
                                 </span>
                               </div>
                             </div>
@@ -346,7 +346,7 @@ export default function ConsumerOrdersPage() {
                                 >
                                   <XCircle className="h-4 w-4 mr-2" />
                                   {cancelMutation.isPending &&
-                                  cancelMutation.variables === order.id
+                                    cancelMutation.variables === order.id
                                     ? "Đang hủy..."
                                     : "Hủy đơn hàng"}
                                 </Button>
@@ -355,7 +355,7 @@ export default function ConsumerOrdersPage() {
                                 href={`/consumer/orders/${order.id}`}
                                 className={cn(
                                   buttonVariants({ variant: "outline", size: "sm" }),
-                                  "h-10 px-5 gap-2 text-xs font-bold rounded-full border-2 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 shadow-sm"
+                                  "h-10 px-5 gap-2 text-sm rounded-full hover:bg-green-700 hover:text-white"
                                 )}
                               >
                                 Xem chi tiết

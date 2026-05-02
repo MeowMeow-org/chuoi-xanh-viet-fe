@@ -125,11 +125,11 @@ export default function ConsumerCartPage() {
       <div className='container py-10 pb-44 space-y-10 max-w-4xl mx-auto'>
         <div className='flex flex-col gap-3'>
           <div className='flex items-end justify-between'>
-            <h1 className='text-4xl font-black tracking-tight text-foreground/90'>
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               Giỏ hàng
             </h1>
             <span className='text-sm font-bold bg-primary/5 text-primary px-3 py-1 rounded-lg border border-primary/10'>
-              {items.length} món
+              {items.length} sản phẩm
             </span>
           </div>
           {groups.length > 1 && (
@@ -280,8 +280,8 @@ export default function ConsumerCartPage() {
                     </AnimatePresence>
                   </div>
 
-                  <div className='flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] pt-4 px-2 border-t border-dashed border-border/60 mt-2'>
-                    <span>Tạm tính cửa hàng</span>
+                  <div className='flex items-center justify-between text-sm text-muted-foreground pt-4 px-2 border-t border-dashed border-border/60 mt-2'>
+                    <span>Tạm tính gian hàng</span>
                     <span className='text-foreground'>{groupSubtotal.toLocaleString('vi-VN')}đ</span>
                   </div>
                 </motion.div>
@@ -376,7 +376,7 @@ export default function ConsumerCartPage() {
                   onClick={() => removeItems(selectedProductIds)}
                   className='text-[10px] font-black text-rose-500/80 hover:text-rose-600 transition-colors uppercase tracking-[0.2em] pl-8 border-l border-border/40 h-10 flex items-center'
                 >
-                  GỠ BỎ ({selectedItems.length})
+                  XÓA ({selectedItems.length})
                 </button>
               )}
             </div>
@@ -406,7 +406,7 @@ export default function ConsumerCartPage() {
                 disabled={isNoneSelected}
                 onClick={handleCheckout}
               >
-                Tiếp tục đặt hàng
+                Thanh toán
               </Button>
             </div>
           </div>

@@ -36,28 +36,28 @@ import { orderService } from "@/services/order/orderService";
 import type { Order, OrderItem, OrderStatus } from "@/services/order";
 
 const statusMap: Record<OrderStatus, { label: string; color: string; icon: any }> = {
-  pending: { 
-    label: "Chờ xác nhận", 
+  pending: {
+    label: "Chờ xác nhận",
     color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800",
     icon: Calendar
   },
-  confirmed: { 
-    label: "Đã xác nhận", 
+  confirmed: {
+    label: "Đã xác nhận",
     color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800",
     icon: Package
   },
-  shipping: { 
-    label: "Đang giao", 
+  shipping: {
+    label: "Đang giao",
     color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800",
     icon: Truck
   },
-  delivered: { 
-    label: "Đã giao", 
+  delivered: {
+    label: "Đã giao",
     color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800",
     icon: ShoppingBag
   },
-  cancelled: { 
-    label: "Đã hủy", 
+  cancelled: {
+    label: "Đã hủy",
     color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200 dark:border-rose-800",
     icon: XCircle
   },
@@ -151,23 +151,17 @@ export default function ConsumerOrderDetailPage() {
   return (
     <ConsumerLayout>
       <div className="container py-8 pb-24 md:pb-12 max-w-3xl mx-auto space-y-8 px-4">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-6"
         >
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full h-12 w-12 border-2 hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0"
-              onClick={() => router.push("/consumer/orders")}
-              aria-label="Quay lại"
-            >
-              <ArrowLeft className="h-6 w-6" />
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-muted/30 hover:bg-muted transition-colors">
+              <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0">
-              <h1 className="text-3xl font-extrabold tracking-tight">Chi tiết đơn hàng</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Chi tiết đơn hàng</h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded text-muted-foreground">
                   ID: #{order.id}
@@ -176,10 +170,10 @@ export default function ConsumerOrderDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-             <Badge className={cn("px-4 py-2 text-sm font-bold rounded-full border shadow-sm", status.color)}>
-                <StatusIcon className="h-4 w-4 mr-2" />
-                {status.label}
-              </Badge>
+            <Badge className={cn("px-4 py-2 text-sm font-bold rounded-full border shadow-sm", status.color)}>
+              <StatusIcon className="h-4 w-4 mr-2" />
+              {status.label}
+            </Badge>
           </div>
         </motion.div>
 
@@ -220,31 +214,31 @@ export default function ConsumerOrderDetailPage() {
                 )}
               </div>
               <CardContent className="p-4 sm:p-6 bg-card/50 backdrop-blur-sm">
-                 <div className="flex flex-wrap gap-6">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-muted p-2 rounded-lg">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider leading-none mb-1">Phương thức thanh toán</p>
-                        <p className="text-sm font-medium">{paymentLabel[order.paymentMethod] ?? order.paymentMethod}</p>
-                      </div>
+                <div className="flex flex-wrap gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-muted p-2 rounded-lg">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="bg-muted p-2 rounded-lg">
-                        <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider leading-none mb-1">Trạng thái thanh toán</p>
-                        <p className={cn(
-                          "text-sm font-bold",
-                          order.paymentStatus === 'paid' ? "text-emerald-600" : "text-amber-600"
-                        )}>
-                          {paymentStatusLabel[order.paymentStatus] ?? order.paymentStatus}
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider leading-none mb-1">Phương thức thanh toán</p>
+                      <p className="text-sm font-medium">{paymentLabel[order.paymentMethod] ?? order.paymentMethod}</p>
                     </div>
-                 </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-muted p-2 rounded-lg">
+                      <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider leading-none mb-1">Trạng thái thanh toán</p>
+                      <p className={cn(
+                        "text-sm font-bold",
+                        order.paymentStatus === 'paid' ? "text-emerald-600" : "text-amber-600"
+                      )}>
+                        {paymentStatusLabel[order.paymentStatus] ?? order.paymentStatus}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -256,7 +250,7 @@ export default function ConsumerOrderDetailPage() {
             transition={{ delay: 0.2 }}
           >
             <Card className="border-none shadow-xl shadow-black/5 overflow-hidden">
-               <div className="p-4 sm:p-6 border-b bg-muted/20">
+              <div className="p-4 sm:p-6 border-b bg-muted/20">
                 <h3 className="font-bold flex items-center gap-2">
                   <Truck className="h-5 w-5 text-primary" />
                   Thông tin giao hàng
@@ -316,7 +310,7 @@ export default function ConsumerOrderDetailPage() {
             transition={{ delay: 0.3 }}
           >
             <Card className="border-none shadow-xl shadow-black/5 overflow-hidden">
-               <div className="p-4 sm:p-6 border-b bg-muted/20">
+              <div className="p-4 sm:p-6 border-b bg-muted/20">
                 <h3 className="font-bold flex items-center gap-2">
                   <ShoppingBag className="h-5 w-5 text-primary" />
                   Danh sách sản phẩm
@@ -352,9 +346,9 @@ export default function ConsumerOrderDetailPage() {
                             {item.product.name}
                           </Link>
                           <div className="flex items-center gap-3">
-                             <div className="text-sm text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-medium">
-                               {formatNumber(item.unitPrice)}đ × {formatNumber(item.qty)} {item.product.unit ?? ""}
-                             </div>
+                            <div className="text-sm text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-medium">
+                              {formatNumber(item.unitPrice)}đ × {formatNumber(item.qty)} {item.product.unit ?? ""}
+                            </div>
                           </div>
                           <div className="sm:hidden mt-2">
                             <span className="text-base font-black text-primary">
@@ -368,7 +362,7 @@ export default function ConsumerOrderDetailPage() {
                           </span>
                         </div>
                       </div>
-                      
+
                       {isDelivered && (
                         <div className="mt-4 flex flex-wrap items-center gap-4 pl-0 sm:pl-[120px]">
                           {item.myReview ? (
