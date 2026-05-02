@@ -19,10 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
-import {
-  groupCartByShop,
-  useCartStore,
-} from "@/store/useCartStore";
+import { groupCartByShop, useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { orderService } from "@/services/order/orderService";
 import type { PaymentMethod } from "@/services/order";
@@ -45,7 +42,7 @@ const paymentMethods: Array<{
   {
     id: "payos",
     label: "PayOS",
-    hint: "Đang mô phỏng — trạng thái thanh toán sẽ là chờ xử lý",
+    hint: "Mở cổng PayOS: VietQR, CK và nút mở app từng ngân hàng (mỗi lần một gian hàng).",
     icon: Wallet,
   },
 ];
@@ -60,9 +57,10 @@ export default function ConsumerCheckoutPage() {
   const user = useAuthStore((s) => s.user);
 
   // Use only selected items; fall back to all if nothing was selected (direct navigation).
-  const items = selectedProductIds.length > 0
-    ? allItems.filter((i) => selectedProductIds.includes(i.productId))
-    : allItems;
+  const items =
+    selectedProductIds.length > 0
+      ? allItems.filter((i) => selectedProductIds.includes(i.productId))
+      : allItems;
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   const [name, setName] = useState("");
@@ -81,17 +79,72 @@ export default function ConsumerCheckoutPage() {
   const groups = groupCartByShop(items);
   const shippingFee = groups.length * SHIPPING_FEE_PER_SHOP;
   const displayName = useMemo(
-    () => (name.length > 0 ? name : user?.fullName ?? ""),
+    () => (name.length > 0 ? name : (user?.fullName ?? "")),
     [name, user?.fullName],
   );
   const displayPhone = useMemo(
-    () => (phone.length > 0 ? phone : user?.phone ?? ""),
+    () => (phone.length > 0 ? phone : (user?.phone ?? "")),
     [phone, user?.phone],
   );
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const results: { shopId: string; shopName: string; success: boolean; error?: string }[] = [];
+      type Row = {
+        shopId: string;
+        shopName: string;
+        success: boolean;
+        error?: string;
+        payosRedirect?: true;
+      };
+      const results: Row[] = [];
+
+      if (payment === "payos") {
+        const group = groups[0];
+        try {
+          const res = await orderService.createOrder({
+            shopId: group.shopId,
+            items: group.items.map((i) => ({
+              productId: i.productId,
+              qty: i.quantity,
+            })),
+            shippingName: displayName.trim(),
+            shippingPhone: displayPhone.trim(),
+            shippingAddress: address.trim(),
+            paymentMethod: payment,
+            note: note.trim() || undefined,
+          });
+          if (res.checkoutUrl) {
+            removeByShop(group.shopId);
+            window.location.assign(res.checkoutUrl);
+            return [
+              {
+                shopId: group.shopId,
+                shopName: group.shopName,
+                success: true,
+                payosRedirect: true as const,
+              },
+            ];
+          }
+          removeByShop(group.shopId);
+          results.push({
+            shopId: group.shopId,
+            shopName: group.shopName,
+            success: true,
+          });
+        } catch (err: unknown) {
+          const msg =
+            (err as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message ?? "Đặt đơn thất bại";
+          results.push({
+            shopId: group.shopId,
+            shopName: group.shopName,
+            success: false,
+            error: msg,
+          });
+        }
+        return results;
+      }
+
       for (const group of groups) {
         try {
           await orderService.createOrder({
@@ -127,6 +180,9 @@ export default function ConsumerCheckoutPage() {
       return results;
     },
     onSuccess: (results) => {
+      if (results.some((r) => r.payosRedirect)) {
+        return;
+      }
       const failed = results.filter((r) => !r.success);
       const successCount = results.length - failed.length;
       if (failed.length === 0) {
@@ -134,7 +190,6 @@ export default function ConsumerCheckoutPage() {
           description: `Đã tạo ${successCount} đơn hàng. Nông hộ sẽ xác nhận sớm.`,
         });
         setOrdered(true);
-        // Defensive clear (should be empty after removeByShop loop).
         clearCart();
       } else if (successCount === 0) {
         toast.error("Không thể đặt hàng", {
@@ -154,6 +209,13 @@ export default function ConsumerCheckoutPage() {
   const placeOrder = () => {
     if (!displayName.trim() || !displayPhone.trim() || !address.trim()) {
       toast.error("Vui lòng nhập đầy đủ họ tên, số điện thoại, địa chỉ");
+      return;
+    }
+    if (payment === "payos" && groups.length > 1) {
+      toast.error("PayOS chỉ hỗ trợ một gian hàng mỗi lần", {
+        description:
+          "Vui lòng đặt từng gian hàng hoặc chọn thanh toán khi nhận hàng (COD).",
+      });
       return;
     }
     mutation.mutate();
@@ -178,8 +240,8 @@ export default function ConsumerCheckoutPage() {
           </div>
           <h1 className="text-xl font-bold">Đặt hàng thành công!</h1>
           <p className="text-muted-foreground text-sm">
-            Đơn hàng đã được gửi đến gian hàng. Bạn sẽ nhận thông báo khi nông hộ
-            xác nhận.
+            Đơn hàng đã được gửi đến gian hàng. Bạn sẽ nhận thông báo khi nông
+            hộ xác nhận.
           </p>
           <div className="flex gap-3 justify-center">
             <Link href="/consumer/orders">
@@ -258,13 +320,17 @@ export default function ConsumerCheckoutPage() {
                 >
                   <m.icon
                     className={`h-5 w-5 mt-0.5 ${
-                      payment === m.id ? "text-primary" : "text-muted-foreground"
+                      payment === m.id
+                        ? "text-primary"
+                        : "text-muted-foreground"
                     }`}
                   />
                   <div className="space-y-0.5">
                     <p className="text-sm font-medium">{m.label}</p>
                     {m.hint && (
-                      <p className="text-[11px] text-muted-foreground">{m.hint}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {m.hint}
+                      </p>
                     )}
                   </div>
                 </button>
@@ -287,7 +353,9 @@ export default function ConsumerCheckoutPage() {
                 <div key={group.shopId} className="space-y-1.5">
                   <div className="flex items-center gap-2">
                     <Store className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-sm">{group.shopName}</span>
+                    <span className="font-semibold text-sm">
+                      {group.shopName}
+                    </span>
                   </div>
                   {group.items.map((item) => (
                     <div
@@ -305,7 +373,10 @@ export default function ConsumerCheckoutPage() {
                   <div className="flex justify-between text-xs text-muted-foreground pl-6">
                     <span>Tạm tính + phí ship</span>
                     <span>
-                      {(groupTotal + SHIPPING_FEE_PER_SHOP).toLocaleString("vi-VN")}đ
+                      {(groupTotal + SHIPPING_FEE_PER_SHOP).toLocaleString(
+                        "vi-VN",
+                      )}
+                      đ
                     </span>
                   </div>
                 </div>
@@ -350,4 +421,3 @@ export default function ConsumerCheckoutPage() {
     </ConsumerLayout>
   );
 }
-

@@ -117,6 +117,10 @@ export default function ConsumerOrdersPage() {
               const total = Number(order.totalAmount) + SHIPPING_FEE;
               const isPending = order.status === "pending";
               const isDelivered = order.status === "delivered";
+              const canBuyerCancel =
+                isPending &&
+                !(order.paymentMethod === "payos" &&
+                  order.paymentStatus === "paid");
               return (
                 <Card key={order.id}>
                   <CardContent className="p-4 space-y-3">
@@ -143,6 +147,13 @@ export default function ConsumerOrdersPage() {
                           {paymentStatusLabel[order.paymentStatus] ??
                             order.paymentStatus}
                         </span>
+                        {order.paymentMethod === "payos" &&
+                          order.paymentStatus === "pending" &&
+                          order.status === "pending" && (
+                            <span className="text-[10px] text-amber-700 dark:text-amber-300">
+                              Chờ thanh toán PayOS
+                            </span>
+                          )}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -233,7 +244,7 @@ export default function ConsumerOrdersPage() {
                         Chi tiết
                         <ChevronRight className="h-3.5 w-3.5" />
                       </Link>
-                      {isPending && (
+                      {canBuyerCancel && (
                         <Button
                           size="sm"
                           variant="outline"
