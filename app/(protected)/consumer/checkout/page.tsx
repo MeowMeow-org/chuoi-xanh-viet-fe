@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,14 @@ import {
   Wallet,
   Store,
   Loader2,
+  MapPin,
+  Phone,
+  User,
+  StickyNote,
+  ChevronRight,
+  CheckCircle2,
+  ArrowLeft,
+  Truck
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import {
@@ -26,6 +35,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { orderService } from "@/services/order/orderService";
 import type { PaymentMethod } from "@/services/order";
+import { cn } from "@/lib/utils";
 
 const SHIPPING_FEE_PER_SHOP = 15000;
 
@@ -35,17 +45,17 @@ const paymentMethods: Array<{
   hint?: string;
   icon: typeof Banknote;
 }> = [
-  { id: "cod", label: "Thanh toán khi nhận hàng (COD)", icon: Banknote },
+  { id: "cod", label: "Tiền mặt khi nhận (COD)", icon: Banknote },
   {
     id: "vnpay",
-    label: "VNPay",
-    hint: "Đang mô phỏng — trạng thái thanh toán sẽ là chờ xử lý",
+    label: "Ví điện tử VNPay",
+    hint: "Thẻ ATM, Tài khoản ngân hàng, QR Code",
     icon: CreditCard,
   },
   {
     id: "payos",
-    label: "PayOS",
-    hint: "Đang mô phỏng — trạng thái thanh toán sẽ là chờ xử lý",
+    label: "Cổng thanh toán PayOS",
+    hint: "Chuyển khoản QR siêu tốc 24/7",
     icon: Wallet,
   },
 ];
@@ -59,7 +69,6 @@ export default function ConsumerCheckoutPage() {
   const removeByShop = useCartStore((s) => s.removeByShop);
   const user = useAuthStore((s) => s.user);
 
-  // Use only selected items; fall back to all if nothing was selected (direct navigation).
   const items = selectedProductIds.length > 0
     ? allItems.filter((i) => selectedProductIds.includes(i.productId))
     : allItems;
@@ -130,21 +139,18 @@ export default function ConsumerCheckoutPage() {
       const failed = results.filter((r) => !r.success);
       const successCount = results.length - failed.length;
       if (failed.length === 0) {
-        toast.success("Đặt hàng thành công!", {
-          description: `Đã tạo ${successCount} đơn hàng. Nông hộ sẽ xác nhận sớm.`,
+        toast.success("Hệ thống đã ghi nhận đơn hàng!", {
+          description: `Đã tạo ${successCount} đơn hàng thành công.`,
         });
         setOrdered(true);
-        // Defensive clear (should be empty after removeByShop loop).
         clearCart();
       } else if (successCount === 0) {
-        toast.error("Không thể đặt hàng", {
-          description: failed[0]?.error ?? "Vui lòng thử lại sau",
+        toast.error("Không thể hoàn tất đặt hàng", {
+          description: failed[0]?.error ?? "Vui lòng kiểm tra lại",
         });
       } else {
-        toast.warning("Một số đơn chưa đặt được", {
-          description: `Thành công: ${successCount}. Lỗi: ${failed
-            .map((f) => `${f.shopName} (${f.error})`)
-            .join(", ")}`,
+        toast.warning("Một số đơn hàng gặp sự cố", {
+          description: `Đã đặt ${successCount} đơn. Lỗi: ${failed[0]?.shopName}`,
         });
         setOrdered(true);
       }
@@ -153,7 +159,7 @@ export default function ConsumerCheckoutPage() {
 
   const placeOrder = () => {
     if (!displayName.trim() || !displayPhone.trim() || !address.trim()) {
-      toast.error("Vui lòng nhập đầy đủ họ tên, số điện thoại, địa chỉ");
+      toast.error("Vui lòng hoàn thiện thông tin giao hàng còn thiếu");
       return;
     }
     mutation.mutate();
@@ -162,8 +168,9 @@ export default function ConsumerCheckoutPage() {
   if (!hasHydrated) {
     return (
       <ConsumerLayout>
-        <div className="container py-20 flex items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="container py-32 flex flex-col items-center justify-center gap-6">
+           <div className="h-10 w-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+           <p className="text-muted-foreground font-medium text-sm tracking-wide">Đang tải thông tin thanh toán...</p>
         </div>
       </ConsumerLayout>
     );
@@ -172,182 +179,281 @@ export default function ConsumerCheckoutPage() {
   if (ordered) {
     return (
       <ConsumerLayout>
-        <div className="container py-12 text-center space-y-4 max-w-md mx-auto">
-          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-            <ShoppingBag className="h-8 w-8 text-primary" />
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="container py-32 text-center space-y-10 max-w-lg mx-auto"
+        >
+          <div className="relative">
+             <motion.div 
+               initial={{ scale: 0 }}
+               animate={{ scale: 1 }}
+               transition={{ type: "spring", damping: 15, stiffness: 300, delay: 0.1 }}
+               className="h-20 w-20 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/10 flex items-center justify-center mx-auto relative z-10"
+             >
+                <CheckCircle2 className="h-10 w-10 text-white" />
+             </motion.div>
+             <motion.div 
+                animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0, 0.2] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 h-20 w-20 rounded-full bg-emerald-500 mx-auto -z-0"
+             />
           </div>
-          <h1 className="text-xl font-bold">Đặt hàng thành công!</h1>
-          <p className="text-muted-foreground text-sm">
-            Đơn hàng đã được gửi đến gian hàng. Bạn sẽ nhận thông báo khi nông hộ
-            xác nhận.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Link href="/consumer/orders">
-              <Button>Xem đơn hàng</Button>
+
+          <div className="space-y-4">
+            <h1 className="text-4xl font-black tracking-tight">Cảm ơn bạn!</h1>
+            <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed italic">
+              Đơn hàng của bạn đã được chuyển đến nhà vườn. Chúc bạn có những phút giây trọn vẹn với nông sản Việt tươi ngon.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+            <Link href="/consumer/orders" className={cn(buttonVariants({ variant: 'default' }), "h-13 rounded-full font-bold px-10 shadow-md shadow-primary/10 transition-all hover:shadow-lg")}>
+              Xem hành trình đơn hàng
             </Link>
-            <Link href="/marketplace">
-              <Button variant="outline">Tiếp tục mua</Button>
+            <Link href="/" className={cn(buttonVariants({ variant: 'ghost' }), "h-13 rounded-full font-bold text-muted-foreground")}>
+              Quay về trang chủ
             </Link>
           </div>
-        </div>
+        </motion.div>
       </ConsumerLayout>
     );
   }
 
   return (
     <ConsumerLayout>
-      <div className="container py-4 pb-20 md:pb-8 space-y-4 max-w-2xl">
-        <h1 className="text-xl font-bold">Thanh toán</h1>
+      <div className="container py-10 pb-40 space-y-10 max-w-4xl mx-auto">
+        <div className="flex items-center gap-6">
+           <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-muted/30 hover:bg-muted transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+           </Button>
+           <h1 className="text-4xl font-black tracking-tight text-foreground/90">Thanh toán</h1>
+        </div>
 
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <h2 className="font-bold text-base">Thông tin giao hàng</h2>
-            <div className="space-y-2">
-              <div>
-                <Label htmlFor="name">Họ tên</Label>
-                <Input
-                  id="name"
-                  value={displayName}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Số điện thoại</Label>
-                <Input
-                  id="phone"
-                  value={displayPhone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="address">Địa chỉ giao hàng</Label>
-                <Textarea
-                  id="address"
-                  rows={2}
-                  value={address}
-                  placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành"
-                  onChange={(e) => setAddress(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="note">Ghi chú</Label>
-                <Input
-                  id="note"
-                  placeholder="Ghi chú (không bắt buộc)"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <h2 className="font-bold text-base">Phương thức thanh toán</h2>
-            <div className="space-y-2">
-              {paymentMethods.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setPayment(m.id)}
-                  className={`w-full flex items-start gap-3 p-3 rounded-lg border transition-colors text-left ${
-                    payment === m.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:bg-accent"
-                  }`}
-                >
-                  <m.icon
-                    className={`h-5 w-5 mt-0.5 ${
-                      payment === m.id ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  />
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium">{m.label}</p>
-                    {m.hint && (
-                      <p className="text-[11px] text-muted-foreground">{m.hint}</p>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 space-y-3">
-            <h2 className="font-bold text-base">
-              Đơn hàng ({items.length} sản phẩm · {groups.length} gian hàng)
-            </h2>
-            {groups.map((group) => {
-              const groupTotal = group.items.reduce(
-                (s, i) => s + i.price * i.quantity,
-                0,
-              );
-              return (
-                <div key={group.shopId} className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Store className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-sm">{group.shopName}</span>
-                  </div>
-                  {group.items.map((item) => (
-                    <div
-                      key={item.productId}
-                      className="flex justify-between text-sm py-0.5 pl-6"
-                    >
-                      <span>
-                        {item.productName} x{item.quantity}
-                      </span>
-                      <span className="font-medium">
-                        {(item.price * item.quantity).toLocaleString("vi-VN")}đ
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between text-xs text-muted-foreground pl-6">
-                    <span>Tạm tính + phí ship</span>
-                    <span>
-                      {(groupTotal + SHIPPING_FEE_PER_SHOP).toLocaleString("vi-VN")}đ
-                    </span>
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-7 space-y-10">
+            {/* Delivery Info */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3 px-2">
+                <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                   <MapPin className="h-4 w-4 text-primary" />
                 </div>
-              );
-            })}
-            <div className="border-t pt-2 space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tạm tính</span>
-                <span>{subtotal.toLocaleString("vi-VN")}đ</span>
+                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Thông tin nhận hàng</h2>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  Phí giao hàng ({groups.length} đơn)
-                </span>
-                <span>{shippingFee.toLocaleString("vi-VN")}đ</span>
-              </div>
-              <div className="flex justify-between font-bold text-lg pt-1">
-                <span>Tổng</span>
-                <span className="text-primary">
-                  {(subtotal + shippingFee).toLocaleString("vi-VN")}đ
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <Card className="border border-border/40 shadow-sm rounded-3xl bg-card/50 overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="space-y-2.5">
+                        <Label htmlFor="name" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Người nhận hàng</Label>
+                        <div className="relative group">
+                          <User className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
+                          <Input
+                            id="name"
+                            className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                            placeholder="Nhập họ tên..."
+                            value={displayName}
+                            onChange={(e) => setName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2.5">
+                        <Label htmlFor="phone" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Số điện thoại</Label>
+                        <div className="relative group">
+                          <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
+                          <Input
+                            id="phone"
+                            className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                            placeholder="Nhập số điện thoại..."
+                            value={displayPhone}
+                            onChange={(e) => setPhone(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                   </div>
+                   <div className="space-y-2.5">
+                      <Label htmlFor="address" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Địa chỉ giao hàng</Label>
+                      <Textarea
+                        id="address"
+                        className="rounded-2xl border-border/80 focus-visible:ring-primary/10 min-h-[120px] resize-none p-4.5 bg-background font-medium leading-relaxed"
+                        placeholder="Vui lòng nhập địa chỉ chi tiết để shipper dễ tìm nhé..."
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
+                   </div>
+                   <div className="space-y-2.5 pt-2">
+                      <Label htmlFor="note" className="text-[11px] font-black uppercase tracking-wider text-muted-foreground pl-1">Ghi chú (tùy chọn)</Label>
+                      <div className="relative group">
+                        <StickyNote className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
+                        <Input
+                          id="note"
+                          className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                          placeholder="Yêu cầu riêng về đóng gói hoặc giao hàng..."
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                        />
+                      </div>
+                   </div>
+                </CardContent>
+              </Card>
+            </section>
 
-        <Button
-          className="w-full h-14 text-base font-bold"
-          onClick={placeOrder}
-          disabled={mutation.isPending}
-        >
-          {mutation.isPending ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Đang đặt hàng...
-            </>
-          ) : (
-            <>Đặt hàng · {(subtotal + shippingFee).toLocaleString("vi-VN")}đ</>
-          )}
-        </Button>
+            {/* Payment Method */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3 px-2">
+                <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                   <CreditCard className="h-4 w-4 text-primary" />
+                </div>
+                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Phương thức thanh toán</h2>
+              </div>
+              <div className="grid gap-3.5">
+                {paymentMethods.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setPayment(m.id)}
+                    className={cn(
+                      "group w-full flex items-center gap-5 p-5 rounded-3xl border transition-all duration-500 text-left relative overflow-hidden",
+                      payment === m.id
+                        ? "border-primary bg-primary/[0.03] shadow-sm"
+                        : "border-border/60 hover:border-primary/30 bg-card/40"
+                    )}
+                  >
+                    <div className={cn(
+                      "p-3 rounded-2xl transition-all duration-500",
+                      payment === m.id ? "bg-primary text-white scale-110 shadow-lg shadow-primary/20" : "bg-muted text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary"
+                    )}>
+                      <m.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 space-y-0.5">
+                      <p className={cn("text-base font-extrabold tracking-tight", payment === m.id ? "text-primary" : "text-foreground/80")}>{m.label}</p>
+                      {m.hint && (
+                        <p className="text-[11px] text-muted-foreground/80 font-medium italic">{m.hint}</p>
+                      )}
+                    </div>
+                    <AnimatePresence>
+                      {payment === m.id && (
+                        <motion.div 
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="absolute right-6"
+                        >
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="lg:col-span-5 space-y-10">
+            {/* Order Summary Card */}
+            <section className="space-y-6 sticky top-10">
+               <div className="flex items-center gap-3 px-2">
+                <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                   <ShoppingBag className="h-4 w-4 text-primary" />
+                </div>
+                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Tóm tắt đơn hàng</h2>
+              </div>
+              <Card className="border border-border/40 shadow-sm rounded-[2.5rem] overflow-hidden bg-card/60 backdrop-blur-sm">
+                <CardContent className="p-0">
+                  <div className="max-h-[380px] overflow-y-auto p-8 space-y-8 scrollbar-hide">
+                    {groups.map((group) => {
+                      const groupTotal = group.items.reduce(
+                        (s, i) => s + i.price * i.quantity,
+                        0,
+                      );
+                      return (
+                        <div key={group.shopId} className="space-y-5">
+                          <div className="flex items-center justify-between pb-3 border-b border-border/40">
+                            <div className="flex items-center gap-2.5">
+                              <Store className="h-3.5 w-3.5 text-primary opacity-60" />
+                              <span className="font-extrabold text-xs uppercase tracking-widest">{group.shopName}</span>
+                            </div>
+                            <span className="text-[9px] font-black italic text-muted-foreground bg-muted p-1 px-2 rounded-md">
+                               {group.items.length} SẢN PHẨM
+                            </span>
+                          </div>
+                          <div className="space-y-4">
+                            {group.items.map((item) => (
+                              <div
+                                key={item.productId}
+                                className="flex gap-4 text-sm"
+                              >
+                                <div className="h-12 w-12 rounded-2xl bg-muted border border-border/30 overflow-hidden shrink-0">
+                                   {item.imageUrl && <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />}
+                                </div>
+                                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                   <p className="font-bold truncate text-foreground/90">{item.productName}</p>
+                                   <div className="flex justify-between items-center mt-0.5">
+                                      <p className="text-[10px] text-muted-foreground font-bold">Số lượng: {item.quantity}</p>
+                                      <p className="font-extrabold text-sm text-foreground/80">{(item.price * item.quantity).toLocaleString("vi-VN")} đ</p>
+                                   </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-between text-[11px] font-extrabold text-primary bg-primary/[0.03] p-3 rounded-2xl border border-primary/5 italic">
+                            <span className="flex items-center gap-2">
+                               <Truck className="h-3.5 w-3.5" /> PHÍ GIAO KIỆN NÀY
+                            </span>
+                            <span>{SHIPPING_FEE_PER_SHOP.toLocaleString("vi-VN")} đ</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="bg-primary/[0.04] p-10 space-y-5 border-t border-primary/10">
+                    <div className="space-y-3.5">
+                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase tracking-widest opacity-60">
+                        <span>Giá trị hàng hóa</span>
+                        <span className="text-foreground/70">{subtotal.toLocaleString("vi-VN")} đ</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase tracking-widest opacity-60">
+                        <span>Vận chuyển ({groups.length} kiện)</span>
+                        <span className="text-foreground/70">{shippingFee.toLocaleString("vi-VN")} đ</span>
+                      </div>
+                    </div>
+                    <div className="h-px bg-primary/10 my-3" />
+                    <div className="space-y-2">
+                       <div className="flex justify-between items-end">
+                          <span className="text-sm font-black uppercase tracking-[0.2em] text-primary">Tổng thực trả</span>
+                          <span className="text-4xl font-black text-primary tracking-tighter leading-none">
+                            {(subtotal + shippingFee).toLocaleString("vi-VN")}
+                          </span>
+                       </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-8 pt-0 bg-primary/[0.04]">
+                    <Button
+                      className="w-full h-16 rounded-full text-base font-black shadow-xl shadow-primary/20 hover:shadow-primary/30 active:scale-[0.97] transition-all uppercase tracking-[0.2em] group"
+                      onClick={placeOrder}
+                      disabled={mutation.isPending}
+                    >
+                      {mutation.isPending ? (
+                        <div className="flex items-center gap-4">
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <span className="italic">Đang xử lý thanh toán...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                           <span>Hoàn tất đặt hàng</span>
+                           <ChevronRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
+                        </div>
+                      )}
+                    </Button>
+                    <p className="text-[10px] text-primary/40 font-bold text-center mt-4 uppercase tracking-[0.1em] italic">
+                       An toàn - Bảo mật - Chất lượng nông sản
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+          </div>
+        </div>
       </div>
     </ConsumerLayout>
   );
 }
-
