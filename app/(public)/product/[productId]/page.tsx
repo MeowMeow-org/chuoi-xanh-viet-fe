@@ -342,25 +342,25 @@ export default function PublicProductPage() {
   };
 
   const quantityStepper = (
-    <div className="flex items-center rounded-xl border border-border/60 bg-muted/10 p-1 h-11">
+    <div className="flex items-center rounded-xl border border-border/60 bg-muted/10 p-0.5 h-9">
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-9 rounded-lg hover:bg-background transition-all shrink-0"
+        className="h-7 w-7 rounded-lg hover:bg-background transition-all shrink-0"
         onClick={() => setQty(Math.max(1, qty - 1))}
         disabled={qty <= 1}
       >
-        <Minus className="h-3.5 w-3.5" />
+        <Minus className="h-3 w-3" />
       </Button>
-      <span className="w-10 text-center text-sm font-black italic">{qty}</span>
+      <span className="w-8 text-center text-xs font-black italic">{qty}</span>
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-9 rounded-lg hover:bg-background transition-all shrink-0"
+        className="h-7 w-7 rounded-lg hover:bg-background transition-all shrink-0"
         onClick={() => setQty(Math.min(stock || qty + 1, qty + 1))}
         disabled={qty >= stock}
       >
-        <Plus className="h-3.5 w-3.5" />
+        <Plus className="h-3 w-3" />
       </Button>
     </div>
   );
@@ -369,16 +369,16 @@ export default function PublicProductPage() {
 
   return (
     <ConsumerLayout>
-      <div className="container max-w-7xl py-6 pb-24 lg:pb-12">
+      <div className="container max-w-7xl py-6 pb-48">
         {/* Header with Back Button */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-muted/30 hover:bg-muted transition-colors">
+        <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-8">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-muted/30 hover:bg-muted transition-colors">
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            <Link href="/marketplace" className="hover:text-primary transition-colors">Chợ nông sản</Link>
-            <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-            <span className="truncate max-w-[150px]">{product.name}</span>
+          <div className="flex items-center gap-1.5 md:gap-2 text-[9px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-0">
+            <Link href="/marketplace" className="hover:text-primary transition-colors shrink-0">Chợ</Link>
+            <div className="h-1 w-1 rounded-full bg-muted-foreground/30 shrink-0" />
+            <span className="truncate">{product.name}</span>
           </div>
         </div>
 
@@ -442,23 +442,25 @@ export default function PublicProductPage() {
               </div>
 
               {/* Price Banner - Refined scaling */}
-              <div className="bg-primary/[0.03] border border-primary/10 rounded-[2rem] p-6 lg:p-8 flex flex-wrap items-center justify-between gap-6 relative overflow-hidden">
-                <div className="space-y-1 relative z-10">
-                  <p className="text-[10px] font-black uppercase text-primary/60 tracking-[0.2em]">Giá nông hộ</p>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-4xl lg:text-5xl font-black text-primary tracking-tighter">
+              <div className="bg-primary/[0.03] border border-primary/10 rounded-2xl md:rounded-[2rem] p-5 md:p-8 flex flex-wrap items-center justify-between gap-4 md:gap-6 relative overflow-hidden">
+                <div className="space-y-0.5 md:space-y-1 relative z-10">
+                  <p className="text-[8px] md:text-[10px] font-black uppercase text-primary/60 tracking-widest">Giá nông hộ</p>
+                  <div className="flex items-baseline gap-1 md:gap-1.5">
+                    <span className="text-3xl md:text-5xl font-black text-primary tracking-tighter leading-none">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="text-base font-black text-primary/60 tracking-tighter">đ</span>
-                    <span className="text-sm font-bold text-muted-foreground ml-1">/ {unitLabel}</span>
+                    <span className="text-xs md:text-base font-black text-primary/60 tracking-tighter">đ</span>
+                    <span className="text-[10px] md:text-sm font-bold text-muted-foreground ml-1">/ {unitLabel}</span>
                   </div>
                 </div>
 
                 {showBuyingActions && (
-                  <div className="flex flex-col gap-3.5 w-full sm:w-auto relative z-10">
-                    <div className="flex items-center gap-4">
-                      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest sm:hidden">Mua bao nhiêu?</span>
-                      {quantityStepper}
+                  <div className="flex flex-col gap-3 w-full sm:w-auto relative z-10">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest sm:hidden">Số lượng</span>
+                      <div className="scale-90 md:scale-100 origin-left">
+                        {quantityStepper}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -669,13 +671,13 @@ export default function PublicProductPage() {
 
       {/* Mobile Sticky Action */}
       {showBuyingActions && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden p-4 bg-background/80 backdrop-blur-xl border-t border-border/20 pb-[env(safe-area-inset-bottom,16px)]">
-          <div className="container flex items-center gap-4">
-            <div className="shrink-0 bg-muted/40 p-1.5 rounded-xl">
+        <div className="fixed bottom-[56px] left-0 right-0 z-50 lg:hidden p-3 md:p-4 bg-background/95 backdrop-blur-xl border-t border-border/20 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
+          <div className="container flex items-center gap-3">
+            <div className="shrink-0 bg-muted/40 p-1 rounded-xl origin-left scale-90">
               {quantityStepper}
             </div>
             <Button
-              className="flex-1 h-12 rounded-full font-black uppercase tracking-widest shadow-md shadow-primary/20 text-[10px] gap-2"
+              className="flex-1 h-10 rounded-full font-black uppercase tracking-widest shadow-lg shadow-primary/10 text-[9px] gap-2 active:scale-95 transition-transform"
               onClick={buyNow}
               disabled={outOfStock}
             >

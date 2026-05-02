@@ -222,26 +222,26 @@ export default function ConsumerCheckoutPage() {
 
   return (
     <ConsumerLayout>
-      <div className="container py-10 pb-40 space-y-10 max-w-4xl mx-auto">
-        <div className="flex items-center gap-6">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-muted/30 hover:bg-muted transition-colors">
-            <ArrowLeft className="h-5 w-5" />
+      <div className="container py-6 md:py-10 pb-40 md:pb-12 space-y-6 md:space-y-10 max-w-4xl mx-auto">
+        <div className="flex items-center gap-4 md:gap-6">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-muted/30 hover:bg-muted transition-colors">
+            <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
           </Button>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Thanh toán</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Thanh toán</h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
           <div className="lg:col-span-7 space-y-10">
             {/* Delivery Info */}
-            <section className="space-y-6">
+            <section className="space-y-5 md:space-y-6">
               <div className="flex items-center gap-3 px-2">
                 <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                  <MapPin className="h-4 w-4 text-primary" />
+                  <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <h2 className="text-xs font-black uppercase tracking-[0.2em]">Thông tin nhận hàng</h2>
+                <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">Thông tin nhận hàng</h2>
               </div>
               <Card className="border border-border/40 shadow-sm rounded-3xl bg-card/50 overflow-hidden">
-                <CardContent className="p-8 space-y-6">
+                <CardContent className="p-5 md:p-8 space-y-5 md:space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-2.5">
                       <Label htmlFor="name" className="text-[11px] font-black uppercase tracking-wider pl-1">Người nhận hàng</Label>
@@ -249,7 +249,7 @@ export default function ConsumerCheckoutPage() {
                         <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
                         <Input
                           id="name"
-                          className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                          className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-11 md:h-12 bg-background font-medium text-sm md:text-base"
                           placeholder="Nhập họ tên..."
                           value={displayName}
                           onChange={(e) => setName(e.target.value)}
@@ -262,7 +262,7 @@ export default function ConsumerCheckoutPage() {
                         <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
                         <Input
                           id="phone"
-                          className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                          className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-11 md:h-12 bg-background font-medium text-sm md:text-base"
                           placeholder="Nhập số điện thoại..."
                           value={displayPhone}
                           onChange={(e) => setPhone(e.target.value)}
@@ -286,7 +286,7 @@ export default function ConsumerCheckoutPage() {
                       <StickyNote className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
                       <Input
                         id="note"
-                        className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-12 bg-background font-medium"
+                        className="rounded-2xl pl-11 border-border/80 focus-visible:ring-primary/10 h-11 md:h-12 bg-background font-medium text-sm md:text-base"
                         placeholder="Yêu cầu riêng về đóng gói hoặc giao hàng..."
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
@@ -298,20 +298,20 @@ export default function ConsumerCheckoutPage() {
             </section>
 
             {/* Payment Method */}
-            <section className="space-y-6">
+            <section className="space-y-5 md:space-y-6">
               <div className="flex items-center gap-3 px-2">
                 <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                  <CreditCard className="h-4 w-4 text-primary" />
+                  <CreditCard className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <h2 className="text-xs font-black uppercase tracking-[0.2em]">Phương thức thanh toán</h2>
+                <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">Phương thức thanh toán</h2>
               </div>
-              <div className="grid gap-3.5">
+              <div className="grid gap-2.5 md:gap-3.5">
                 {paymentMethods.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => setPayment(m.id)}
                     className={cn(
-                      "group w-full flex items-center gap-5 p-5 rounded-3xl border transition-all duration-500 text-left relative overflow-hidden",
+                      "group w-full flex items-center gap-4 md:gap-5 p-4 md:p-5 rounded-3xl border transition-all duration-500 text-left relative overflow-hidden",
                       payment === m.id
                         ? "border-primary bg-primary/[0.03] shadow-sm"
                         : "border-border/60 hover:border-primary/30 bg-card/40"
@@ -348,99 +348,93 @@ export default function ConsumerCheckoutPage() {
 
           <div className="lg:col-span-5 space-y-10">
             {/* Order Summary Card */}
-            <section className="space-y-6 sticky top-10">
+            <section className="space-y-5 md:space-y-6 sticky top-10">
               <div className="flex items-center gap-3 px-2">
                 <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                  <ShoppingBag className="h-4 w-4 text-primary" />
+                  <ShoppingBag className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
                 </div>
-                <h2 className="text-xs font-black uppercase tracking-[0.2em]">Tóm tắt đơn hàng</h2>
+                <h2 className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">Tóm tắt đơn hàng</h2>
               </div>
-              <Card className="border border-border/40 shadow-sm rounded-[2.5rem] overflow-hidden bg-card/60 backdrop-blur-sm">
+              <Card className="border border-border/40 shadow-sm rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-card/60 backdrop-blur-sm">
                 <CardContent className="p-0">
-                  <div className="max-h-[380px] overflow-y-auto p-8 space-y-8 scrollbar-hide">
+                  <div className="max-h-[380px] overflow-y-auto p-5 md:p-8 space-y-6 md:space-y-8 scrollbar-hide">
                     {groups.map((group) => {
                       const groupTotal = group.items.reduce(
                         (s, i) => s + i.price * i.quantity,
                         0,
                       );
                       return (
-                        <div key={group.shopId} className="space-y-5">
-                          <div className="flex items-center justify-between pb-3 border-b border-border/40">
-                            <div className="flex items-center gap-2.5">
-                              <Store className="h-3.5 w-3.5 text-primary opacity-60" />
-                              <span className="font-extrabold text-xs uppercase tracking-widest">{group.shopName}</span>
+                        <div key={group.shopId} className="space-y-4 md:space-y-5">
+                          <div className="flex items-center justify-between pb-2.5 md:pb-3 border-b border-border/40">
+                            <div className="flex items-center gap-2">
+                              <Store className="h-3 w-3 md:h-3.5 md:w-3.5 text-primary opacity-60" />
+                              <span className="font-extrabold text-[10px] md:text-xs uppercase tracking-widest">{group.shopName}</span>
                             </div>
-                            <span className="text-[9px] font-black italic text-muted-foreground bg-muted p-1 px-2 rounded-md">
+                            <span className="text-[8px] md:text-[9px] font-black italic text-muted-foreground bg-muted p-1 px-1.5 md:px-2 rounded-md">
                               {group.items.length} SẢN PHẨM
                             </span>
                           </div>
-                          <div className="space-y-4">
+                          <div className="space-y-3 md:space-y-4">
                             {group.items.map((item) => (
                               <div
                                 key={item.productId}
-                                className="flex gap-4 text-sm"
+                                className="flex gap-3 md:gap-4 text-xs md:text-sm"
                               >
-                                <div className="h-12 w-12 rounded-2xl bg-muted border border-border/30 overflow-hidden shrink-0">
+                                <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-muted border border-border/30 overflow-hidden shrink-0">
                                   {item.imageUrl && <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover" />}
                                 </div>
                                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                                   <p className="font-bold truncate text-foreground/90">{item.productName}</p>
                                   <div className="flex justify-between items-center mt-0.5">
-                                    <p className="text-[10px] text-muted-foreground font-bold">Số lượng: {item.quantity}</p>
-                                    <p className="font-extrabold text-sm text-foreground/80">{(item.price * item.quantity).toLocaleString("vi-VN")} đ</p>
+                                    <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold">SL: {item.quantity}</p>
+                                    <p className="font-extrabold text-xs md:text-sm text-foreground/80">{(item.price * item.quantity).toLocaleString("vi-VN")} đ</p>
                                   </div>
                                 </div>
                               </div>
                             ))}
-                          </div>
-                          <div className="flex justify-between text-[11px] font-extrabold text-primary bg-primary/[0.03] p-3 rounded-2xl border border-primary/5 italic">
-                            <span className="flex items-center gap-2">
-                              <Truck className="h-3.5 w-3.5" /> PHÍ GIAO KIỆN NÀY
-                            </span>
-                            <span>{SHIPPING_FEE_PER_SHOP.toLocaleString("vi-VN")} đ</span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  <div className="bg-primary/[0.04] p-10 space-y-5 border-t border-primary/10">
-                    <div className="space-y-3.5">
-                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase opacity-60">
+                  <div className="bg-primary/[0.04] p-6 md:p-10 space-y-4 md:space-y-5 border-t border-primary/10">
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-[10px] md:text-xs text-muted-foreground font-black uppercase opacity-60">
                         <span>Giá trị hàng hóa</span>
                         <span className="text-foreground/70">{subtotal.toLocaleString("vi-VN")} đ</span>
                       </div>
-                      <div className="flex justify-between text-xs text-muted-foreground font-black uppercase opacity-60">
+                      <div className="flex justify-between text-[10px] md:text-xs text-muted-foreground font-black uppercase opacity-60">
                         <span>Vận chuyển ({groups.length} kiện)</span>
                         <span className="text-foreground/70">{shippingFee.toLocaleString("vi-VN")} đ</span>
                       </div>
                     </div>
-                    <div className="h-px bg-primary/10 my-3" />
+                    <div className="h-px bg-primary/10 my-2" />
                     <div className="space-y-2">
                       <div className="flex justify-between items-end">
-                        <span className="text-sm font-black uppercase text-primary">Tổng đơn hàng</span>
-                        <span className="text-4xl font-black text-primary tracking-tighter leading-none">
+                        <span className="text-xs md:text-sm font-black uppercase text-primary">Tổng đơn hàng</span>
+                        <span className="text-2xl md:text-4xl font-black text-primary tracking-tighter leading-none">
                           {(subtotal + shippingFee).toLocaleString("vi-VN")}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-8 pt-0 bg-primary/[0.04]">
+                  <div className="p-6 md:p-8 pt-0 bg-primary/[0.04]">
                     <Button
-                      className="w-full h-16 rounded-full text-base font-black active:scale-[0.97] transition-all uppercase tracking-[0.2em] group"
+                      className="w-full h-12 md:h-16 rounded-full text-xs md:text-base font-black active:scale-[0.97] transition-all uppercase tracking-[0.2em] group"
                       onClick={placeOrder}
                       disabled={mutation.isPending}
                     >
                       {mutation.isPending ? (
-                        <div className="flex items-center gap-4">
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span className="italic">Đang xử lý thanh toán...</span>
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" />
+                          <span className="italic">Đang xử lý...</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 md:gap-3">
                           <span>Hoàn tất</span>
-                          <ChevronRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" />
+                          <ChevronRight className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1.5 transition-transform" />
                         </div>
                       )}
                     </Button>

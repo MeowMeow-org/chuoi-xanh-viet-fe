@@ -150,28 +150,28 @@ export default function ConsumerOrderDetailPage() {
 
   return (
     <ConsumerLayout>
-      <div className="container py-8 pb-24 md:pb-12 max-w-3xl mx-auto space-y-8 px-4">
+      <div className="container py-8 pb-32 max-w-3xl mx-auto space-y-8 px-4">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-6"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 md:gap-6"
         >
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full bg-muted/30 hover:bg-muted transition-colors">
-              <ArrowLeft className="h-5 w-5" />
+          <div className="flex items-center gap-3 md:gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-muted/30 hover:bg-muted transition-colors">
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
             <div className="min-w-0">
-              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Chi tiết đơn hàng</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded text-muted-foreground">
-                  ID: #{order.id}
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Chi tiết đơn</h1>
+              <div className="flex items-center gap-2 mt-0.5 md:mt-1">
+                <span className="text-[10px] md:text-xs font-mono bg-muted px-2 py-0.5 rounded text-muted-foreground truncate max-w-[150px] md:max-w-none">
+                  #{order.id}
                 </span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Badge className={cn("px-4 py-2 text-sm font-bold rounded-full border shadow-sm", status.color)}>
-              <StatusIcon className="h-4 w-4 mr-2" />
+            <Badge className={cn("px-3 py-1 md:px-4 md:py-2 text-[10px] md:text-sm font-bold rounded-full border shadow-sm", status.color)}>
+              <StatusIcon className="h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2" />
               {status.label}
             </Badge>
           </div>
@@ -185,17 +185,17 @@ export default function ConsumerOrderDetailPage() {
             transition={{ delay: 0.1 }}
           >
             <Card className="border-none shadow-xl shadow-black/5 overflow-hidden">
-              <div className="bg-primary/5 p-4 sm:p-6 flex items-center justify-between border-b border-primary/10">
-                <div className="flex items-center gap-4">
-                  <div className="bg-white dark:bg-muted p-3 rounded-2xl shadow-sm border border-primary/10">
-                    <Store className="h-6 w-6 text-primary" />
+              <div className="bg-primary/5 p-4 md:p-6 flex items-center justify-between border-b border-primary/10">
+                <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                  <div className="bg-white dark:bg-muted p-2 md:p-3 rounded-xl md:rounded-2xl shadow-sm border border-primary/10 shrink-0">
+                    <Store className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg">{order.shop?.name ?? "Gian hàng"}</h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground font-medium">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(order.createdAt).toLocaleString("vi-VN")}
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-sm md:text-lg truncate">{order.shop?.name ?? "Gian hàng"}</h3>
+                    <div className="flex items-center gap-2 md:gap-3 mt-0.5 md:mt-1">
+                      <div className="flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground font-medium">
+                        <Calendar className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                        {new Date(order.createdAt).toLocaleDateString("vi-VN")}
                       </div>
                     </div>
                   </div>
@@ -205,10 +205,10 @@ export default function ConsumerOrderDetailPage() {
                     href={`/shop/${order.shop.id}`}
                     className={cn(
                       buttonVariants({ variant: "secondary", size: "sm" }),
-                      "rounded-full gap-2 font-semibold text-xs h-9 px-4"
+                      "rounded-full gap-1.5 md:gap-2 font-semibold text-[10px] md:text-xs h-8 md:h-9 px-3 md:px-4 shrink-0"
                     )}
                   >
-                    Đến gian hàng
+                    Cửa hàng
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 )}
@@ -250,51 +250,51 @@ export default function ConsumerOrderDetailPage() {
             transition={{ delay: 0.2 }}
           >
             <Card className="border-none shadow-xl shadow-black/5 overflow-hidden">
-              <div className="p-4 sm:p-6 border-b bg-muted/20">
-                <h3 className="font-bold flex items-center gap-2">
-                  <Truck className="h-5 w-5 text-primary" />
+              <div className="p-4 md:p-6 border-b bg-muted/20">
+                <h3 className="font-bold text-sm md:text-base flex items-center gap-2">
+                  <Truck className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                   Thông tin giao hàng
                 </h3>
               </div>
-              <CardContent className="p-6 grid sm:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <div className="bg-muted p-2 h-fit rounded-full">
-                      <User className="h-4 w-4 text-muted-foreground" />
+              <CardContent className="p-4 md:p-6 grid sm:grid-cols-2 gap-6 md:gap-8">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="flex gap-3 md:gap-4">
+                    <div className="bg-muted p-1.5 md:p-2 h-fit rounded-full shrink-0">
+                      <User className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Người nhận hàng</p>
-                      <p className="text-base font-semibold">{order.shippingName ?? "—"}</p>
+                    <div className="space-y-0.5 md:space-y-1 min-w-0">
+                      <p className="text-[8px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Người nhận</p>
+                      <p className="text-sm md:text-base font-semibold truncate">{order.shippingName ?? "—"}</p>
                     </div>
                   </div>
-                  <div className="flex gap-4">
-                    <div className="bg-muted p-2 h-fit rounded-full">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex gap-3 md:gap-4">
+                    <div className="bg-muted p-1.5 md:p-2 h-fit rounded-full shrink-0">
+                      <Phone className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Số điện thoại</p>
-                      <p className="text-base font-semibold">{order.shippingPhone ?? "—"}</p>
+                    <div className="space-y-0.5 md:space-y-1 min-w-0">
+                      <p className="text-[8px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Số điện thoại</p>
+                      <p className="text-sm md:text-base font-semibold truncate">{order.shippingPhone ?? "—"}</p>
                     </div>
                   </div>
                 </div>
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <div className="bg-muted p-2 h-fit rounded-full">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div className="space-y-4 md:space-y-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                  <div className="flex gap-3 md:gap-4">
+                    <div className="bg-muted p-1.5 md:p-2 h-fit rounded-full shrink-0">
+                      <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Địa chỉ nhận hàng</p>
-                      <p className="text-base font-semibold leading-relaxed">{order.shippingAddress ?? "—"}</p>
+                    <div className="space-y-0.5 md:space-y-1">
+                      <p className="text-[8px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Địa chỉ nhận</p>
+                      <p className="text-sm md:text-base font-semibold leading-relaxed line-clamp-3">{order.shippingAddress ?? "—"}</p>
                     </div>
                   </div>
                   {order.note && (
-                    <div className="flex gap-4">
-                      <div className="bg-muted p-2 h-fit rounded-full">
-                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex gap-3 md:gap-4">
+                      <div className="bg-muted p-1.5 md:p-2 h-fit rounded-full shrink-0">
+                        <MessageSquare className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Ghi chú từ bạn</p>
-                        <p className="text-sm font-medium italic text-muted-foreground">"{order.note}"</p>
+                      <div className="space-y-0.5 md:space-y-1">
+                        <p className="text-[8px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Ghi chú</p>
+                        <p className="text-xs md:text-sm font-medium italic text-muted-foreground line-clamp-2">"{order.note}"</p>
                       </div>
                     </div>
                   )}
@@ -310,9 +310,9 @@ export default function ConsumerOrderDetailPage() {
             transition={{ delay: 0.3 }}
           >
             <Card className="border-none shadow-xl shadow-black/5 overflow-hidden">
-              <div className="p-4 sm:p-6 border-b bg-muted/20">
-                <h3 className="font-bold flex items-center gap-2">
-                  <ShoppingBag className="h-5 w-5 text-primary" />
+              <div className="p-4 md:p-6 border-b bg-muted/20">
+                <h3 className="font-bold text-sm md:text-base flex items-center gap-2">
+                  <ShoppingBag className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                   Danh sách sản phẩm
                 </h3>
               </div>
@@ -321,10 +321,10 @@ export default function ConsumerOrderDetailPage() {
                   {order.items.map((item) => (
                     <div
                       key={item.id}
-                      className="group p-4 sm:p-6 hover:bg-muted/30 transition-colors"
+                      className="group p-4 md:p-6 hover:bg-muted/30 transition-colors"
                     >
-                      <div className="flex items-center gap-4 sm:gap-6">
-                        <div className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-white dark:bg-muted overflow-hidden shrink-0 shadow-sm border border-border/50">
+                      <div className="flex items-center gap-4 md:gap-6">
+                        <div className="relative h-16 w-16 md:h-24 md:w-24 rounded-xl md:rounded-2xl bg-white dark:bg-muted overflow-hidden shrink-0 shadow-sm border border-border/50">
                           {item.product.imageUrl ? (
                             <img
                               src={item.product.imageUrl}
@@ -334,29 +334,29 @@ export default function ConsumerOrderDetailPage() {
                             />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center">
-                              <Package className="h-10 w-10 text-muted-foreground/20" />
+                              <Package className="h-8 w-8 md:h-10 md:w-10 text-muted-foreground/20" />
                             </div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0 flex flex-col gap-1 sm:gap-2">
+                        <div className="flex-1 min-w-0 flex flex-col gap-1 md:gap-2">
                           <Link
                             href={`/product/${item.productId}`}
-                            className="font-bold text-base sm:text-lg hover:text-primary transition-colors line-clamp-2 leading-tight"
+                            className="font-bold text-sm md:text-lg hover:text-primary transition-colors line-clamp-1 leading-tight"
                           >
                             {item.product.name}
                           </Link>
                           <div className="flex items-center gap-3">
-                            <div className="text-sm text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-medium">
+                            <div className="text-[10px] md:text-sm text-muted-foreground bg-muted px-2 py-0.5 rounded-md font-medium">
                               {formatNumber(item.unitPrice)}đ × {formatNumber(item.qty)} {item.product.unit ?? ""}
                             </div>
                           </div>
-                          <div className="sm:hidden mt-2">
-                            <span className="text-base font-black text-primary">
+                          <div className="sm:hidden mt-1">
+                            <span className="text-sm font-black text-primary">
                               {formatNumber(item.lineTotal)}đ
                             </span>
                           </div>
                         </div>
-                        <div className="hidden sm:block text-right">
+                        <div className="hidden sm:block text-right shrink-0">
                           <span className="text-xl font-black text-primary">
                             {formatNumber(item.lineTotal)}đ
                           </span>
@@ -364,17 +364,19 @@ export default function ConsumerOrderDetailPage() {
                       </div>
 
                       {isDelivered && (
-                        <div className="mt-4 flex flex-wrap items-center gap-4 pl-0 sm:pl-[120px]">
+                        <div className="mt-4 flex flex-wrap items-center gap-3 md:gap-4 sm:pl-28 lg:pl-[120px]">
                           {item.myReview ? (
-                            <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-2 rounded-full border border-emerald-100 dark:border-emerald-900/30">
-                              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Đánh giá của bạn:</span>
-                              <OrderStarsDisplay rating={item.myReview.rating} />
+                            <div className="flex items-center gap-2.5 md:gap-3 bg-emerald-50 dark:bg-emerald-950/20 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-emerald-100 dark:border-emerald-900/30">
+                              <span className="text-[8px] md:text-xs font-bold text-emerald-700 dark:text-emerald-400 shrink-0">Đánh giá của bạn:</span>
+                              <div className="scale-75 md:scale-100 origin-left">
+                                <OrderStarsDisplay rating={item.myReview.rating} />
+                              </div>
                               <button
                                 onClick={() => {
                                   setReviewTarget({ order, item });
                                   setReviewOpen(true);
                                 }}
-                                className="text-xs font-bold text-emerald-700 hover:underline border-l border-emerald-200 pl-3 ml-1"
+                                className="text-[10px] md:text-xs font-bold text-emerald-700 hover:underline border-l border-emerald-200 pl-2.5 md:pl-3 ml-1 shrink-0"
                               >
                                 Sửa
                               </button>
@@ -383,14 +385,14 @@ export default function ConsumerOrderDetailPage() {
                             <Button
                               size="sm"
                               variant="secondary"
-                              className="gap-2 h-10 px-6 rounded-full bg-primary/10 text-primary border-none hover:bg-primary/20 font-bold text-xs"
+                              className="gap-2 h-8 md:h-10 px-4 md:px-6 rounded-full bg-primary/10 text-primary border-none hover:bg-primary/20 font-bold text-[10px] md:text-xs"
                               onClick={() => {
                                 setReviewTarget({ order, item });
                                 setReviewOpen(true);
                               }}
                             >
-                              <Star className="h-4 w-4 fill-primary" />
-                              Đánh giá sản phẩm ngay
+                              <Star className="h-3.5 w-3.5 md:h-4 md:w-4 fill-primary" />
+                              Đánh giá sản phẩm
                             </Button>
                           )}
                         </div>
@@ -413,7 +415,7 @@ export default function ConsumerOrderDetailPage() {
                     <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Tổng cộng</span>
                     <span className="text-[10px] text-muted-foreground font-medium mt-0.5">Đã bao gồm các loại thuế phí</span>
                   </div>
-                  <span className="text-4xl font-black tracking-tighter text-primary">
+                  <span className="text-2xl md:text-4xl font-black tracking-tighter text-primary">
                     {total.toLocaleString("vi-VN")}đ
                   </span>
                 </div>
@@ -426,25 +428,24 @@ export default function ConsumerOrderDetailPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-wrap gap-4 pt-4"
+            className="flex flex-wrap gap-3 md:gap-4 pt-4"
           >
             {isPending && (
               <Button
                 variant="ghost"
                 size="lg"
-                className="rounded-full px-8 font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-all border-none"
+                className="rounded-full px-6 md:px-8 h-12 md:h-14 font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-all border-none text-xs md:text-base"
                 disabled={cancelMutation.isPending}
                 onClick={() => cancelMutation.mutate()}
               >
-                <XCircle className="h-5 w-5 mr-2" />
-                {cancelMutation.isPending ? "Đang hủy đơn hàng..." : "Hủy đơn hàng này"}
+                {cancelMutation.isPending ? "Đang hủy..." : "Hủy đơn hàng"}
               </Button>
             )}
             <Link
               href="/consumer/orders"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
-                "rounded-full px-8 font-bold border-2 hover:bg-muted transition-all shadow-sm"
+                "rounded-full px-6 md:px-8 h-12 md:h-14 font-bold border-2 hover:bg-muted transition-all shadow-sm text-xs md:text-base"
               )}
             >
               Quay lại danh sách

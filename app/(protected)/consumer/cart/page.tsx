@@ -122,20 +122,20 @@ export default function ConsumerCartPage() {
 
   return (
     <ConsumerLayout>
-      <div className='container py-10 pb-44 space-y-10 max-w-4xl mx-auto'>
+      <div className='container py-10 pb-40 space-y-10 max-w-4xl mx-auto'>
         <div className='flex flex-col gap-3'>
-          <div className='flex items-end justify-between'>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <div className='flex items-center justify-between'>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               Giỏ hàng
             </h1>
-            <span className='text-sm font-bold bg-primary/5 text-primary px-3 py-1 rounded-lg border border-primary/10'>
+            <span className='text-[10px] md:text-sm font-bold bg-primary/5 text-primary px-2 md:px-3 py-1 rounded-lg border border-primary/10'>
               {items.length} sản phẩm
             </span>
           </div>
           {groups.length > 1 && (
-            <div className='flex items-start gap-3 bg-muted/30 p-3.5 rounded-2xl border border-border/50 text-muted-foreground'>
+            <div className='flex items-start gap-2 md:gap-3 bg-muted/30 p-3 md:p-3.5 rounded-xl md:rounded-2xl border border-border/50 text-muted-foreground'>
               <AlertCircle className='h-4 w-4 mt-0.5 shrink-0 text-amber-500' />
-              <p className='text-xs font-medium leading-relaxed'>
+              <p className='text-[10px] md:text-xs font-medium leading-relaxed'>
                 Đơn hàng sẽ được tách thành <span className='font-bold text-foreground'>{groups.length} kiện</span> theo từng gian hàng. <br className='hidden sm:block' /> Phí giao hàng tính riêng cho mỗi kiện giúp nông hộ vận chuyển tốt nhất.
               </p>
             </div>
@@ -191,7 +191,7 @@ export default function ConsumerCartPage() {
                     </div>
                   </div>
 
-                  <div className='grid gap-2 border-l border-border/50 ml-4.5 pl-6'>
+                  <div className='grid gap-2 border-l border-border/50 ml-2 md:ml-4.5 pl-3 md:pl-6'>
                     <AnimatePresence mode='popLayout'>
                       {group.items.map((item) => (
                         <motion.div
@@ -201,7 +201,7 @@ export default function ConsumerCartPage() {
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.2 } }}
                         >
-                          <div className='p-4 flex flex-wrap sm:flex-nowrap items-center gap-5 transition-all'>
+                          <div className='p-2 md:p-4 flex items-center gap-3 md:gap-5 transition-all'>
                             <div
                               onClick={() => toggleSelectItem(item.productId)}
                               className={cn(
@@ -212,7 +212,7 @@ export default function ConsumerCartPage() {
                               {selectedProductIds.includes(item.productId) && <CheckCircle2 className='h-3.5 w-3.5 text-white stroke-[3px]' />}
                             </div>
 
-                            <div className='relative h-20 w-20 rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 group'>
+                            <div className='relative h-16 w-16 md:h-20 md:w-20 rounded-xl md:rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 group'>
                               {item.imageUrl ? (
                                 <img
                                   src={item.imageUrl}
@@ -230,19 +230,46 @@ export default function ConsumerCartPage() {
                             <div className='flex-1 min-w-0 py-1'>
                               <Link
                                 href={`/product/${item.productId}`}
-                                className='font-bold text-lg hover:text-primary transition-colors line-clamp-1 block'
+                                className='font-bold text-sm md:text-lg hover:text-primary transition-colors line-clamp-1 block'
                               >
                                 {item.productName}
                               </Link>
-                              <div className='flex items-center gap-3 mt-1.5'>
-                                <p className='text-sm text-primary font-black uppercase tracking-tighter'>
+                              <div className='flex items-center gap-3 mt-1 md:mt-1.5'>
+                                <p className='text-xs md:text-sm text-primary font-black uppercase tracking-tighter'>
                                   {item.price.toLocaleString('vi-VN')} đ
                                   <span className='text-muted-foreground font-normal ml-1 lowercase'>/ {item.unit}</span>
                                 </p>
                               </div>
+
+                              <div className='flex items-center gap-4 mt-3 sm:hidden'>
+                                <div className='flex items-center border border-border/50 rounded-full h-7 p-0.5 bg-muted/20'>
+                                  <button
+                                    onClick={() => updateQuantity(item.productId, -1)}
+                                    className='h-5.5 w-5.5 flex items-center justify-center rounded-full hover:bg-background transition-all text-muted-foreground hover:text-foreground disabled:opacity-20'
+                                    disabled={item.quantity <= 1}
+                                  >
+                                    <Minus className='h-2.5 w-2.5' />
+                                  </button>
+                                  <span className='w-6 text-center text-[10px] font-black'>
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    onClick={() => updateQuantity(item.productId, 1)}
+                                    className='h-5.5 w-5.5 flex items-center justify-center rounded-full hover:bg-background transition-all text-muted-foreground hover:text-foreground'
+                                  >
+                                    <Plus className='h-2.5 w-2.5' />
+                                  </button>
+                                </div>
+                                <button
+                                  onClick={() => removeItem(item.productId)}
+                                  className='text-[8px] font-bold text-rose-500/60 hover:text-rose-500 uppercase tracking-widest'
+                                >
+                                  Xóa
+                                </button>
+                              </div>
                             </div>
 
-                            <div className='flex items-center gap-6 w-full sm:w-auto mt-4 sm:mt-0 justify-between sm:justify-start border-t sm:border-none pt-4 sm:pt-0'>
+                            <div className='hidden sm:flex items-center gap-6 shrink-0'>
                               <div className='flex items-center border border-border/50 rounded-full h-10 p-1 bg-muted/20'>
                                 <button
                                   onClick={() => updateQuantity(item.productId, -1)}
@@ -262,7 +289,7 @@ export default function ConsumerCartPage() {
                                 </button>
                               </div>
 
-                              <div className='flex flex-col items-end min-w-[120px] shrink-0'>
+                              <div className='flex flex-col items-end min-w-[120px]'>
                                 <p className='text-xl font-black text-foreground tracking-tight'>
                                   {(item.price * item.quantity).toLocaleString('vi-VN')} đ
                                 </p>
@@ -273,6 +300,12 @@ export default function ConsumerCartPage() {
                                   <Trash2 className='h-3 w-3' /> Xóa
                                 </button>
                               </div>
+                            </div>
+
+                            <div className='sm:hidden flex flex-col items-end shrink-0'>
+                              <p className='text-sm font-black text-foreground tracking-tight'>
+                                {(item.price * item.quantity).toLocaleString('vi-VN')} đ
+                              </p>
                             </div>
                           </div>
                         </motion.div>
@@ -292,7 +325,7 @@ export default function ConsumerCartPage() {
       </div>
 
       {/* Elegant Checkout Bar */}
-      <div className='fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border/30 mb-[env(safe-area-inset-bottom)] pb-2'>
+      <div className="fixed bottom-[56px] md:bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/10 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
         <div className='container max-w-5xl py-5 sm:py-7 relative'>
           {/* Refined Summary View */}
           <AnimatePresence>
@@ -301,46 +334,46 @@ export default function ConsumerCartPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className='absolute bottom-full left-0 right-0 bg-background border border-border/50 rounded-[2rem] shadow-[0_-20px_50px_rgba(0,0,0,0.05)] p-8 sm:p-10 space-y-8 mx-4 mb-4'
+                className='absolute bottom-full left-0 right-0 bg-background border border-border/50 rounded-[1.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.05)] p-5 md:p-8 space-y-5 md:space-y-6 mx-4 mb-4'
               >
                 <div className='flex items-center justify-between'>
-                  <h3 className='text-2xl font-black italic'>Chi tiết thanh toán</h3>
-                  <button onClick={() => setIsSummaryExpand(false)} className='p-2.5 bg-muted rounded-full hover:bg-muted/80 transition-colors'>
-                    <X className='h-5 w-5 text-muted-foreground' />
+                  <h3 className='text-lg md:text-xl font-black italic'>Chi tiết thanh toán</h3>
+                  <button onClick={() => setIsSummaryExpand(false)} className='p-2 bg-muted rounded-full hover:bg-muted/80 transition-colors'>
+                    <X className='h-4 w-4 text-muted-foreground' />
                   </button>
                 </div>
-                <div className='space-y-6'>
-                  <div className='flex justify-between items-center px-2'>
-                    <span className='text-muted-foreground font-medium text-sm'>Tiền hàng ({selectedQty} sản phẩm)</span>
-                    <span className='font-extrabold'>{selectedSubtotal.toLocaleString('vi-VN')} đ</span>
+                <div className='space-y-4 md:space-y-5'>
+                  <div className='flex justify-between items-center px-1'>
+                    <span className='text-muted-foreground font-medium text-xs md:text-sm'>Tiền hàng ({selectedQty} sản phẩm)</span>
+                    <span className='font-extrabold text-sm md:text-base'>{selectedSubtotal.toLocaleString('vi-VN')} đ</span>
                   </div>
-                  <div className='flex justify-between items-center px-2'>
-                    <div className='space-y-1'>
-                      <span className='text-muted-foreground font-medium text-sm block'>
+                  <div className='flex justify-between items-center px-1'>
+                    <div className='space-y-0.5'>
+                      <span className='text-muted-foreground font-medium text-xs md:text-sm block'>
                         Phí vận chuyển
                       </span>
-                      <span className='text-[10px] text-muted-foreground/60 font-bold uppercase tracking-widest'>
+                      <span className='text-[9px] text-muted-foreground/60 font-bold uppercase tracking-widest'>
                         {selectedGroups.length} kiện từ {selectedGroups.length} nhà vườn
                       </span>
                     </div>
-                    <span className='font-extrabold text-primary'>+ {selectedShippingFee.toLocaleString('vi-VN')} đ</span>
+                    <span className='font-extrabold text-primary text-sm md:text-base'>+ {selectedShippingFee.toLocaleString('vi-VN')} đ</span>
                   </div>
-                  <div className='h-px bg-dashed-border bg-border/40 my-2' />
-                  <div className='flex justify-between items-center px-2'>
-                    <div className='space-y-1'>
-                      <span className='text-xl font-black text-primary uppercase'>Tổng thanh toán</span>
-                      <p className='text-[11px] text-muted-foreground italic font-medium'>Đã bao gồm thuế và phí dịch vụ</p>
+                  <div className='h-px bg-dashed-border bg-border/40 my-1' />
+                  <div className='flex justify-between items-center px-1'>
+                    <div className='space-y-0.5'>
+                      <span className='text-base md:text-lg font-black text-primary uppercase'>Tổng thanh toán</span>
+                      <p className='text-[10px] text-muted-foreground italic font-medium'>Đã bao gồm thuế và phí dịch vụ</p>
                     </div>
-                    <span className='text-4xl font-black text-primary tracking-tighter'>
+                    <span className='text-2xl md:text-4xl font-black text-primary tracking-tighter'>
                       {selectedTotal.toLocaleString('vi-VN')}đ
                     </span>
                   </div>
                 </div>
 
                 {selectedGroups.length > 1 && (
-                  <div className='bg-primary/[0.02] p-5 rounded-3xl border border-primary/10 flex gap-4 items-center'>
-                    <Info className='h-5 w-5 text-primary shrink-0' />
-                    <p className='text-xs text-primary/80 font-medium leading-relaxed italic'>
+                  <div className='bg-primary/[0.02] p-4 rounded-2xl border border-primary/10 flex gap-3 items-center'>
+                    <Info className='h-4 w-4 text-primary shrink-0' />
+                    <p className='text-[10px] md:text-xs text-primary/80 font-medium leading-relaxed italic'>
                       Đơn hàng được gửi trực tiếp từ <span className='font-black'>{selectedGroups.length} nhà vườn</span> để đảm bảo độ tươi ngon nhất.
                     </p>
                   </div>
@@ -349,60 +382,58 @@ export default function ConsumerCartPage() {
             )}
           </AnimatePresence>
 
-          <div className='flex flex-wrap items-center gap-6 sm:gap-12'>
-            <div className='flex items-center gap-8 shrink-0'>
-              <label className='flex items-center gap-3 cursor-pointer select-none group'>
+          <div className='flex items-center justify-between gap-4'>
+            <div className='flex items-center gap-4 md:gap-8'>
+              <label className='flex items-center gap-2 md:gap-3 cursor-pointer select-none group'>
                 <div
                   onClick={(e) => {
                     e.preventDefault();
                     handleToggleAll();
                   }}
                   className={cn(
-                    "w-6 h-6 rounded-lg border transition-all flex items-center justify-center",
+                    "w-5 h-5 md:w-6 md:h-6 rounded-lg border transition-all flex items-center justify-center",
                     isAllSelected ? "bg-primary border-primary" : !isNoneSelected ? "bg-primary/30 border-primary" : "border-muted-foreground/20 bg-background group-hover:border-primary/50"
                   )}
                 >
-                  {isAllSelected && <CheckCircle2 className='h-4 w-4 text-white stroke-[3px]' />}
-                  {!isAllSelected && !isNoneSelected && <Minus className='h-4 w-4 text-white stroke-[3px]' />}
+                  {isAllSelected && <CheckCircle2 className='h-3.5 w-3.5 md:h-4 md:w-4 text-white stroke-[3px]' />}
+                  {!isAllSelected && !isNoneSelected && <Minus className='h-3.5 w-3.5 md:h-4 md:w-4 text-white stroke-[3px]' />}
                 </div>
                 <div className='flex flex-col'>
-                  <span className='text-sm font-black uppercase tracking-tight text-foreground/80'>Tất cả</span>
-                  <p className='text-[10px] text-muted-foreground font-bold tracking-widest'>{items.length} món trong túi</p>
+                  <span className='text-xs md:text-sm font-black uppercase tracking-tight text-foreground/80'>Tất cả</span>
+                  <p className='hidden sm:block text-[10px] text-muted-foreground font-bold tracking-widest'>{items.length} món</p>
                 </div>
               </label>
 
               {!isNoneSelected && (
                 <button
                   onClick={() => removeItems(selectedProductIds)}
-                  className='text-[10px] font-black text-rose-500/80 hover:text-rose-600 transition-colors uppercase tracking-[0.2em] pl-8 border-l border-border/40 h-10 flex items-center'
+                  className='text-[9px] md:text-[10px] font-black text-rose-500/80 hover:text-rose-600 transition-colors uppercase tracking-widest sm:border-l sm:border-border/40 sm:pl-8 flex items-center'
                 >
-                  XÓA ({selectedItems.length})
+                  XÓA <span className='hidden sm:inline ml-1'>({selectedItems.length})</span>
                 </button>
               )}
             </div>
 
-            <div className='flex-1' />
-
-            <div className='flex items-center gap-10'>
+            <div className='flex items-center gap-4 md:gap-10 ml-auto'>
               <div
-                className='flex flex-col items-end cursor-pointer select-none'
+                className='flex flex-col items-end cursor-pointer select-none leading-tight'
                 onClick={() => setIsSummaryExpand(!isSummaryExpand)}
               >
-                <div className='flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity'>
-                  <span className='text-[10px] font-black uppercase tracking-widest hidden sm:block'>Xem chi tiết</span>
-                  <ChevronUp className={cn('h-3.5 w-3.5 text-primary transition-transform duration-500', isSummaryExpand ? 'rotate-180' : 'rotate-0')} />
+                <div className='flex items-center gap-1 opacity-60 hover:opacity-100 transition-opacity'>
+                  <span className='text-[8px] md:text-[10px] font-black uppercase tracking-widest'>Chi tiết</span>
+                  <ChevronUp className={cn('h-3 md:h-3.5 w-3 md:w-3.5 text-primary transition-transform duration-500', isSummaryExpand ? 'rotate-180' : 'rotate-0')} />
                 </div>
-                <div className='flex items-baseline gap-1'>
-                  <span className='text-3xl font-black text-primary tracking-tighter'>
+                <div className='flex items-baseline gap-0.5'>
+                  <span className='text-xl md:text-3xl font-black text-primary tracking-tighter'>
                     {selectedTotal.toLocaleString('vi-VN')}
                   </span>
-                  <span className='text-sm font-black text-primary tracking-tighter'>đ</span>
+                  <span className='text-[10px] md:text-sm font-black text-primary tracking-tighter'>đ</span>
                 </div>
               </div>
 
               <Button
                 size='lg'
-                className='h-14 px-12 sm:px-16 rounded-full font-black text-base shadow-lg shadow-primary/10 hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-white disabled:opacity-40 disabled:scale-100 uppercase tracking-widest'
+                className='h-10 md:h-14 px-5 md:px-16 rounded-full font-black text-xs md:text-base shadow-lg shadow-primary/10 hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-white disabled:opacity-40 disabled:scale-100 uppercase tracking-widest'
                 disabled={isNoneSelected}
                 onClick={handleCheckout}
               >

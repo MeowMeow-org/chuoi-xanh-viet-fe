@@ -116,17 +116,17 @@ export default function ConsumerOrdersPage() {
 
   return (
     <ConsumerLayout>
-      <div className="container py-8 pb-24 md:pb-12 max-w-3xl mx-auto space-y-8">
+      <div className="container py-8 pb-32 max-w-3xl mx-auto space-y-8">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Đơn hàng của tôi
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-[10px] md:text-sm">
             Quản lý và theo dõi trạng thái các đơn hàng của bạn
           </p>
         </div>
 
-        <div className="relative sticky top-0 z-10 bg-background/80 backdrop-blur-md py-2 -mx-4 px-4 border-b">
+        <div className="relative sticky top-0 z-10 bg-background/80 backdrop-blur-md py-2 border-b">
           <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
             {tabs.map((t) => {
               const isActive = activeTab === t.status;
@@ -198,35 +198,31 @@ export default function ConsumerOrdersPage() {
                   >
                     <Card className="overflow-hidden border-none shadow-xl shadow-black/5 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300">
                       <div className="p-5 sm:p-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                          <div className="flex items-center gap-4">
-                            <div className="bg-primary/10 p-3 rounded-2xl">
-                              <Store className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-lg leading-tight">
-                                {order.shop?.name ?? "Gian hàng"}
-                              </h4>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(order.createdAt).toLocaleString("vi-VN", {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
+                        <div className="flex flex-col gap-4 mb-6">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
+                              <div className="bg-primary/10 p-2 md:p-3 rounded-xl md:rounded-2xl shrink-0">
+                                <Store className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-sm md:text-lg leading-tight line-clamp-1">
+                                  {order.shop?.name ?? "Gian hàng"}
+                                </h4>
+                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mt-0.5">
+                                  <Calendar className="h-2.5 w-2.5" />
+                                  {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                                  <span className="hidden sm:inline">{new Date(order.createdAt).toLocaleTimeString("vi-VN")}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2 text-right">
-                            <Badge className={cn("px-3 py-1 text-xs font-semibold rounded-full", status.color)}>
-                              <StatusIcon className="h-3 w-3 mr-1.5" />
-                              {status.label}
-                            </Badge>
-                            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
-                              ID: #{order.id.slice(0, 8)}
-                            </span>
+
+                            <div className="flex flex-col items-end gap-1.5 text-right shrink-0">
+                              <Badge className={cn("px-2 py-0.5 md:px-3 md:py-1 text-[9px] md:text-xs font-semibold rounded-full", status.color)}>
+                                <StatusIcon className="h-2.5 w-2.5 md:h-3 md:w-3 mr-1 md:mr-1.5" />
+                                {status.label}
+                              </Badge>
+                              <span className="font-medium uppercase tracking-wider md:px-3 md:py-1 text-[8px] md:text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded whitespace-nowrap">Mã đơn: #{order.id.slice(0, 8)}</span>
+                            </div>
                           </div>
                         </div>
 
@@ -234,9 +230,9 @@ export default function ConsumerOrdersPage() {
                           {order.items.map((item) => (
                             <div
                               key={item.id}
-                              className="group flex gap-4 p-3 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-primary/10"
+                              className="group flex gap-3 md:gap-4 p-2.5 md:p-3 rounded-xl md:rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors border border-transparent hover:border-primary/10"
                             >
-                              <div className="relative h-20 w-20 rounded-xl bg-white dark:bg-muted overflow-hidden shrink-0 shadow-sm border border-border/50">
+                              <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-lg md:rounded-xl bg-white dark:bg-muted overflow-hidden shrink-0 shadow-sm border border-border/50">
                                 {item.product.imageUrl ? (
                                   <img
                                     src={item.product.imageUrl}
@@ -250,26 +246,28 @@ export default function ConsumerOrdersPage() {
                                   </div>
                                 )}
                               </div>
-                              <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
+                              <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                                 <div>
-                                  <h5 className="font-semibold text-sm line-clamp-1">{item.product.name}</h5>
-                                  <p className="text-xs text-muted-foreground mt-1">
+                                  <h5 className="font-semibold text-xs md:text-sm line-clamp-1">{item.product.name}</h5>
+                                  <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">
                                     Số lượng: <span className="font-medium text-foreground">{formatNumber(item.qty)}</span>
                                   </p>
                                 </div>
                                 <div className="flex items-center justify-between mt-auto">
-                                  <span className="text-sm font-bold text-primary">
+                                  <span className="text-xs md:text-sm font-bold text-primary">
                                     {formatNumber(item.lineTotal)}đ
                                   </span>
                                   {isDelivered && (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5 md:gap-2">
                                       {item.myReview ? (
-                                        <div className="flex items-center gap-1.5">
-                                          <OrderStarsDisplay rating={item.myReview.rating} />
+                                        <div className="flex items-center gap-1 md:gap-1.5">
+                                          <div className="scale-75 md:scale-100 origin-right">
+                                            <OrderStarsDisplay rating={item.myReview.rating} />
+                                          </div>
                                           <Button
                                             size="sm"
                                             variant="ghost"
-                                            className="h-7 px-2 text-xs hover:bg-primary/5 hover:text-primary"
+                                            className="h-6 px-1.5 md:h-7 md:px-2 text-[9px] md:text-xs hover:bg-primary/5 hover:text-primary"
                                             onClick={() => {
                                               setReviewTarget({ order, item });
                                               setReviewOpen(true);
@@ -282,13 +280,13 @@ export default function ConsumerOrdersPage() {
                                         <Button
                                           size="sm"
                                           variant="secondary"
-                                          className="h-7 gap-1 text-[11px] font-medium bg-primary/10 text-primary hover:bg-primary/20 border-none rounded-full"
+                                          className="h-6 gap-1 md:h-7 text-[9px] md:text-[11px] font-medium bg-primary/10 text-primary hover:bg-primary/20 border-none rounded-full"
                                           onClick={() => {
                                             setReviewTarget({ order, item });
                                             setReviewOpen(true);
                                           }}
                                         >
-                                          <Star className="h-3 w-3 fill-primary" />
+                                          <Star className="h-2.5 w-2.5 md:h-3 md:w-3 fill-primary" />
                                           Đánh giá
                                         </Button>
                                       )}
@@ -322,44 +320,43 @@ export default function ConsumerOrdersPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-end justify-between">
-                            <div className="space-y-0.5">
-                              <span className="text-xs text-muted-foreground">Tổng thanh toán</span>
-                              <div className="flex items-baseline gap-1.5">
-                                <span className="text-2xl font-black text-primary">
+                          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                            <div className="space-y-1">
+                              <span className="text-[10px] md:text-xs text-muted-foreground">Tổng thanh toán</span>
+                              <div className="flex flex-wrap items-baseline gap-1 md:gap-1.5">
+                                <span className="text-xl md:text-2xl font-black text-primary leading-none">
                                   {total.toLocaleString("vi-VN")}đ
                                 </span>
-                                <span className="text-[10px] text-muted-foreground italic">
-                                  (Phí giao hàng: {SHIPPING_FEE.toLocaleString("vi-VN")}đ)
+                                <span className="text-[9px] md:text-[10px] text-muted-foreground italic whitespace-nowrap">
+                                  (Phí: {SHIPPING_FEE.toLocaleString("vi-VN")}đ)
                                 </span>
                               </div>
                             </div>
 
-                            <div className="flex gap-2">
+                            <div className="flex items-center gap-2 justify-end">
                               {isPending && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-10 px-4 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-full"
+                                  className="h-8 md:h-10 px-3 md:px-4 text-[9px] md:text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-full"
                                   disabled={cancelMutation.isPending}
                                   onClick={() => cancelMutation.mutate(order.id)}
                                 >
-                                  <XCircle className="h-4 w-4 mr-2" />
                                   {cancelMutation.isPending &&
                                     cancelMutation.variables === order.id
                                     ? "Đang hủy..."
-                                    : "Hủy đơn hàng"}
+                                    : "Hủy đơn"}
                                 </Button>
                               )}
                               <Link
                                 href={`/consumer/orders/${order.id}`}
                                 className={cn(
                                   buttonVariants({ variant: "outline", size: "sm" }),
-                                  "h-10 px-5 gap-2 text-sm rounded-full hover:bg-green-700 hover:text-white"
+                                  "h-8 md:h-10 px-4 md:px-5 gap-1 md:gap-2 text-[9px] md:text-sm rounded-full hover:bg-green-700 hover:text-white"
                                 )}
                               >
-                                Xem chi tiết
-                                <ChevronRight className="h-4 w-4" />
+                                Chi tiết
+                                <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
                               </Link>
                             </div>
                           </div>
