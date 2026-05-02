@@ -137,7 +137,7 @@ export default function ConsumerCartPage() {
                         el.indeterminate = someShopSelected && !allShopSelected;
                     }}
                     onChange={() => handleToggleShop(groupItemIds)}
-                    className='h-4 w-4 accent-primary cursor-pointer'
+                    className='h-4 w-4 accent-green-600 cursor-pointer'
                   />
                   <Store className='h-4 w-4 text-primary' />
                   <Link
@@ -155,7 +155,7 @@ export default function ConsumerCartPage() {
                           type='checkbox'
                           checked={selectedProductIds.includes(item.productId)}
                           onChange={() => toggleSelectItem(item.productId)}
-                          className='h-4 w-4 accent-primary cursor-pointer shrink-0'
+                          className='h-4 w-4 accent-green-600 cursor-pointer shrink-0'
                         />
                         <div className='h-14 w-14 rounded-md bg-muted/50 overflow-hidden shrink-0 flex items-center justify-center'>
                           {item.imageUrl ? (
@@ -237,7 +237,7 @@ export default function ConsumerCartPage() {
                 if (el) el.indeterminate = !isAllSelected && !isNoneSelected;
               }}
               onChange={handleToggleAll}
-              className='h-4 w-4 accent-primary'
+              className='h-4 w-4 accent-green-600 cursor-pointer'
             />
             <span className='text-sm'>Chọn Tất Cả ({items.length})</span>
           </label>
