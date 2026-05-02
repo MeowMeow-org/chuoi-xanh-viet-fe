@@ -8,9 +8,12 @@ import {
   Leaf,
   LogOut,
   Menu,
+  Megaphone,
   ShieldCheck,
   User,
+  Users,
   X,
+  Bell,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,12 +25,17 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
+  { href: "/admin/users", label: "Người dùng", icon: Users },
+  { href: "/admin/broadcast", label: "Gửi thông báo", icon: Megaphone },
   { href: "/admin/certificates", label: "Duyệt chứng chỉ", icon: ShieldCheck },
+  { href: "/admin/notifications", label: "Thông báo", icon: Bell },
 ];
 
 const mobileNavItems = [
-  { href: "/admin/certificates", label: "Chứng chỉ", icon: ShieldCheck },
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
+  { href: "/admin/users", label: "Người dùng", icon: Users },
+  { href: "/admin/broadcast", label: "Gửi TB", icon: Megaphone },
+  { href: "/admin/certificates", label: "Chứng chỉ", icon: ShieldCheck },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
