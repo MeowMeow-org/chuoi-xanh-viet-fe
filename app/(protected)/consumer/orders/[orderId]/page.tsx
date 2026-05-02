@@ -19,6 +19,7 @@ import {
   Package,
   Star,
   XCircle,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { orderService } from "@/services/order/orderService";
@@ -67,6 +68,17 @@ export default function ConsumerOrderDetailPage() {
     queryKey: ["order", orderId],
     queryFn: () => orderService.getOrderById(orderId),
     enabled: !!orderId,
+    refetchInterval: (q) => {
+      const d = q.state.data;
+      if (
+        d?.paymentMethod === "payos" &&
+        d.paymentStatus === "pending" &&
+        d.status === "pending"
+      ) {
+        return 4000;
+      }
+      return false;
+    },
   });
 
   const cancelMutation = useMutation({
@@ -75,6 +87,23 @@ export default function ConsumerOrderDetailPage() {
       toast.success("Đã hủy đơn hàng");
       queryClient.invalidateQueries({ queryKey: ["order", orderId] });
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+    },
+  });
+
+  const payosResumeMutation = useMutation({
+    mutationFn: () => orderService.getPayosResume(orderId),
+    onSuccess: (data) => {
+      if (data.checkoutUrl?.trim()) {
+        window.location.assign(data.checkoutUrl.trim());
+        return;
+      }
+      toast.error("PayOS không trả về link thanh toán. Vui lòng thử lại.");
+    },
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ?? "Không mở lại được trang thanh toán";
+      toast.error(msg);
     },
   });
 
@@ -109,6 +138,9 @@ export default function ConsumerOrderDetailPage() {
   const total = Number(order.totalAmount) + SHIPPING_FEE;
   const isPending = order.status === "pending";
   const isDelivered = order.status === "delivered";
+  const canBuyerCancel =
+    isPending &&
+    !(order.paymentMethod === "payos" && order.paymentStatus === "paid");
 
   return (
     <ConsumerLayout>
@@ -148,6 +180,36 @@ export default function ConsumerOrderDetailPage() {
               Thanh toán: {paymentLabel[order.paymentMethod] ?? order.paymentMethod}{" "}
               · {paymentStatusLabel[order.paymentStatus] ?? order.paymentStatus}
             </p>
+            {order.paymentMethod === "payos" &&
+              order.paymentStatus === "pending" &&
+              order.status === "pending" && (
+                <>
+                  <p className="text-xs text-amber-800 dark:text-amber-200/90 bg-amber-50 dark:bg-amber-950/40 rounded-md px-2 py-1.5">
+                    Đang chờ thanh toán PayOS. Trang sẽ tự cập nhật khi giao dịch hoàn
+                    tất. Nếu bạn đã đóng tab PayOS, bấm nút bên dưới để mở lại.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="w-full gap-2"
+                    disabled={payosResumeMutation.isPending}
+                    onClick={() => payosResumeMutation.mutate()}
+                  >
+                    {payosResumeMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Đang mở…
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="h-4 w-4" />
+                        Mở lại trang thanh toán PayOS
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             {order.shop && (
               <Link
                 href={`/shop/${order.shop.id}`}
@@ -280,7 +342,7 @@ export default function ConsumerOrderDetailPage() {
         </Card>
 
         <div className="flex flex-wrap gap-2">
-          {isPending && (
+          {canBuyerCancel && (
             <Button
               variant="outline"
               className="text-destructive hover:text-destructive"
