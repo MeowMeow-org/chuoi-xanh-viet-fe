@@ -208,7 +208,7 @@ export default function ConsumerOrderDetailPage() {
                       "rounded-full gap-1.5 md:gap-2 font-semibold text-[10px] md:text-xs h-8 md:h-9 px-3 md:px-4 shrink-0"
                     )}
                   >
-                    Cửa hàng
+                    Gian hàng
                     <ExternalLink className="h-3 w-3" />
                   </Link>
                 )}

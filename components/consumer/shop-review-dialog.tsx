@@ -71,10 +71,10 @@ function StarInput({
             )}
           />
           {n === value && (
-             <motion.div 
-               layoutId="activeStar"
-               className="absolute inset-0 bg-amber-400/10 rounded-full -m-2 z-[-1]"
-             />
+            <motion.div
+              layoutId="activeStar"
+              className="absolute inset-0 bg-amber-400/10 rounded-full -m-2 z-[-1]"
+            />
           )}
         </motion.button>
       ))}
@@ -166,15 +166,15 @@ function ProductReviewDialogBody({
           {item.myReview ? "Chỉnh sửa đánh giá" : "Đánh giá sản phẩm"}
         </DialogTitle>
         <div className="flex flex-col items-center gap-4 py-2 border-y border-border/50">
-           <div className="h-20 w-20 rounded-2xl bg-muted overflow-hidden shadow-sm">
-              {item.product.imageUrl ? (
-                <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
-              ) : <Star className="h-10 w-10 m-5 text-muted-foreground/30" />}
-           </div>
-           <div className="text-center">
-              <h4 className="font-bold text-sm leading-tight">{item.product.name}</h4>
-              <p className="text-xs text-muted-foreground mt-1">Từ cửa hàng: <span className="font-semibold">{order.shop?.name}</span></p>
-           </div>
+          <div className="h-20 w-20 rounded-2xl bg-muted overflow-hidden shadow-sm">
+            {item.product.imageUrl ? (
+              <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
+            ) : <Star className="h-10 w-10 m-5 text-muted-foreground/30" />}
+          </div>
+          <div className="text-center">
+            <h4 className="font-bold text-sm leading-tight">{item.product.name}</h4>
+            <p className="text-xs text-muted-foreground mt-1">Từ gian hàng: <span className="font-semibold">{order.shop?.name}</span></p>
+          </div>
         </div>
         <DialogDescription className="text-center px-4">
           Hãy chia sẻ trải nghiệm thực tế của bạn để giúp nhà vườn cải thiện và hỗ trợ những người mua khác nhé.
@@ -188,16 +188,16 @@ function ProductReviewDialogBody({
           </Label>
           <StarInput value={reviewRating} onChange={setReviewRating} />
           <div className="text-center">
-             <span className={cn(
-               "text-xs font-bold px-3 py-1 rounded-full",
-               reviewRating >= 4 ? "bg-emerald-100 text-emerald-700" : 
-               reviewRating === 3 ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"
-             )}>
-                {reviewRating === 5 ? "Rất hài lòng 😍" : 
-                 reviewRating === 4 ? "Hài lòng 😊" : 
-                 reviewRating === 3 ? "Bình thường 😐" :
-                 reviewRating === 2 ? "Không hài lòng ☹️" : "Rất tệ 😡"}
-             </span>
+            <span className={cn(
+              "text-xs font-bold px-3 py-1 rounded-full",
+              reviewRating >= 4 ? "bg-emerald-100 text-emerald-700" :
+                reviewRating === 3 ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"
+            )}>
+              {reviewRating === 5 ? "Rất hài lòng 😍" :
+                reviewRating === 4 ? "Hài lòng 😊" :
+                  reviewRating === 3 ? "Bình thường 😐" :
+                    reviewRating === 2 ? "Không hài lòng ☹️" : "Rất tệ 😡"}
+            </span>
           </div>
         </div>
 
@@ -217,7 +217,7 @@ function ProductReviewDialogBody({
               className="resize-none rounded-2xl border-2 focus-visible:ring-primary/20 transition-all placeholder:text-muted-foreground/40 pr-10"
             />
             {reviewComment.length > 0 && (
-              <button 
+              <button
                 onClick={() => setReviewComment("")}
                 className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted text-muted-foreground"
               >
