@@ -14,7 +14,7 @@
 # Gia hạn: xem tài liệu certbot renew; có thể cron: certbot renew && docker restart chuoi-xanh-viet-fe-proxy
 #
 # API qua cùng domain: đặt NEXT_PUBLIC_API_URL=https://chuoixanhviet.site/v1/api (rebuild web).
-# Nginx proxy /v1/api và /socket.io → container API (mạng ngoài chuoi-xanh-net, cổng nội bộ 8000).
+# Nginx gọi hostname `api` (alias trên chuoi-xanh-net, xem BE docker-compose).
 # Cần stack BE đã chạy (tạo network `chuoi-xanh-net`). Nếu chưa có network: `docker network create chuoi-xanh-net`
 # hoặc deploy stack BE trước.
 services:
