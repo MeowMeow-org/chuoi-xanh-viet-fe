@@ -5,6 +5,8 @@ import type {
   GetMyOrdersQuery,
   Order,
   OrderStatus,
+  CreateOrderResult,
+  PayosResumePayload,
 } from "./index";
 
 function toCreateOrderBody(payload: CreateOrderPayload): Record<string, unknown> {
@@ -20,8 +22,8 @@ function toCreateOrderBody(payload: CreateOrderPayload): Record<string, unknown>
 }
 
 export const orderService = {
-  createOrder: async (payload: CreateOrderPayload): Promise<Order> => {
-    const data = await axiosInstance.post<Order, Order>(
+  createOrder: async (payload: CreateOrderPayload): Promise<CreateOrderResult> => {
+    const data = await axiosInstance.post<CreateOrderResult, CreateOrderResult>(
       "/order",
       toCreateOrderBody(payload),
     );
@@ -40,6 +42,14 @@ export const orderService = {
 
   getOrderById: async (orderId: string): Promise<Order> => {
     const data = await axiosInstance.get<Order, Order>(`/order/${orderId}`);
+    return data;
+  },
+
+  getPayosResume: async (orderId: string): Promise<PayosResumePayload> => {
+    const data = await axiosInstance.get<
+      PayosResumePayload,
+      PayosResumePayload
+    >(`/order/${orderId}/payos/resume`);
     return data;
   },
 

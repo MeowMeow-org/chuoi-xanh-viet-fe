@@ -98,6 +98,20 @@ axiosInstance.interceptors.response.use(
     const message =
       error.response?.data?.message ?? error.message ?? "Đã có lỗi xảy ra";
 
+    const status = error.response?.status;
+    if (
+      status === 403 &&
+      typeof message === "string" &&
+      message.startsWith("Tài khoản đã bị khóa")
+    ) {
+      useAuthStore.getState().clearAuth();
+      clearAuthCookies();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
+      return Promise.reject(error);
+    }
+
     const isLogoutEndpoint = originalRequest.url?.includes("/auth/logout");
 
     if (!isLogoutEndpoint) {

@@ -61,6 +61,17 @@ export interface Order {
   items: OrderItem[];
 }
 
+export interface CreateOrderResult extends Order {
+  /** Chỉ có khi paymentMethod là payos và tạo link thành công */
+  checkoutUrl?: string;
+}
+
+export interface PayosResumePayload {
+  checkoutUrl?: string;
+  qrCode?: string;
+  payosStatus?: string;
+}
+
 export interface CreateOrderPayload {
   shopId: string;
   items: Array<{ productId: string; qty: number }>;
