@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, MapPin, CheckCircle2, QrCode } from 'lucide-react';
 
 import ConsumerLayout from '@/components/layout/ConsumerLayout';
@@ -114,7 +113,6 @@ export default function HomeClient() {
           aria-hidden
           width={208}
           height={208}
-          loading='lazy'
           className='pointer-events-none select-none absolute -left-10 -top-4 -rotate-12 opacity-[0.055] blur-[0.5px]'
         />
 
@@ -124,7 +122,6 @@ export default function HomeClient() {
           aria-hidden
           width={256}
           height={256}
-          loading='lazy'
           className='pointer-events-none select-none absolute -left-6 bottom-8 rotate-6 opacity-[0.05] blur-[0.5px]'
         />
 
@@ -134,7 +131,6 @@ export default function HomeClient() {
           aria-hidden
           width={224}
           height={224}
-          loading='lazy'
           className='pointer-events-none select-none absolute -right-8 -top-6 rotate-12 opacity-[0.055] blur-[0.5px]'
         />
 
@@ -144,7 +140,6 @@ export default function HomeClient() {
           aria-hidden
           width={176}
           height={176}
-          loading='lazy'
           className='pointer-events-none select-none absolute -right-4 bottom-4 -rotate-8 opacity-[0.05] blur-[0.5px]'
         />
 

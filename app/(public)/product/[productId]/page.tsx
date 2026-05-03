@@ -26,7 +26,8 @@ import {
   Heart,
   ChevronLeft,
   CheckCircle2,
-  PackageCheck
+  PackageCheck,
+  AlertCircle
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { shopService } from "@/services/shop/shopService";
@@ -148,15 +149,6 @@ function ProductImageGallery({
             </Badge>
           </div>
         )}
-
-        <div className="absolute right-4 top-4 flex flex-col gap-2">
-          <Button size="icon" variant="secondary" className="rounded-full h-9 w-9 bg-background/80 backdrop-blur-md border border-border/50 hover:bg-white transition-all">
-            <Heart className="h-4 w-4 text-muted-foreground" />
-          </Button>
-          <Button size="icon" variant="secondary" className="rounded-full h-9 w-9 bg-background/80 backdrop-blur-md border border-border/50 hover:bg-white transition-all">
-            <Share2 className="h-4 w-4 text-muted-foreground" />
-          </Button>
-        </div>
       </motion.div>
 
       {galleryImages.length > 0 && (
@@ -567,7 +559,9 @@ export default function PublicProductPage() {
                   <div className="bg-background/40 p-4 text-center">
                     <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 opacity-50">Uy tín</p>
                     <div className="flex items-center justify-center gap-1">
-                      <span className="text-base font-black text-primary">{shopPanel?.average_rating?.toFixed(1) || "5.0"}</span>
+                      <span className="text-base font-black text-primary">
+                        {shopPanel?.average_rating != null ? shopPanel.average_rating.toFixed(1) : "—"}
+                      </span>
                       <Star className="h-3 w-3 fill-primary text-primary" />
                     </div>
                   </div>
@@ -602,7 +596,7 @@ export default function PublicProductPage() {
                 <div className="h-1 w-6 bg-amber-500 rounded-full" />
                 <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Khách hàng nhận xét</h2>
               </div>
-              {!productReviewsQuery.isLoading && (
+              {!productReviewsQuery.isLoading && !productReviewsQuery.isError && (
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted/40 px-3 py-1.5 rounded-full">
                   {reviewMeta?.total || 0} Nhận xét
                 </span>
@@ -610,7 +604,13 @@ export default function PublicProductPage() {
             </div>
 
             <div className="space-y-4">
-              {!productReviewsQuery.isLoading && reviewItems.length === 0 && (
+              {productReviewsQuery.isError && (
+                <div className="py-16 text-center space-y-4 border border-dashed border-destructive/40 rounded-3xl bg-destructive/[0.02]">
+                  <AlertCircle className="h-8 w-8 mx-auto text-destructive opacity-60" />
+                  <p className="text-xs text-destructive font-bold italic">Không thể tải đánh giá. Vui lòng thử lại sau.</p>
+                </div>
+              )}
+              {!productReviewsQuery.isLoading && !productReviewsQuery.isError && reviewItems.length === 0 && (
                 <div className="py-16 text-center space-y-4 border border-dashed border-border/60 rounded-3xl bg-muted/[0.02]">
                   <Star className="h-8 w-8 mx-auto opacity-20" />
                   <p className="text-xs text-muted-foreground font-bold italic">Chưa có đánh giá nào cho sản phẩm này.</p>
@@ -641,7 +641,7 @@ export default function PublicProductPage() {
                                 {r.isVerifiedPurchase && (
                                   <div className="flex items-center gap-1 text-[8px] font-black uppercase text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
                                     <CheckCircle2 className="h-2 w-2" />
-                                    Chuẩn sản phẩm
+                                    Đã mua hàng
                                   </div>
                                 )}
                               </div>
