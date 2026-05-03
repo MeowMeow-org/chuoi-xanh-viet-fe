@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -232,10 +233,16 @@ export default function ConsumerLayout({
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/80">
         <div className="container flex h-14 items-center justify-between">
           <Link href={headerHome} className="flex items-center gap-2">
-            <span className="gradient-green flex items-center justify-center rounded-lg p-1.5">
-              <Leaf className="h-5 w-5 text-white" />
-            </span>
-            <span className="whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
+            <Image
+              src="/logo.png"
+              alt="Chuỗi Xanh Việt"
+              width={830}
+              height={260}
+              sizes="102px"
+              className="h-8 w-auto object-contain"
+              priority
+            />
+            <span className="self-end whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
               Chuỗi Xanh Việt
             </span>
           </Link>

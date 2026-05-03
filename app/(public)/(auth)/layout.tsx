@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Leaf, MapPin, Shield, QrCode } from 'lucide-react';
+import { MapPin, Shield, QrCode } from 'lucide-react';
 
 const features = [
   { icon: QrCode, text: 'Quét mã QR để truy xuất ngay' },
@@ -24,13 +24,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className='flex min-h-screen flex-col bg-white'>
       {/* ── Header ── */}
-      <header className='flex h-[60px] shrink-0 items-center border-b border-[hsl(142,15%,88%)] bg-white px-6 shadow-sm'>
+      <header className='flex h-15 shrink-0 items-center border-b border-[hsl(142,15%,88%)] bg-white px-6 shadow-sm'>
         <Link
           href='/'
           className='flex items-center gap-2 text-[hsl(150,16%,12%)] transition hover:opacity-75'
         >
-          <Leaf className='h-6 w-6 text-[hsl(142,65%,38%)]' />
-          <span className='text-[17px] font-extrabold tracking-tight'>
+          <Image
+            src='/logo.png'
+            alt='Chuỗi Xanh Việt'
+            width={830}
+            height={260}
+            sizes='102px'
+            className='h-8 w-auto object-contain'
+            priority
+          />
+          <span className='self-end text-[17px] font-extrabold tracking-tight'>
             Chuỗi Xanh Việt
           </span>
         </Link>
@@ -87,7 +95,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           {/* Form card */}
-          <div className='w-full max-w-sm shrink-0 sm:max-w-md lg:w-[420px] lg:max-w-none'>
+          <div className='w-full max-w-sm shrink-0 sm:max-w-md lg:w-105 lg:max-w-none'>
             {children}
           </div>
         </div>

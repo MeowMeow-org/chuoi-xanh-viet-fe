@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Leaf,
   LogOut,
   Menu,
   ShieldCheck,
@@ -53,10 +53,16 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             href="/admin"
             className="flex w-max max-w-[min(100%,14rem)] shrink-0 items-center gap-2 justify-self-start pl-9 sm:max-w-none md:pl-0"
           >
-            <span className="gradient-green flex items-center justify-center rounded-lg p-1.5">
-              <Leaf className="h-5 w-5 text-white" />
-            </span>
-            <span className="min-w-0 truncate whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
+            <Image
+              src="/logo.png"
+              alt="Chuỗi Xanh Việt"
+              width={830}
+              height={260}
+              sizes="102px"
+              className="h-8 w-auto object-contain"
+              priority
+            />
+            <span className="self-end min-w-0 truncate whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
               Chuỗi Xanh Việt
             </span>
             <span className="hidden rounded-full border border-[hsl(142,14%,88%)] bg-[hsl(120,15%,96%)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[hsl(150,10%,35%)] lg:inline">

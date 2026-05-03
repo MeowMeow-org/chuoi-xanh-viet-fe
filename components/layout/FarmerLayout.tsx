@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
   Home,
   Menu,
-  Leaf,
   LogOut,
   MessageCircle,
   ShieldCheck,
@@ -79,10 +79,16 @@ export default function FarmerLayout({
               href="/farmer"
               className="flex w-max shrink-0 items-center gap-2 justify-self-start pl-9 md:pl-0"
             >
-              <span className="gradient-green flex items-center justify-center rounded-lg p-1.5">
-                <Leaf className="h-5 w-5 text-white" />
-              </span>
-              <span className="whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
+              <Image
+                src="/logo.png"
+                alt="Chuỗi Xanh Việt"
+                width={830}
+                height={260}
+                sizes="102px"
+                className="h-8 w-auto object-contain"
+                priority
+              />
+              <span className="self-end whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
                 Chuỗi Xanh Việt
               </span>
             </Link>

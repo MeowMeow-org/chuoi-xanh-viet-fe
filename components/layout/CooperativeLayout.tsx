@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,7 +10,6 @@ import {
   ClipboardCheck,
   Inbox,
   LayoutDashboard,
-  Leaf,
   LogOut,
   Menu,
   ShieldCheck,
@@ -73,10 +73,16 @@ export default function CooperativeLayout({
             href="/cooperative"
             className="flex w-max shrink-0 items-center gap-2 justify-self-start pl-9 md:pl-0"
           >
-            <span className="gradient-green flex items-center justify-center rounded-lg p-1.5">
-              <Leaf className="h-5 w-5 text-white" />
-            </span>
-            <span className="whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
+            <Image
+              src="/logo.png"
+              alt="Chuỗi Xanh Việt"
+              width={830}
+              height={260}
+              sizes="102px"
+              className="h-8 w-auto object-contain"
+              priority
+            />
+            <span className="self-end whitespace-nowrap text-lg font-bold leading-none text-[hsl(150,10%,22%)]">
               Chuỗi Xanh Việt
             </span>
           </Link>
@@ -179,8 +185,8 @@ export default function CooperativeLayout({
 
       <div
         className={`fixed inset-x-0 top-14 bottom-14.25 z-40 transition-opacity duration-200 md:hidden ${mobileMenuOpen
-            ? "pointer-events-auto bg-black/35 opacity-100"
-            : "pointer-events-none bg-black/0 opacity-0"
+          ? "pointer-events-auto bg-black/35 opacity-100"
+          : "pointer-events-none bg-black/0 opacity-0"
           }`}
         onClick={() => setMobileMenuOpen(false)}
       >
