@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useId } from "react";
-import { Search } from "lucide-react";
+import { LayoutList, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +10,8 @@ import {
   type ForumLabelSlug,
 } from "@/constants/forum-labels";
 import { cn } from "@/lib/utils";
+
+export type ForumPostViewMode = "current" | "list";
 
 function FilterChip({
   active,
@@ -42,6 +44,8 @@ export function ForumPostListFilters({
   onLabelChange,
   searchDraft,
   onSearchDraftChange,
+  viewMode,
+  onViewModeChange,
   searchClassName,
   chipsClassName,
   className,
@@ -50,6 +54,8 @@ export function ForumPostListFilters({
   onLabelChange: (slug: ForumLabelSlug | undefined) => void;
   searchDraft: string;
   onSearchDraftChange: (value: string) => void;
+  viewMode?: ForumPostViewMode;
+  onViewModeChange?: (mode: ForumPostViewMode) => void;
   searchClassName?: string;
   chipsClassName?: string;
   className?: string;
@@ -72,7 +78,7 @@ export function ForumPostListFilters({
           <Input
             id={searchId}
             type="search"
-            placeholder="Gõ từ khóa trong tiêu đề hoặc nội dung…"
+            placeholder="Kiếm theo từ khóa"
             value={searchDraft}
             onChange={(e) => onSearchDraftChange(e.target.value)}
             maxLength={200}
@@ -107,6 +113,45 @@ export function ForumPostListFilters({
           </FilterChip>
         ))}
       </div>
+
+      {viewMode && onViewModeChange && (
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium text-foreground">Kiểu hiển thị</p>
+          <div className="inline-flex items-center rounded-md border border-border bg-muted/30 p-1">
+            <button
+              type="button"
+              onClick={() => onViewModeChange("list")}
+              aria-label="Dạng danh sách"
+              className={cn(
+                "flex h-8 w-9 items-center justify-center rounded-sm transition-colors",
+                viewMode === "list"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-background/70",
+              )}
+            >
+              <LayoutList className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange("current")}
+              aria-label="Dạng hiện tại"
+              className={cn(
+                "flex h-8 w-9 items-center justify-center rounded-sm transition-colors",
+                viewMode === "current"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-background/70",
+              )}
+            >
+              <div className="grid grid-cols-2 gap-0.5">
+                <span className="h-1.5 w-1.5 rounded-xs bg-current" />
+                <span className="h-1.5 w-1.5 rounded-xs bg-current" />
+                <span className="h-1.5 w-1.5 rounded-xs bg-current" />
+                <span className="h-1.5 w-1.5 rounded-xs bg-current" />
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { ChevronDown, Loader2, Plus, SlidersHorizontal } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
 import { ForumPostCard } from "@/components/forum/ForumPostCard";
 import { ForumPostImagePicker } from "@/components/forum/ForumPostImagePicker";
-import { ForumPostListFilters } from "@/components/forum/ForumPostListFilters";
+import {
+  ForumPostListFilters,
+  type ForumPostViewMode,
+} from "@/components/forum/ForumPostListFilters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +45,8 @@ export default function FarmerForumPage() {
   const [postBusy, setPostBusy] = useState(false);
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ForumPostViewMode>("current");
 
   const { data, isLoading, isError, error, refetch } = useForumPostsQuery(
     {
@@ -126,9 +131,15 @@ export default function FarmerForumPage() {
   const posts = data?.items ?? [];
   const pagination = data?.pagination;
   const listFiltered = Boolean(labelFilter || searchTerm);
+  const resetFilters = () => {
+    setLabelFilter(undefined);
+    setSearchDraft("");
+    setSearchTerm("");
+    setPage(1);
+  };
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6 [&_button]:cursor-pointer [&_button:disabled]:cursor-not-allowed">
+    <div className="mx-auto w-full max-w-6xl space-y-5 px-5 py-6 pb-20 sm:px-6 md:pb-8 lg:px-6 [&_button]:cursor-pointer [&_button:disabled]:cursor-not-allowed">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Diễn đàn kỹ thuật</h1>
 
@@ -215,78 +226,128 @@ export default function FarmerForumPage() {
         </Dialog>
       </div>
 
-      <ForumPostListFilters
-        labelFilter={labelFilter}
-        onLabelChange={setLabelFilter}
-        searchDraft={searchDraft}
-        onSearchDraftChange={setSearchDraft}
-      />
-
-      {isLoading && (
-        <div className="flex justify-center py-12 text-sm text-muted-foreground">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Đang tải bài viết…
-        </div>
-      )}
-
-      {isError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          {(error as Error)?.message ?? "Lỗi tải diễn đàn"}
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-3"
-            onClick={() => void refetch()}
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-5">
+        <aside className="md:w-72 md:shrink-0">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between rounded-lg border border-border bg-card/50 px-4 py-3 text-sm font-bold uppercase tracking-wide md:hidden"
+            onClick={() => setMobileFilterOpen((open) => !open)}
           >
-            Thử lại
-          </Button>
+            <span className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" />
+              Bộ lọc
+            </span>
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 transition-transform duration-200",
+                mobileFilterOpen && "rotate-180",
+              )}
+            />
+          </button>
+
+          <div
+            className={cn(
+              "rounded-lg border border-border bg-card/50 md:sticky md:top-4",
+              mobileFilterOpen ? "mt-2 block md:mt-0" : "hidden md:block",
+            )}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center gap-2 text-sm tracking-wide">
+                <SlidersHorizontal className="h-4 w-4" />
+                Bộ lọc
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs text-muted-foreground"
+                onClick={resetFilters}
+              >
+                Đặt lại
+              </Button>
+            </div>
+            <div className="p-4">
+              <ForumPostListFilters
+                labelFilter={labelFilter}
+                onLabelChange={setLabelFilter}
+                searchDraft={searchDraft}
+                onSearchDraftChange={setSearchDraft}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+              />
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0 flex-1 space-y-4">
+          {isLoading && (
+            <div className="flex justify-center py-12 text-sm text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Đang tải bài viết…
+            </div>
+          )}
+
+          {isError && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              {(error as Error)?.message ?? "Lỗi tải diễn đàn"}
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-3"
+                onClick={() => void refetch()}
+              >
+                Thử lại
+              </Button>
+            </div>
+          )}
+
+          {!isLoading && !isError && posts.length === 0 && (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              {listFiltered
+                ? "Không có bài phù hợp bộ lọc hoặc từ khóa. Thử chỉnh lại tìm kiếm hoặc nhãn."
+                : "Chưa có bài viết. Hãy đăng bài đầu tiên."}
+            </p>
+          )}
+
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <ForumPostCard
+                key={post.id}
+                post={post}
+                currentUserId={user?.id}
+                allowEditPost
+                viewMode={viewMode}
+              />
+            ))}
+          </div>
+
+          {pagination && (
+            <div className="flex justify-center gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                Trang trước
+              </Button>
+              <span className="flex items-center text-sm text-muted-foreground">
+                {page} / {pagination.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= pagination.totalPages}
+                onClick={() =>
+                  setPage((p) => Math.min(pagination.totalPages, p + 1))
+                }
+              >
+                Trang sau
+              </Button>
+            </div>
+          )}
         </div>
-      )}
-
-      {!isLoading && !isError && posts.length === 0 && (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          {listFiltered
-            ? "Không có bài phù hợp bộ lọc hoặc từ khóa. Thử chỉnh lại tìm kiếm hoặc nhãn."
-            : "Chưa có bài viết. Hãy đăng bài đầu tiên."}
-        </p>
-      )}
-
-      <div className="space-y-4">
-        {posts.map((post) => (
-          <ForumPostCard
-            key={post.id}
-            post={post}
-            currentUserId={user?.id}
-            allowEditPost
-          />
-        ))}
       </div>
-
-      {pagination && (
-        <div className="flex justify-center gap-2 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Trang trước
-          </Button>
-          <span className="flex items-center text-sm text-muted-foreground">
-            {page} / {pagination.totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= pagination.totalPages}
-            onClick={() =>
-              setPage((p) => Math.min(pagination.totalPages, p + 1))
-            }
-          >
-            Trang sau
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

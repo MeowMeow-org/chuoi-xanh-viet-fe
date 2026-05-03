@@ -130,7 +130,7 @@ export default function FarmerLayout({
                   >
                     <MessageCircle className="size-5" />
                     {chatConversationsWithUnread > 0 && (
-                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-destructive-foreground tabular-nums">
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-white tabular-nums">
                         {chatConversationsWithUnread > 99
                           ? "99+"
                           : chatConversationsWithUnread}
