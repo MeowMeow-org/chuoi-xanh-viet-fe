@@ -3,8 +3,9 @@
 import { useState } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
-import { Star } from "lucide-react";
+import { Star, MessageSquare, Send, X, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,10 +29,10 @@ export function OrderStarsDisplay({ rating }: { rating: number }) {
         <Star
           key={i}
           className={cn(
-            "h-3.5 w-3.5",
+            "h-3 w-3 sm:h-3.5 sm:w-3.5",
             i <= rating
-              ? "fill-amber-400 text-amber-400"
-              : "text-muted-foreground/40",
+              ? "fill-amber-400 text-amber-400 stroke-[2.5px]"
+              : "text-muted-foreground/30 stroke-[1.5px]",
           )}
         />
       ))}
@@ -46,24 +47,36 @@ function StarInput({
   value: number;
   onChange: (n: number) => void;
 }) {
+  const [hovered, setHovered] = useState<number | null>(null);
+
   return (
-    <div className="flex gap-1" role="group" aria-label="Chọn số sao">
+    <div className="flex justify-center gap-2" role="group" aria-label="Chọn số sao">
       {[1, 2, 3, 4, 5].map((n) => (
-        <button
+        <motion.button
           key={n}
           type="button"
-          className="rounded-md p-0.5 hover:bg-muted"
+          whileHover={{ scale: 1.2 }}
+          whileTap={{ scale: 0.9 }}
+          onMouseEnter={() => setHovered(n)}
+          onMouseLeave={() => setHovered(null)}
+          className="relative outline-none group"
           onClick={() => onChange(n)}
         >
           <Star
             className={cn(
-              "h-8 w-8 transition-colors",
-              n <= value
-                ? "fill-amber-400 text-amber-400"
-                : "text-muted-foreground/50",
+              "h-10 w-10 transition-all duration-300",
+              n <= (hovered ?? value)
+                ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]"
+                : "text-muted-foreground/30",
             )}
           />
-        </button>
+          {n === value && (
+            <motion.div
+              layoutId="activeStar"
+              className="absolute inset-0 bg-amber-400/10 rounded-full -m-2 z-[-1]"
+            />
+          )}
+        </motion.button>
       ))}
     </div>
   );
@@ -112,7 +125,7 @@ function ProductReviewDialogBody({
     },
     onSuccess: () => {
       toast.success(
-        item.myReview ? "Đã cập nhật đánh giá" : "Đã gửi đánh giá",
+        item.myReview ? "Đã cập nhật đánh giá thành công" : "Đã gửi đánh giá thành công",
       );
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
       queryClient.invalidateQueries({
@@ -148,45 +161,93 @@ function ProductReviewDialogBody({
 
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>
-          {item.myReview ? "Sửa đánh giá sản phẩm" : "Đánh giá sản phẩm"}
+      <DialogHeader className="space-y-4">
+        <DialogTitle className="text-2xl font-bold text-center">
+          {item.myReview ? "Chỉnh sửa đánh giá" : "Đánh giá sản phẩm"}
         </DialogTitle>
-        <DialogDescription>
-          {item.product.name} — mỗi sản phẩm trong đơn đã giao có thể đánh giá
-          một lần. Phản hồi giúp nông dân cải thiện chất lượng.
+        <div className="flex flex-col items-center gap-4 py-2 border-y border-border/50">
+          <div className="h-20 w-20 rounded-2xl bg-muted overflow-hidden shadow-sm">
+            {item.product.imageUrl ? (
+              <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
+            ) : <Star className="h-10 w-10 m-5 text-muted-foreground/30" />}
+          </div>
+          <div className="text-center">
+            <h4 className="font-bold text-sm leading-tight">{item.product.name}</h4>
+            <p className="text-xs text-muted-foreground mt-1">Từ gian hàng: <span className="font-semibold">{order.shop?.name}</span></p>
+          </div>
+        </div>
+        <DialogDescription className="text-center px-4">
+          Hãy chia sẻ trải nghiệm thực tế của bạn để giúp nhà vườn cải thiện và hỗ trợ những người mua khác nhé.
         </DialogDescription>
       </DialogHeader>
-      <div className="space-y-4 py-1">
-        <div className="space-y-2">
-          <Label>Số sao (1–5)</Label>
+
+      <div className="space-y-8 py-6">
+        <div className="space-y-4">
+          <Label className="text-sm font-bold uppercase tracking-widest text-center block text-muted-foreground">
+            Bạn đánh giá mấy sao?
+          </Label>
           <StarInput value={reviewRating} onChange={setReviewRating} />
+          <div className="text-center">
+            <span className={cn(
+              "text-xs font-bold px-3 py-1 rounded-full",
+              reviewRating >= 4 ? "bg-emerald-100 text-emerald-700" :
+                reviewRating === 3 ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"
+            )}>
+              {reviewRating === 5 ? "Rất hài lòng 😍" :
+                reviewRating === 4 ? "Hài lòng 😊" :
+                  reviewRating === 3 ? "Bình thường 😐" :
+                    reviewRating === 2 ? "Không hài lòng ☹️" : "Rất tệ 😡"}
+            </span>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="product-review-comment">Nhận xét (tuỳ chọn)</Label>
-          <Textarea
-            id="product-review-comment"
-            placeholder="Chia sẻ trải nghiệm với sản phẩm này..."
-            value={reviewComment}
-            onChange={(e) => setReviewComment(e.target.value)}
-            rows={4}
-            maxLength={2000}
-            className="resize-none"
-          />
-          <p className="text-[11px] text-muted-foreground text-right">
-            {reviewComment.length}/2000
-          </p>
+
+        <div className="space-y-3 px-1">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MessageSquare className="h-4 w-4" />
+            <Label htmlFor="product-review-comment" className="text-sm font-bold">Nhận xét chi tiết</Label>
+          </div>
+          <div className="relative">
+            <Textarea
+              id="product-review-comment"
+              placeholder="Sản phẩm tươi ngon, đóng gói kỹ..."
+              value={reviewComment}
+              onChange={(e) => setReviewComment(e.target.value)}
+              rows={4}
+              maxLength={2000}
+              className="resize-none rounded-2xl border-2 focus-visible:ring-primary/20 transition-all placeholder:text-muted-foreground/40 pr-10"
+            />
+            {reviewComment.length > 0 && (
+              <button
+                onClick={() => setReviewComment("")}
+                className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted text-muted-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex justify-between items-center text-[11px]">
+            <p className="text-muted-foreground italic">Phản hồi của bạn rất quan trọng với chúng tôi</p>
+            <p className={cn(
+              "font-medium",
+              reviewComment.length > 1900 ? "text-rose-500" : "text-muted-foreground"
+            )}>
+              {reviewComment.length}/2000
+            </p>
+          </div>
         </div>
       </div>
-      <DialogFooter>
+
+      <DialogFooter className="sm:justify-center gap-3 pt-4">
         <Button
-          variant="outline"
+          variant="ghost"
           onClick={() => onOpenChange(false)}
           disabled={reviewMutation.isPending}
+          className="rounded-full px-8 font-bold"
         >
-          Huỷ
+          Để sau
         </Button>
         <Button
+          className="rounded-full px-10 font-bold shadow-lg shadow-primary/20 gap-2"
           disabled={
             reviewMutation.isPending || reviewRating < 1 || reviewRating > 5
           }
@@ -197,11 +258,10 @@ function ProductReviewDialogBody({
             });
           }}
         >
-          {reviewMutation.isPending
-            ? "Đang gửi..."
-            : item.myReview
-              ? "Cập nhật"
-              : "Gửi đánh giá"}
+          {reviewMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : <Send className="h-4 w-4" />}
+          {item.myReview ? "Cập nhật ngay" : "Gửi đánh giá"}
         </Button>
       </DialogFooter>
     </>
@@ -223,7 +283,7 @@ export function ProductReviewDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[480px] rounded-[2rem] p-6 sm:p-8 overflow-hidden">
         {order && item && open ? (
           <ProductReviewDialogBody
             key={`${order.id}-${item.productId}`}
@@ -240,4 +300,3 @@ export function ProductReviewDialog({
 
 /** @deprecated Dùng ProductReviewDialog */
 export const ShopReviewDialog = ProductReviewDialog;
-

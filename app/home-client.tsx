@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, MapPin, CheckCircle2, QrCode } from 'lucide-react';
 
 import ConsumerLayout from '@/components/layout/ConsumerLayout';
@@ -108,37 +107,40 @@ export default function HomeClient() {
       {/* ─── HERO ─────────────────────────────────────────────── */}
       <section className='relative overflow-hidden bg-gradient-to-b from-[hsl(142,22%,96%)] to-white'>
         {/* Watermark vegetables */}
-        <Image
+        <img
           src='/icons/carot.png'
           alt=''
           aria-hidden
           width={208}
           height={208}
-          className='pointer-events-none select-none absolute -left-10 -top-4 w-52 -rotate-12 opacity-[0.055] blur-[0.5px]'
+          className='pointer-events-none select-none absolute -left-10 -top-4 -rotate-12 opacity-[0.055] blur-[0.5px]'
         />
-        <Image
+
+        <img
           src='/icons/bo.png'
           alt=''
           aria-hidden
           width={256}
           height={256}
-          className='pointer-events-none select-none absolute -left-6 bottom-8  w-64 rotate-6   opacity-[0.05]  blur-[0.5px]'
+          className='pointer-events-none select-none absolute -left-6 bottom-8 rotate-6 opacity-[0.05] blur-[0.5px]'
         />
-        <Image
+
+        <img
           src='/icons/cam.png'
           alt=''
           aria-hidden
           width={224}
           height={224}
-          className='pointer-events-none select-none absolute -right-8 -top-6   w-56 rotate-12  opacity-[0.055] blur-[0.5px]'
+          className='pointer-events-none select-none absolute -right-8 -top-6 rotate-12 opacity-[0.055] blur-[0.5px]'
         />
-        <Image
+
+        <img
           src='/icons/catim.png'
           alt=''
           aria-hidden
           width={176}
           height={176}
-          className='pointer-events-none select-none absolute -right-4 bottom-4 w-44 -rotate-8  opacity-[0.05]  blur-[0.5px]'
+          className='pointer-events-none select-none absolute -right-4 bottom-4 -rotate-8 opacity-[0.05] blur-[0.5px]'
         />
 
         <div className='mx-auto max-w-7xl px-4 pb-20 pt-14 sm:px-6 lg:px-8 lg:pb-28 lg:pt-20'>
