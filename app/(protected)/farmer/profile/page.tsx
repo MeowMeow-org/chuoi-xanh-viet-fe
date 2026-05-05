@@ -2,17 +2,22 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { Loader2, Phone, Sprout, User } from "lucide-react";
+import { Loader2, MessageCircle, Phone, Sprout, User } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMeQuery, usePatchMeMutation } from "@/hooks/useAuth";
+import {
+  useMeQuery,
+  usePatchMeMutation,
+  useRequestTelegramLinkMutation,
+} from "@/hooks/useAuth";
 import { uploadService } from "@/services/upload/uploadService";
 
 export default function FarmerProfilePage() {
   const { data: me, isLoading } = useMeQuery();
   const patchMe = usePatchMeMutation();
+  const telegramLink = useRequestTelegramLinkMutation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -113,6 +118,58 @@ export default function FarmerProfilePage() {
           <div className="text-xs text-muted-foreground">
             Vai trò: <span className="font-medium">{me.role}</span> · Trạng
             thái: {me.status}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MessageCircle className="h-4 w-4" />
+            Thông báo Telegram
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <p className="text-muted-foreground">
+            Bấm nút dưới đây để mở bot Telegram. Trong app Telegram, bấm{" "}
+            <span className="font-medium text-foreground">Start</span> một lần
+            để nhận tin khi có đơn hàng hoặc tin nhắn (khi máy chủ đã bật gửi
+            Telegram).
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Trạng thái:{" "}
+            <span className="font-medium text-foreground">
+              {me.telegramLinked ? "Đã liên kết" : "Chưa liên kết"}
+            </span>
+            {me.telegramLinked
+              ? " — quay lại trang này và tải lại nếu vừa bấm Start xong."
+              : null}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              disabled={telegramLink.isPending || patchMe.isPending}
+              onClick={() => {
+                telegramLink.mutate();
+              }}
+            >
+              {telegramLink.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Mở Telegram nhận thông báo
+            </Button>
+            {me.telegramLinked ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={patchMe.isPending}
+                onClick={() => {
+                  patchMe.mutate({ unlinkTelegram: true });
+                }}
+              >
+                Hủy liên kết Telegram
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>
