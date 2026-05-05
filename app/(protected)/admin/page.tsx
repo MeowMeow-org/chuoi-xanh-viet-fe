@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Loader2, ShoppingCart, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { Loader2, ShoppingCart, UserPlus, Users } from "lucide-react";
 
 import { useAdminDashboardSummaryQuery } from "@/hooks/useAdmin";
 import {
@@ -30,8 +30,7 @@ export default function AdminPage() {
           </p>
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight">Tổng quan</h1>
           <p className="mt-3 text-sm text-[hsl(150,5%,45%)]">
-            Số liệu cập nhật từ hệ thống: người dùng, đơn hàng và chứng chỉ chờ duyệt (phạm vi
-            admin).
+            Số liệu cập nhật từ hệ thống: người dùng, đơn hàng và hoạt động vận hành.
           </p>
           <p className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
             <Link
@@ -47,10 +46,10 @@ export default function AdminPage() {
               Gửi thông báo hệ thống
             </Link>
             <Link
-              href="/admin/certificates"
+              href="/admin/audit-logs"
               className="font-medium text-[hsl(142,71%,38%)] underline-offset-2 hover:underline"
             >
-              Duyệt chứng chỉ
+              Audit logs
             </Link>
           </p>
         </header>
@@ -72,7 +71,7 @@ export default function AdminPage() {
 
         {data && !isLoading && (
           <>
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <article className="rounded-xl border border-[hsl(142,15%,88%)] bg-white p-5 shadow-sm">
                 <div className="flex items-center gap-2 text-[hsl(150,5%,45%)]">
                   <Users className="h-4 w-4" />
@@ -93,21 +92,6 @@ export default function AdminPage() {
                   <p className="text-sm">Đơn mới (7 ngày)</p>
                 </div>
                 <p className="mt-2 text-2xl font-bold tabular-nums">{data.last7Days.newOrders}</p>
-              </article>
-              <article className="rounded-xl border border-[hsl(142,15%,88%)] bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-2 text-[hsl(150,5%,45%)]">
-                  <ShieldCheck className="h-4 w-4" />
-                  <p className="text-sm">Chứng chỉ farm chờ duyệt (admin)</p>
-                </div>
-                <p className="mt-2 text-2xl font-bold tabular-nums">
-                  {data.pendingFarmCertificatesAdminScope}
-                </p>
-                <Link
-                  href="/admin/certificates"
-                  className="mt-2 inline-block text-xs font-medium text-[hsl(142,71%,38%)] hover:underline"
-                >
-                  Mở trang duyệt
-                </Link>
               </article>
             </section>
 

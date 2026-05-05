@@ -104,9 +104,8 @@ export default function FarmerCertificatesPage() {
         <div>
           <h1 className="text-xl font-bold">Chứng chỉ nông trại</h1>
           <p className="text-sm text-muted-foreground">
-            Nộp và theo dõi trạng thái VietGAP (và các chứng chỉ khác). Nếu nông
-            trại đã thuộc HTX, HTX sẽ là người duyệt. Nông hộ độc lập sẽ do quản
-            trị viên duyệt.
+            Nộp và theo dõi trạng thái VietGAP (và các chứng chỉ khác). Hệ thống
+            sẽ chuyển hồ sơ tới HTX phù hợp gần nông trại nhất để xét duyệt.
           </p>
         </div>
         <Button className="gap-1" onClick={() => setDialogOpen(true)}>
@@ -165,9 +164,7 @@ export default function FarmerCertificatesPage() {
                         className="text-[10px]"
                         title="Ai chịu trách nhiệm xét duyệt hồ sơ (khác với trạng thái «Đã duyệt»)"
                       >
-                        {c.approver_scope === "cooperative"
-                          ? "HTX xét duyệt"
-                          : "Admin xét duyệt"}
+                        HTX xét duyệt
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">

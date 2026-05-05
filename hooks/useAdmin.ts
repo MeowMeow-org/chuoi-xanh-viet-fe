@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   adminService,
   type AdminAccountStatus,
+  type AuditLogStatus,
   type AdminUserRole,
 } from "@/services/admin";
 
@@ -18,6 +19,19 @@ export const adminQueryKeys = {
     status?: AdminAccountStatus;
   }) => ["admin", "users", q] as const,
   user: (id: string) => ["admin", "user", id] as const,
+  auditLogs: (q?: {
+    page?: number;
+    limit?: number;
+    from?: string;
+    to?: string;
+    module?: string;
+    action?: string;
+    status?: AuditLogStatus;
+    actorUserId?: string;
+    entityType?: string;
+    entityId?: string;
+    q?: string;
+  }) => ["admin", "audit-logs", q] as const,
 };
 
 export function useAdminDashboardSummaryQuery() {
@@ -71,5 +85,25 @@ export function useAdminPatchUserStatusMutation() {
 export function useAdminBroadcastMutation() {
   return useMutation({
     mutationFn: adminService.broadcast,
+  });
+}
+
+export function useAdminAuditLogsQuery(q?: {
+  page?: number;
+  limit?: number;
+  from?: string;
+  to?: string;
+  module?: string;
+  action?: string;
+  status?: AuditLogStatus;
+  actorUserId?: string;
+  entityType?: string;
+  entityId?: string;
+  q?: string;
+}) {
+  return useQuery({
+    queryKey: adminQueryKeys.auditLogs(q),
+    queryFn: () => adminService.listAuditLogs(q),
+    staleTime: 15 * 1000,
   });
 }

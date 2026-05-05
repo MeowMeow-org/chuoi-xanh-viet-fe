@@ -144,15 +144,6 @@ export const certificateService = {
     });
   },
 
-  listPendingFarmCertsForAdmin: async (query?: {
-    page?: number;
-    limit?: number;
-  }): Promise<PaginatedResponse<FarmCertificate>> => {
-    return axiosInstance.get("/certificate/farm/pending/admin", {
-      params: query,
-    });
-  },
-
   approveFarmCert: async (
     certificateId: string,
     body?: { note?: string },

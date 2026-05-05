@@ -44,6 +44,38 @@ export type BroadcastResult = {
   batchId: string;
 };
 
+export type AuditLogStatus = "success" | "failed";
+
+export type AuditLogItem = {
+  id: string;
+  actor_user_id: string | null;
+  actor_role: AdminUserRole | null;
+  source: string;
+  module: string;
+  action: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  status: AuditLogStatus;
+  before_data: unknown;
+  after_data: unknown;
+  diff_data: unknown;
+  request_id: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  path: string | null;
+  method: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  created_at: string;
+  actor?: {
+    id: string;
+    full_name: string;
+    email: string | null;
+    phone: string;
+    role: AdminUserRole;
+  } | null;
+};
+
 export const adminService = {
   getDashboardSummary: async (): Promise<AdminDashboardSummary> => {
     return axiosInstance.get<AdminDashboardSummary, AdminDashboardSummary>(
@@ -90,6 +122,25 @@ export const adminService = {
       "/admin/notifications/broadcast",
       body,
     );
+  },
+
+  listAuditLogs: async (params?: {
+    page?: number;
+    limit?: number;
+    from?: string;
+    to?: string;
+    module?: string;
+    action?: string;
+    status?: AuditLogStatus;
+    actorUserId?: string;
+    entityType?: string;
+    entityId?: string;
+    q?: string;
+  }): Promise<PaginatedResponse<AuditLogItem>> => {
+    return axiosInstance.get<
+      PaginatedResponse<AuditLogItem>,
+      PaginatedResponse<AuditLogItem>
+    >("/admin/audit-logs", { params });
   },
 };
 
