@@ -50,6 +50,10 @@ export interface User {
   role: string;
   status: string;
   avatarUrl?: string | null;
+  /** Zalo OA — khi có, BE có thể gửi thông báo Zalo */
+  zaloUserId?: string | null;
+  /** Đã liên kết Telegram qua bot (deep link + Start); không có chat_id thô trên FE */
+  telegramLinked?: boolean;
 }
 
 export interface RegisterPayload {
