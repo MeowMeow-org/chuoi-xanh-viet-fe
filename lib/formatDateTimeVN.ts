@@ -13,12 +13,12 @@ export function formatRelativeTimeVN(iso: string) {
   const sec = Math.max(0, Math.floor((Date.now() - t) / 1000));
   if (sec < 60) return "Vừa xong";
   const min = Math.floor(sec / 60);
-  if (min < 60) return `${min} phút`;
+  if (min < 60) return `${min} phút trước`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} giờ`;
+  if (hr < 24) return `${hr} giờ trước`;
   const day = Math.floor(hr / 24);
-  if (day < 7) return `${day} ngày`;
+  if (day < 7) return `${day} ngày trước`;
   const week = Math.floor(day / 7);
-  if (week < 5) return `${week} tuần`;
+  if (week < 5) return `${week} tuần trước`;
   return formatDateTimeVN(iso);
 }

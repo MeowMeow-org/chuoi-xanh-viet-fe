@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { ForumPostImagePicker } from "@/components/forum/ForumPostImagePicker";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { formatRelativeTimeVN, formatDateTimeVN } from "@/lib/formatDateTimeVN";
 
 const roleMeta: Record<string, { label: string }> = {
   farmer: { label: "Nông hộ" },
@@ -50,12 +51,14 @@ export function ForumPostCard({
   post,
   currentUserId,
   allowEditPost = false,
+  viewMode = "current",
   readOnly = false,
   onRequireAuth,
 }: {
   post: ForumPost;
   currentUserId?: string;
   allowEditPost?: boolean;
+  viewMode?: "current" | "list";
   /** Guest mode: ẩn form bình luận, gắn link "Đăng nhập để bình luận". */
   readOnly?: boolean;
   /** Khi readOnly, bấm vào link sẽ gọi hàm này (toast + redirect login) */
@@ -73,6 +76,7 @@ export function ForumPostCard({
   const [editCommentText, setEditCommentText] = useState("");
   const [deletePostOpen, setDeletePostOpen] = useState(false);
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const [listCommentsOpen, setListCommentsOpen] = useState(false);
   const postMenuRef = useRef<HTMLDivElement | null>(null);
 
   const {
@@ -99,6 +103,7 @@ export function ForumPostCard({
   const nextCommentChunk = Math.min(FORUM_COMMENT_PAGE_SIZE, olderRemaining);
 
   const authorRole = roleDisplay(post.author.role);
+  const showCompactComments = viewMode === "list" && listCommentsOpen;
 
   const submitComment = () => {
     const t = commentDraft.trim();
@@ -217,22 +222,30 @@ export function ForumPostCard({
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 space-y-1">
-              <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex min-w-0 max-w-full items-center gap-1 font-medium text-foreground">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[hsl(142,30%,90%)] text-[hsl(142,71%,38%)]">
-                    <UserRound className="h-3 w-3" />
+              <div className="flex items-start gap-3">
+                <div className="shrink-0">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[hsl(142,30%,90%)] text-[hsl(142,71%,38%)]">
+                    <UserRound className="h-6 w-6" />
                   </span>
-                  <span className="truncate" title={post.author.fullName}>
-                    {post.author.fullName}
-                  </span>
-                </span>
-                <Badge className="h-5 shrink-0 border border-border bg-white text-[10px] text-foreground hover:bg-white">
-                  {authorRole.label}
-                </Badge>
-                <span className="shrink-0">
-                  {new Date(post.createdAt).toLocaleDateString("vi-VN")}
-                </span>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-medium text-foreground truncate" title={post.author.fullName}>
+                      {post.author.fullName}
+                    </div>
+                    <Badge className="h-5 shrink-0 border border-border bg-white text-[10px] text-foreground hover:bg-white">
+                      {authorRole.label}
+                    </Badge>
+                  </div>
+                  <div
+                    className="text-xs text-muted-foreground mt-0.5"
+                    title={formatDateTimeVN(post.createdAt)}
+                  >
+                    {formatRelativeTimeVN(post.createdAt)}
+                  </div>
+                </div>
               </div>
+
               {editingPost && allowEditPost && isPostOwner ? (
                 <div className="space-y-2">
                   <Input
@@ -242,8 +255,20 @@ export function ForumPostCard({
                   />
                 </div>
               ) : (
-                <CardTitle className="text-base leading-snug">{post.title}</CardTitle>
+                <CardTitle className="mt-2 text-base font-semibold leading-snug">{post.title}</CardTitle>
               )}
+
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {post.labels.map((slug) => (
+                  <Badge
+                    key={slug}
+                    variant="secondary"
+                    className="rounded-sm border border-border/70 bg-muted/50 px-1.5 py-1 text-[10px] font-medium leading-none text-foreground/75 shadow-none hover:bg-muted/70"
+                  >
+                    {forumSlugToLabel(slug)}
+                  </Badge>
+                ))}
+              </div>
             </div>
             {isPostOwner && (
               <div className="flex shrink-0 gap-1">
@@ -331,7 +356,7 @@ export function ForumPostCard({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className={cn("space-y-3", viewMode === "list" && "space-y-2")}>
           {editingPost && allowEditPost && isPostOwner ? (
             <div className="space-y-3">
               <Textarea
@@ -344,21 +369,21 @@ export function ForumPostCard({
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Ảnh hiện có</p>
                   <Image.PreviewGroup>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-3">
                       {editExistingImages.map((img, index) => (
                         <div
                           key={img.id}
-                          className="relative h-24 w-24 overflow-hidden rounded-md border bg-muted"
+                          className="relative h-64 w-64 overflow-hidden rounded-md border bg-muted"
                         >
                           <Image
                             src={img.url}
                             alt="Ảnh hiện có"
-                            width={96}
-                            height={96}
+                            width={256}
+                            height={256}
                             className="h-full w-full object-cover"
                             classNames={{
-                              root: "!h-24 !w-24",
-                              image: "!h-24 !w-24 !rounded-md !object-cover",
+                              root: "!h-64 !w-64",
+                              image: "!h-64 !w-64 !rounded-md !object-cover",
                             }}
                           />
                           <button
@@ -386,25 +411,32 @@ export function ForumPostCard({
               />
             </div>
           ) : (
-            <div className="rounded-xl border border-border/70 bg-muted/30 px-3 py-3">
-              <p className="whitespace-pre-line text-sm leading-6">{post.content}</p>
+            <div>
+              <p
+                className={cn(
+                  "whitespace-pre-line text-left text-sm leading-6",
+                  viewMode === "list" && "line-clamp-2 leading-5",
+                )}
+              >
+                {post.content}
+              </p>
             </div>
           )}
 
-          {!editingPost && post.images.length > 0 && (
+          {viewMode !== "list" && !editingPost && post.images.length > 0 && (
             <Image.PreviewGroup>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {post.images.map((img) => (
                   <Image
                     key={img.id}
                     src={img.url}
                     alt="Ảnh bài viết"
-                    width={96}
-                    height={96}
-                    className="h-24 w-24 overflow-hidden rounded-md border bg-muted object-cover"
+                    width={256}
+                    height={256}
+                    className="h-64 w-64 overflow-hidden rounded-md border bg-muted object-cover"
                     classNames={{
-                      root: "!h-24 !w-24 !overflow-hidden !rounded-md !border !border-border",
-                      image: "!h-24 !w-24 !rounded-md !object-cover",
+                      root: "!h-64 !w-64 !overflow-hidden !rounded-md !border !border-border",
+                      image: "!h-64 !w-64 !rounded-md !object-cover",
                     }}
                   />
                 ))}
@@ -412,25 +444,24 @@ export function ForumPostCard({
             </Image.PreviewGroup>
           )}
 
-          <div className="flex flex-wrap gap-1.5">
-            {post.labels.map((slug) => (
-              <Badge
-                key={slug}
-                variant="secondary"
-                className="text-xs hover:bg-secondary"
-              >
-                {forumSlugToLabel(slug)}
-              </Badge>
-            ))}
-          </div>
+          {viewMode === "list" ? (
+            <button
+              type="button"
+              onClick={() => setListCommentsOpen((open) => !open)}
+              className="flex items-center gap-2 self-start text-sm text-muted-foreground hover:text-foreground"
+            >
+              <MessageCircle className="h-4 w-4" />
+              {post.commentCount} bình luận
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MessageCircle className="h-4 w-4" />
+              {post.commentCount} bình luận
+              {commentsLoading && <span className="text-xs">(đang tải…)</span>}
+            </div>
+          )}
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MessageCircle className="h-4 w-4" />
-            {post.commentCount} bình luận
-            {commentsLoading && <span className="text-xs">(đang tải…)</span>}
-          </div>
-
-          {comments.length > 0 && (
+          {(viewMode !== "list" || showCompactComments) && comments.length > 0 && (
             <div className="space-y-3 border-t pt-3">
               {hasNextPage && (
                 <div className="flex justify-center pb-1">
@@ -577,7 +608,13 @@ export function ForumPostCard({
             </div>
           )}
 
-          {readOnly ? (
+          {viewMode === "list" && showCompactComments && comments.length === 0 && commentsLoading && (
+            <div className="border-t pt-3 text-sm text-muted-foreground">
+              Đang tải bình luận…
+            </div>
+          )}
+
+          {(viewMode !== "list" || showCompactComments) && (readOnly ? (
             <button
               type="button"
               onClick={() => onRequireAuth?.()}
@@ -611,7 +648,7 @@ export function ForumPostCard({
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-          )}
+          ))}
         </CardContent>
       </Card>
 

@@ -300,7 +300,7 @@ export default function ConsumerLayout({
                     >
                       <ShoppingCart className="h-4 w-4" />
                       {cartCount > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+                        <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center">
                           {cartCount}
                         </span>
                       )}
@@ -330,7 +330,7 @@ export default function ConsumerLayout({
                     >
                       <MessageSquare className="h-4 w-4" />
                       {chatConversationsWithUnread > 0 && (
-                        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-destructive-foreground tabular-nums">
+                        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-semibold text-white tabular-nums">
                           {chatConversationsWithUnread > 99
                             ? "99+"
                             : chatConversationsWithUnread}
@@ -640,7 +640,7 @@ export default function ConsumerLayout({
                   {item.label}
                 </span>
                 {item.to === "/consumer/cart" && cartCount > 0 && (
-                  <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] text-destructive-foreground">
+                  <span className="absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] text-white">
                     {cartCount}
                   </span>
                 )}
