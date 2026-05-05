@@ -10,6 +10,8 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat
 
 COPY package.json package-lock.json* ./
+# postinstall chạy ngay sau npm ci — cần script trước (chưa COPY toàn bộ mã nguồn).
+COPY scripts/copy-vietmap-worker.cjs scripts/copy-vietmap-worker.cjs
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 ############################
@@ -24,6 +26,9 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Đảm bảo worker VietMap có trong public/ (repo có thể không commit file generated).
+RUN node scripts/copy-vietmap-worker.cjs
 
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
