@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
 import { Button } from "@/components/ui/button";
@@ -20,11 +21,18 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Map,
 } from "lucide-react";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { shopService } from "@/services/shop/shopService";
 import type { PublicProduct, ShopSummary } from "@/services/shop";
 import { getStoredMarketplaceProvinceForApi } from "@/lib/location/marketplaceRegions";
+import type { ConsumerFarmersMapDialogProps } from "@/components/maps/ConsumerFarmersMapDialog";
+
+const ConsumerFarmersMapDialog = dynamic<ConsumerFarmersMapDialogProps>(
+  () => import("@/components/maps/ConsumerFarmersMapDialog"),
+  { ssr: false },
+);
 
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
@@ -96,6 +104,15 @@ function buildShopPageNumbers(page: number, totalPages: number): (number | "..."
 export default function ConsumerHomePage() {
   const province = getStoredMarketplaceProvinceForApi();
   const [shopPage, setShopPage] = useState(1);
+  const [farmersMapOpen, setFarmersMapOpen] = useState(false);
+
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setFarmersMapOpen(false);
+    };
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, []);
 
   const productsQuery = useQuery({
     queryKey: ["consumer-home-products", province ?? "all"],
@@ -139,6 +156,11 @@ export default function ConsumerHomePage() {
 
   return (
     <ConsumerLayout>
+      <ConsumerFarmersMapDialog
+        open={farmersMapOpen}
+        onOpenChange={setFarmersMapOpen}
+        province={province ?? null}
+      />
       <div className="pb-20 md:pb-0">
         {/* ── Hero ─────────────────────────────────────────────── */}
         <section className="relative overflow-hidden gradient-hero border-b border-border/40">
@@ -176,26 +198,44 @@ export default function ConsumerHomePage() {
                   nông hộ. Minh bạch từ ruộng đến bàn ăn.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-                  <Link href="/marketplace">
+                <div className="flex w-full flex-row flex-nowrap items-stretch gap-2 overflow-hidden whitespace-nowrap sm:gap-3 justify-center md:justify-start">
+                  <Link href="/marketplace" className="min-w-0 shrink">
                     <Button
                       size="lg"
-                      className="h-12 px-7 text-base font-bold gap-2 w-full sm:w-auto shadow-md shadow-primary/20"
+                      className="h-11 w-full min-w-0 gap-1.5 px-3 text-xs font-bold shadow-md shadow-primary/20 sm:h-12 sm:gap-2 sm:px-5 sm:text-sm md:text-base md:px-6"
                     >
-                      <ShoppingBag className="h-5 w-5" />
-                      Vào chợ ngay
+                      <ShoppingBag className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+                      <span className="truncate">
+                        <span className="sm:hidden">Vào chợ</span>
+                        <span className="hidden sm:inline">Vào chợ ngay</span>
+                      </span>
                     </Button>
                   </Link>
-                  <Link href="/truy-xuat">
+                  <Link href="/truy-xuat" className="min-w-0 shrink">
                     <Button
                       size="lg"
                       variant="outline"
-                      className="h-12 px-7 text-base font-bold gap-2 w-full sm:w-auto"
+                      className="h-11 w-full min-w-0 gap-1.5 px-3 text-xs font-bold sm:h-12 sm:gap-2 sm:px-5 sm:text-sm md:text-base md:px-6"
                     >
-                      <QrCode className="h-5 w-5" />
-                      Quét QR truy xuất
+                      <QrCode className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+                      <span className="truncate">
+                        <span className="sm:hidden">QR</span>
+                        <span className="hidden sm:inline">
+                          Quét QR truy xuất
+                        </span>
+                      </span>
                     </Button>
                   </Link>
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    className="h-11 min-w-0 shrink gap-1.5 px-3 text-xs font-bold border-primary/35 bg-background/80 hover:bg-primary/5 sm:h-12 sm:gap-2 sm:px-5 sm:text-sm md:text-base md:px-6"
+                    onClick={() => setFarmersMapOpen(true)}
+                  >
+                    <Map className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+                    <span className="truncate">Bản đồ</span>
+                  </Button>
                 </div>
               </div>
 

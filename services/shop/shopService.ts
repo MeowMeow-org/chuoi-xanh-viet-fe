@@ -9,6 +9,7 @@ import type {
   GetShopsQuery,
   PublicProduct,
   PublicProductDetail,
+  FarmMapPinsResponse,
   ShopSuggestResult,
   ProductListingSuggestResult,
   ShopSummary,
@@ -188,6 +189,18 @@ export const shopService = {
       `/shop/products/${productId}`,
     );
     return mapProductDetail(raw);
+  },
+
+  /** GET /shop/farm-locations — ghim GPS nông trại (gian hàng mở). */
+  getFarmMapPins: async (query?: {
+    province?: string;
+    district?: string;
+    ward?: string;
+  }): Promise<FarmMapPinsResponse> => {
+    return axiosInstance.get<FarmMapPinsResponse, FarmMapPinsResponse>(
+      "/shop/farm-locations",
+      { params: query },
+    );
   },
 
   /** GET /shop — BE: chỉ gian hàng mở cửa; lọc province/district/ward; sắp xếp sao → review → xác minh → mới → số SP. */

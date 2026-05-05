@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
@@ -39,6 +40,12 @@ import type { ShopReview } from "@/services/review";
 import { ProductRatingBadge } from "@/components/product/product-rating-badge";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { ProductFarmLocationDialogProps } from "@/components/maps/ProductFarmLocationDialog";
+
+const ProductFarmLocationDialog = dynamic<ProductFarmLocationDialogProps>(
+  () => import("@/components/maps/ProductFarmLocationDialog"),
+  { ssr: false },
+);
 
 const formatPrice = (price: number | string) => {
   const num = typeof price === "string" ? Number(price) : price;
@@ -178,6 +185,7 @@ export default function PublicProductPage() {
   const { productId } = useParams<{ productId: string }>();
   const router = useRouter();
   const [qty, setQty] = useState(1);
+  const [farmMapOpen, setFarmMapOpen] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const bringToFront = useCartStore((s) => s.bringToFront);
   const setSelectedProductIds = useCartStore((s) => s.setSelectedProductIds);
@@ -265,6 +273,9 @@ export default function PublicProductPage() {
   const reviewItems: ShopReview[] = productReviewsQuery.data?.items ?? [];
   const productTotal = shopProductsMetaQuery.data?.meta.total ?? 0;
   const chatPeerId = product.shop.farm?.ownerUserId;
+  const farmPlaceLabel = product.shop.farm?.province
+    ? `${product.shop.farm.district ? `${product.shop.farm.district}, ` : ""}${product.shop.farm.province}`
+    : "Đang cập nhật";
 
   const addToCart = () => {
     if (
@@ -470,17 +481,25 @@ export default function PublicProductPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border border-border/40 rounded-2xl p-4 bg-card flex items-start gap-3.5 group hover:border-primary/20 transition-all">
+                  <button
+                    type="button"
+                    onClick={() => setFarmMapOpen(true)}
+                    aria-label="Xem bản đồ và chỉ đường tới vị trí canh tác"
+                    className="border border-border/40 rounded-2xl p-4 bg-card flex items-start gap-3.5 group hover:border-primary/30 hover:bg-primary/[0.02] transition-all text-left w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
                     <div className="p-2.5 bg-muted rounded-xl group-hover:bg-primary/5 transition-colors shrink-0">
                       <MapPin className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
-                    <div className="space-y-0.5 min-w-0">
+                    <div className="space-y-0.5 min-w-0 flex-1">
                       <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Canh tác tại</h3>
                       <p className="text-xs font-bold truncate">
-                        {product.shop.farm?.province ? `${product.shop.farm.district ? `${product.shop.farm.district}, ` : ""}${product.shop.farm.province}` : "Đang cập nhật"}
+                        {farmPlaceLabel}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground font-medium pt-0.5">
+                        Bấm để xem bản đồ · chỉ đường
                       </p>
                     </div>
-                  </div>
+                  </button>
 
                   {product.season && (
                     <div className="border border-border/40 rounded-2xl p-4 bg-card flex items-start gap-3.5 group hover:border-primary/20 transition-all">
@@ -670,6 +689,15 @@ export default function PublicProductPage() {
       </div>
 
       {/* Mobile Sticky Action */}
+      <ProductFarmLocationDialog
+        open={farmMapOpen}
+        onOpenChange={setFarmMapOpen}
+        placeLabel={farmPlaceLabel}
+        farmLat={product.shop.farm?.latitude ?? null}
+        farmLng={product.shop.farm?.longitude ?? null}
+        farmName={product.shop.farm?.name ?? product.shop.name}
+      />
+
       {showBuyingActions && (
         <div className="fixed bottom-[56px] left-0 right-0 z-50 lg:hidden p-3 md:p-4 bg-background/95 backdrop-blur-xl border-t border-border/20 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
           <div className="container flex items-center gap-3">
