@@ -77,6 +77,25 @@ export interface PublicProductDetail extends PublicProduct {
 
 export type PublicProductSort = "newest" | "price_asc" | "price_desc";
 
+/** GET /shop/farm-locations */
+export interface FarmMapPin {
+  shop_id: string;
+  shop_name: string;
+  is_verified: boolean;
+  farm_id: string;
+  farm_name: string;
+  province: string | null;
+  district: string | null;
+  ward: string | null;
+  latitude: number;
+  longitude: number;
+}
+
+export interface FarmMapPinsResponse {
+  items: FarmMapPin[];
+  total: number;
+}
+
 export interface GetPublicProductsQuery {
   page?: number;
   limit?: number;
