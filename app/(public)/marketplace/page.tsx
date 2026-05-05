@@ -104,9 +104,9 @@ export default function MarketplacePage() {
     queryKey: [
       'public-products',
       debouncedSearch,
-      location.province,
-      location.district,
-      location.ward,
+      location.provinceCode,
+      location.districtCode,
+      location.wardCode,
       sort,
       debouncedMinPrice,
       debouncedMaxPrice,
@@ -117,9 +117,9 @@ export default function MarketplacePage() {
         page,
         limit: LIMIT,
         searchTerm: debouncedSearch || undefined,
-        province: location.province,
-        district: location.district,
-        ward: location.ward,
+        provinceCode: location.provinceCode,
+        districtCode: location.districtCode,
+        wardCode: location.wardCode,
         sort,
         minPrice: parseVnPriceInput(debouncedMinPrice),
         maxPrice: parseVnPriceInput(debouncedMaxPrice),
@@ -131,9 +131,9 @@ export default function MarketplacePage() {
     queryKey: [
       'public-shops',
       debouncedSearch,
-      location.province,
-      location.district,
-      location.ward,
+      location.provinceCode,
+      location.districtCode,
+      location.wardCode,
       page,
     ],
     queryFn: () =>
@@ -141,9 +141,9 @@ export default function MarketplacePage() {
         page,
         limit: LIMIT,
         searchTerm: debouncedSearch || undefined,
-        province: location.province,
-        district: location.district,
-        ward: location.ward,
+        provinceCode: location.provinceCode,
+        districtCode: location.districtCode,
+        wardCode: location.wardCode,
       }),
     enabled: view === 'shops',
   });
@@ -185,9 +185,9 @@ export default function MarketplacePage() {
     (val: MarketplaceLocationValue) => {
       const prev = locationRef.current;
       const changed =
-        prev.province !== val.province ||
-        prev.district !== val.district ||
-        prev.ward !== val.ward;
+        prev.provinceCode !== val.provinceCode ||
+        prev.districtCode !== val.districtCode ||
+        prev.wardCode !== val.wardCode;
       locationRef.current = val;
       setLocation(val);
       if (changed) setPage(1);

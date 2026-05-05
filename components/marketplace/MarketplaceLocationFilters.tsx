@@ -121,9 +121,14 @@ function RadioScrollList({
 }
 
 export type MarketplaceLocationValue = {
-  province?: string;
-  district?: string;
-  ward?: string;
+  /** Code chuẩn hành chính (theo provinces.open-api.vn). undefined = không filter cấp này. */
+  provinceCode?: number;
+  districtCode?: number;
+  wardCode?: number;
+  /** Tên hiển thị (đã strip prefix). Tuỳ chọn — giúp UI hiển thị nhanh không cần tra lại. */
+  provinceName?: string;
+  districtName?: string;
+  wardName?: string;
 };
 
 type Props = {
@@ -205,28 +210,25 @@ export function MarketplaceLocationFilters({ onChange, className }: Props) {
   );
 
   const filterPayload = useMemo((): MarketplaceLocationValue => {
-    const province =
-      provinceCode != null
-        ? normalizeLocationName(
-            provincesSorted.find((p) => p.code === provinceCode)?.name ?? '',
-          )
-        : undefined;
-    const district =
-      districtCode != null
-        ? normalizeLocationName(
-            districtsSorted.find((d) => d.code === districtCode)?.name ?? '',
-          )
-        : undefined;
-    const ward =
-      wardCode != null
-        ? normalizeLocationName(
-            wardsSorted.find((w) => w.code === wardCode)?.name ?? '',
-          )
-        : undefined;
     const out: MarketplaceLocationValue = {};
-    if (province) out.province = province;
-    if (district) out.district = district;
-    if (ward) out.ward = ward;
+    if (provinceCode != null) {
+      out.provinceCode = provinceCode;
+      out.provinceName = normalizeLocationName(
+        provincesSorted.find((p) => p.code === provinceCode)?.name ?? '',
+      );
+    }
+    if (districtCode != null) {
+      out.districtCode = districtCode;
+      out.districtName = normalizeLocationName(
+        districtsSorted.find((d) => d.code === districtCode)?.name ?? '',
+      );
+    }
+    if (wardCode != null) {
+      out.wardCode = wardCode;
+      out.wardName = normalizeLocationName(
+        wardsSorted.find((w) => w.code === wardCode)?.name ?? '',
+      );
+    }
     return out;
   }, [
     provinceCode,

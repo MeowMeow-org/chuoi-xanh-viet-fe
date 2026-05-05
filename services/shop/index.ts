@@ -81,9 +81,14 @@ export interface GetPublicProductsQuery {
   page?: number;
   limit?: number;
   searchTerm?: string;
+  /** @deprecated dùng provinceCode để filter chính xác. Giữ để backward-compat. */
   province?: string;
   district?: string;
   ward?: string;
+  /** Code hành chính theo provinces.open-api.vn */
+  provinceCode?: number;
+  districtCode?: number;
+  wardCode?: number;
   shopId?: string;
   sort?: PublicProductSort;
   minPrice?: number;
@@ -94,9 +99,13 @@ export interface GetShopsQuery {
   page?: number;
   limit?: number;
   searchTerm?: string;
+  /** @deprecated dùng provinceCode để filter chính xác. */
   province?: string;
   district?: string;
   ward?: string;
+  provinceCode?: number;
+  districtCode?: number;
+  wardCode?: number;
 }
 
 export interface ShopCooperativeSummary {

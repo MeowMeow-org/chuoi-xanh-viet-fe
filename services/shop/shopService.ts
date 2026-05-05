@@ -172,6 +172,27 @@ const mapProductDetail = (row: RawProductRow): PublicProductDetail => {
   };
 };
 
+/** BE expects snake_case keys for code params; rewrite trước khi gửi. */
+function toShopFilterParams(
+  query: GetPublicProductsQuery | GetShopsQuery | undefined,
+): Record<string, unknown> | undefined {
+  if (!query) return undefined;
+  const params: Record<string, unknown> = { ...query };
+  if ("provinceCode" in query) {
+    params.province_code = query.provinceCode;
+    delete params.provinceCode;
+  }
+  if ("districtCode" in query) {
+    params.district_code = query.districtCode;
+    delete params.districtCode;
+  }
+  if ("wardCode" in query) {
+    params.ward_code = query.wardCode;
+    delete params.wardCode;
+  }
+  return params;
+}
+
 export const shopService = {
   getPublicProducts: async (
     query?: GetPublicProductsQuery,
@@ -179,7 +200,7 @@ export const shopService = {
     const raw = await axiosInstance.get<
       PaginatedResponse<RawProductRow>,
       PaginatedResponse<RawProductRow>
-    >("/shop/products", { params: query });
+    >("/shop/products", { params: toShopFilterParams(query) });
     return { items: raw.items.map(mapProduct), meta: raw.meta };
   },
 
@@ -190,14 +211,14 @@ export const shopService = {
     return mapProductDetail(raw);
   },
 
-  /** GET /shop — BE: chỉ gian hàng mở cửa; lọc province/district/ward; sắp xếp sao → review → xác minh → mới → số SP. */
+  /** GET /shop — BE: chỉ gian hàng mở cửa; lọc theo code hành chính (province/district/ward); sắp xếp sao → review → xác minh → mới → số SP. */
   getShops: async (
     query?: GetShopsQuery,
   ): Promise<PaginatedResponse<ShopSummary>> => {
     const raw = await axiosInstance.get<
       PaginatedResponse<ShopSummary>,
       PaginatedResponse<ShopSummary>
-    >("/shop", { params: query });
+    >("/shop", { params: toShopFilterParams(query) });
     return raw;
   },
 

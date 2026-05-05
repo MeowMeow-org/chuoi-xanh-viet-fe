@@ -11,6 +11,11 @@ function toCreateFarmBody(payload: CreateFarmPayload): Record<string, unknown> {
   if (payload.province !== undefined) body.province = payload.province;
   if (payload.district !== undefined) body.district = payload.district;
   if (payload.ward !== undefined) body.ward = payload.ward;
+  if (payload.provinceCode !== undefined)
+    body.province_code = payload.provinceCode;
+  if (payload.districtCode !== undefined)
+    body.district_code = payload.districtCode;
+  if (payload.wardCode !== undefined) body.ward_code = payload.wardCode;
   if (payload.address !== undefined) body.address = payload.address;
   if (payload.latitude !== undefined) body.latitude = payload.latitude;
   if (payload.longitude !== undefined) body.longitude = payload.longitude;

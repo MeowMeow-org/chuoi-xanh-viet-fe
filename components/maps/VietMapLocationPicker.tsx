@@ -108,13 +108,32 @@ export default function VietMapLocationPicker({
     setPlaceSearching(true);
 
     try {
-      const params = new URLSearchParams({ q });
-      const fl = parseCoord(latStrRef.current);
-      const fo = parseCoord(lngStrRef.current);
-      if (fl != null && fo != null) {
-        params.set("focusLat", String(fl));
-        params.set("focusLon", String(fo));
+      // Ưu tiên luồng autocomplete -> place detail để giảm trường hợp nhảy sai điểm.
+      // Không dùng focusLat/focusLon ở bước tìm text để tránh kéo kết quả về tọa độ cũ.
+      const acRes = await fetch(`/api/vietmap/autocomplete?${new URLSearchParams({ q })}`);
+      const acBody = (await acRes.json().catch(() => ({}))) as {
+        suggestions?: { refId: string; display: string }[];
+      };
+      const acList = Array.isArray(acBody.suggestions) ? acBody.suggestions : [];
+      if (acList.length > 0) {
+        const first = acList[0];
+        const placeRes = await fetch(
+          `/api/vietmap/place?${new URLSearchParams({ refId: first.refId })}`,
+        );
+        const placeBody = (await placeRes.json().catch(() => ({}))) as {
+          lat?: number;
+          lng?: number;
+          formattedAddress?: string;
+        };
+        const pLat = Number(placeBody.lat);
+        const pLng = Number(placeBody.lng);
+        if (placeRes.ok && Number.isFinite(pLat) && Number.isFinite(pLng)) {
+          moveMapTo(pLat, pLng, placeBody.formattedAddress ?? first.display);
+          return;
+        }
       }
+
+      const params = new URLSearchParams({ q });
 
       let lat: number;
       let lng: number;
@@ -262,16 +281,6 @@ export default function VietMapLocationPicker({
       suggestAbortRef.current = ac;
 
       const params = new URLSearchParams({ q });
-      const fl = parseCoord(latStrRef.current);
-      const fo = parseCoord(lngStrRef.current);
-      if (fl != null && fo != null) {
-        params.set("focusLat", String(fl));
-        params.set("focusLon", String(fo));
-      } else {
-        const [lngD, latD] = VIETMAP_DEFAULT_CENTER;
-        params.set("focusLat", String(latD));
-        params.set("focusLon", String(lngD));
-      }
 
       void (async () => {
         try {
@@ -386,6 +395,8 @@ export default function VietMapLocationPicker({
             map!.jumpTo({ center: [lng, lat], zoom: 15 });
           } else {
             marker!.setLngLat(VIETMAP_DEFAULT_CENTER);
+            // Mở popup map lần đầu (chưa có tọa độ) vẫn zoom gần để user thấy đường xá ngay.
+            map!.jumpTo({ center: VIETMAP_DEFAULT_CENTER, zoom: 13 });
           }
           marker!.addTo(map!);
           mapRef.current = map;

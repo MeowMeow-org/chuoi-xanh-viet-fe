@@ -9,8 +9,12 @@ import ConsumerLayout from "@/components/layout/ConsumerLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  AddressPicker,
+  emptyAddressPickerValue,
+  type AddressPickerValue,
+} from "@/components/address/AddressPicker";
 import {
   ShoppingBag,
   CreditCard,
@@ -76,10 +80,30 @@ export default function ConsumerCheckoutPage() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [addressDetail, setAddressDetail] = useState("");
+  const [addressPicker, setAddressPicker] = useState<AddressPickerValue>(
+    emptyAddressPickerValue(),
+  );
   const [note, setNote] = useState("");
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [ordered, setOrdered] = useState(false);
+
+  const composedShippingAddress = useMemo(() => {
+    const parts = [
+      addressDetail,
+      addressPicker.wardName,
+      addressPicker.districtName,
+      addressPicker.provinceName,
+    ]
+      .map((v) => v?.trim())
+      .filter((v): v is string => Boolean(v && v.length > 0));
+    return parts.join(", ");
+  }, [
+    addressDetail,
+    addressPicker.wardName,
+    addressPicker.districtName,
+    addressPicker.provinceName,
+  ]);
 
   const groups = groupCartByShop(items);
   const shippingFee = groups.length * SHIPPING_FEE_PER_SHOP;
@@ -104,7 +128,14 @@ export default function ConsumerCheckoutPage() {
             })),
             shippingName: displayName.trim(),
             shippingPhone: displayPhone.trim(),
-            shippingAddress: address.trim(),
+            shippingAddress: composedShippingAddress,
+            shippingProvinceCode: addressPicker.provinceCode,
+            shippingDistrictCode: addressPicker.districtCode,
+            shippingWardCode: addressPicker.wardCode,
+            shippingProvinceName: addressPicker.provinceName || undefined,
+            shippingDistrictName: addressPicker.districtName || undefined,
+            shippingWardName: addressPicker.wardName || undefined,
+            shippingDetail: addressDetail.trim() || undefined,
             paymentMethod: payment,
             note: note.trim() || undefined,
           });
@@ -171,8 +202,20 @@ export default function ConsumerCheckoutPage() {
   }, [hasHydrated, items.length, ordered, router, mutation.isPending]);
 
   const placeOrder = () => {
-    if (!displayName.trim() || !displayPhone.trim() || !address.trim()) {
+    if (!displayName.trim() || !displayPhone.trim()) {
       toast.error("Vui lòng hoàn thiện thông tin giao hàng còn thiếu");
+      return;
+    }
+    if (
+      addressPicker.provinceCode == null ||
+      addressPicker.districtCode == null ||
+      addressPicker.wardCode == null
+    ) {
+      toast.error("Vui lòng chọn đầy đủ tỉnh/quận/phường");
+      return;
+    }
+    if (!addressDetail.trim()) {
+      toast.error("Vui lòng nhập số nhà / đường để shipper dễ tìm");
       return;
     }
     mutation.mutate();
@@ -268,19 +311,27 @@ export default function ConsumerCheckoutPage() {
                         </div>
                       </div>
                       <div className="space-y-2.5">
-                        <Label
-                          htmlFor="address"
-                          className="text-[11px] font-black uppercase tracking-wider pl-1"
-                        >
+                        <Label className="text-[11px] font-black uppercase tracking-wider pl-1">
                           Địa chỉ giao hàng
                         </Label>
-                        <Textarea
-                          id="address"
-                          className="rounded-2xl border-border/80 focus-visible:ring-primary/10 min-h-[120px] resize-none p-4.5 bg-background font-medium leading-relaxed"
-                          placeholder="Vui lòng nhập địa chỉ chi tiết để shipper dễ tìm nhé..."
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
+                        <AddressPicker
+                          value={addressPicker}
+                          onChange={setAddressPicker}
+                          requiredLevel="ward"
+                          triggerClassName="rounded-2xl"
                         />
+                        <Input
+                          id="address-detail"
+                          className="rounded-2xl border-border/80 focus-visible:ring-primary/10 h-11 md:h-12 bg-background font-medium text-sm md:text-base"
+                          placeholder="Số nhà, đường (không cần ghi lại tỉnh/quận/xã)"
+                          value={addressDetail}
+                          onChange={(e) => setAddressDetail(e.target.value)}
+                        />
+                        {composedShippingAddress && (
+                          <p className="text-[11px] text-muted-foreground italic pl-1">
+                            Địa chỉ hiển thị: {composedShippingAddress}
+                          </p>
+                        )}
                       </div>
                       <div className="space-y-2.5 pt-2">
                         <Label
