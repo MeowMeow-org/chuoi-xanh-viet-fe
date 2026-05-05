@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Hash, MapPin, X } from "lucide-react";
+import { Clock, Hash, MapPin, Sparkles, X } from "lucide-react";
 
-import { useDiariesQuery } from "@/hooks/useDiary";
+import OverallRiskBadge from "@/components/diary/OverallRiskBadge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDiariesQuery } from "@/hooks/useDiary";
 import { formatDiaryRecordedAt } from "@/lib/diary-date";
-import type { DiaryAttachment } from "@/services/diary";
+import type { DiaryAttachment, DiaryEntry, DiaryScanResult, OverallRisk, ScanViolation } from "@/services/diary";
 
 interface DiaryTimelineProps {
   seasonId?: string;
+  onViewScanResult?: (result: DiaryScanResult) => void;
 }
 
 function attachmentThumb(a: DiaryAttachment): string {
@@ -20,22 +23,38 @@ function attachmentThumb(a: DiaryAttachment): string {
 }
 
 const eventTypeLabelMap: Record<string, string> = {
-    land_prep: "Làm đất",
-    sowing: "Gieo trồng",
-    fertilizing: "Bón phân",
-    pesticide: "Phun thuốc",
+  land_prep: "Làm đất",
+  sowing: "Gieo trồng",
+  fertilizing: "Bón phân",
+  pesticide: "Phun thuốc",
   irrigation: "Tưới nước",
-    harvesting: "Thu hoạch",
-    packing: "Đóng gói",
+  harvesting: "Thu hoạch",
+  packing: "Đóng gói",
   inspection: "Kiểm tra HTX",
   other: "Khác",
 };
 
-export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
-    const { diaries, isLoading, error } = useDiariesQuery({
+function extractScanResult(entry: DiaryEntry): DiaryScanResult | null {
+  if (entry.eventType !== "other") return null;
+  const extra = entry.extraData as Record<string, unknown> | null;
+  if (!extra || extra.type !== "ai_scan_result") return null;
+  return {
+    seasonId: entry.seasonId,
+    scannedAt: extra.scannedAt as string,
+    overallRisk: extra.overallRisk as OverallRisk,
+    violations: (extra.violations ?? []) as ScanViolation[],
+    summary: extra.summary as string,
+  };
+}
+
+export default function DiaryTimeline({
+  seasonId,
+  onViewScanResult,
+}: DiaryTimelineProps) {
+  const { diaries, isLoading, error } = useDiariesQuery({
     seasonId,
     page: 1,
-    limit: 5,
+    limit: seasonId ? 50 : 5,
   });
 
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -49,11 +68,16 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxUrl]);
 
-  const sorted = [...diaries].sort((a, b) => {
+  const allSorted = [...diaries].sort((a, b) => {
     const ta = new Date(a.serverTimestamp ?? a.createdAt).getTime();
     const tb = new Date(b.serverTimestamp ?? b.createdAt).getTime();
     return tb - ta;
   });
+
+  const normalEntries = allSorted.filter((e) => extractScanResult(e) === null);
+  const latestScanResult = allSorted
+    .map(extractScanResult)
+    .find((r): r is DiaryScanResult => r !== null) ?? null;
 
   return (
     <Card>
@@ -68,15 +92,33 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
         </div>
       </CardHeader>
       <CardContent>
-                {isLoading ? (
+        {latestScanResult && onViewScanResult && (
+          <div className="mb-4 flex items-center justify-between rounded-xl border bg-muted/40 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Kết quả kiểm tra AI</span>
+              <OverallRiskBadge risk={latestScanResult.overallRisk} size="sm" />
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => onViewScanResult(latestScanResult)}
+            >
+              Xem kết quả
+            </Button>
+          </div>
+        )}
+
+        {isLoading ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
             Đang tải nhật ký...
           </p>
-                ) : error ? (
-                    <p className="py-8 text-center text-sm text-red-600">
-                        Không thể tải nhật ký mùa vụ.
-                    </p>
-        ) : sorted.length === 0 ? (
+        ) : error ? (
+          <p className="py-8 text-center text-sm text-red-600">
+            Không thể tải nhật ký mùa vụ.
+          </p>
+        ) : normalEntries.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
             Chưa có bản ghi nào.
           </p>
@@ -85,7 +127,7 @@ export default function DiaryTimeline({ seasonId }: DiaryTimelineProps) {
             <div className="absolute bottom-0 left-4 top-0 w-0.5 bg-primary/20" />
 
             <div className="space-y-4">
-              {sorted.map((entry, index) => {
+              {normalEntries.map((entry, index) => {
                 const hashSeed = `${entry.id}-${entry.createdAt}`;
                 const displayHash = hashSeed
                   .replace(/[^a-zA-Z0-9]/g, "")

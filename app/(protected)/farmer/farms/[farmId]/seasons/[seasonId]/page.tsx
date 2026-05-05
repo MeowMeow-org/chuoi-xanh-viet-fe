@@ -11,6 +11,7 @@ import {
   Loader2,
   Save,
   Scale,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -20,6 +21,7 @@ import { toast } from "@/components/ui/toast";
 import DiaryEntryForm from "@/components/dashboard/DiaryEntryForm";
 import DiaryTimeline from "@/components/dashboard/DiaryTimeline";
 import SaleUnitsSection from "@/components/dashboard/SaleUnitsSection";
+import DiaryScanResultModal from "@/components/diary/DiaryScanResultModal";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -35,12 +37,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMyFarmsQuery } from "@/hooks/useFarm";
+import { useScanDiaryMutation } from "@/hooks/useDiary";
 import {
   useChangeSeasonStatusMutation,
   useDeleteSeasonMutation,
   useSeasonDetailQuery,
   useUpdateSeasonMutation,
 } from "@/hooks/useSeason";
+import type { DiaryScanResult } from "@/services/diary";
 import type { SeasonStatus } from "@/services/season";
 
 /** Decimal / JSON từ BE thường là string — không dùng Number.isFinite trực tiếp. */
@@ -102,6 +106,8 @@ export default function SeasonDetailPage() {
   const [seasonTab, setSeasonTab] = useState<"timeline" | "add" | "sale-units">(
     "timeline",
   );
+  const [scanModalOpen, setScanModalOpen] = useState(false);
+  const [scanResult, setScanResult] = useState<DiaryScanResult | null>(null);
 
   const { farms } = useMyFarmsQuery({ page: 1, limit: 100 });
   const { data: season, isLoading } = useSeasonDetailQuery(seasonId, {
@@ -110,6 +116,7 @@ export default function SeasonDetailPage() {
   const deleteSeason = useDeleteSeasonMutation();
   const changeStatus = useChangeSeasonStatusMutation();
   const updateSeason = useUpdateSeasonMutation();
+  const scanDiary = useScanDiaryMutation();
   const farm = farms.find((item) => item.id === farmId);
 
   const currentStatus = season?.status;
@@ -175,6 +182,21 @@ export default function SeasonDetailPage() {
         },
       },
     );
+  };
+
+  const handleScan = () => {
+    if (!seasonId) return;
+    scanDiary.mutate(seasonId, {
+      onSuccess: (result) => {
+        setScanResult(result);
+        setScanModalOpen(true);
+      },
+    });
+  };
+
+  const handleViewScanResult = (result: DiaryScanResult) => {
+    setScanResult(result);
+    setScanModalOpen(true);
   };
 
   return (
@@ -428,7 +450,31 @@ export default function SeasonDetailPage() {
         })()}
 
         <TabsContent value="timeline">
-          <DiaryTimeline seasonId={season?.id} />
+          <div className="mb-3 flex items-center justify-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={!seasonId || isLoading || scanDiary.isPending}
+              onClick={handleScan}
+            >
+              {scanDiary.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang kiểm tra...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Kiểm tra AI
+                </>
+              )}
+            </Button>
+          </div>
+          <DiaryTimeline
+            seasonId={season?.id}
+            onViewScanResult={handleViewScanResult}
+          />
         </TabsContent>
 
         {!hideAddDiary && (
@@ -456,6 +502,12 @@ export default function SeasonDetailPage() {
           </TabsContent>
         )}
       </Tabs>
+
+      <DiaryScanResultModal
+        result={scanResult}
+        open={scanModalOpen}
+        onClose={() => setScanModalOpen(false)}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import type {
   CreateDiaryPayload,
   DiaryAttachment,
   DiaryEntry,
+  DiaryScanResult,
   GetDiariesQuery,
 } from "./index";
 
@@ -50,6 +51,14 @@ export const diaryService = {
   ): Promise<void> => {
     await axiosInstance.delete(
       `/diary/${diaryId}/attachments/${attachmentId}`,
+    );
+  },
+
+  scanDiarySeason: async (seasonId: string): Promise<DiaryScanResult> => {
+    return axiosInstance.post<DiaryScanResult, DiaryScanResult>(
+      `/diary/scan/${seasonId}`,
+      undefined,
+      { timeout: 30000 },
     );
   },
 };
