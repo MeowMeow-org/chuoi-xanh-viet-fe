@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -129,7 +129,10 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
     page: 1,
     limit: 50,
   });
-  const allCerts = certsQuery.data?.items ?? [];
+  const allCerts = useMemo(
+    () => certsQuery.data?.items ?? [],
+    [certsQuery.data],
+  );
   const approvedCertCount = useMemo(
     () => allCerts.filter((c) => c.status === "approved").length,
     [allCerts],
@@ -158,14 +161,6 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
     1,
     Math.ceil(filteredCerts.length / CERT_LIST_PAGE_SIZE),
   );
-
-  useEffect(() => {
-    setCertListPage(1);
-  }, [showArchivedCerts]);
-
-  useEffect(() => {
-    if (certListPage > certTotalPages) setCertListPage(certTotalPages);
-  }, [certListPage, certTotalPages]);
 
   const safeCertPage = Math.min(certListPage, certTotalPages);
   const pagedCerts = useMemo(() => {
@@ -405,7 +400,11 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
               {certListMeta.totalPages > 1 ? (
                 <Pagination
                   meta={certListMeta}
-                  onPageChange={setCertListPage}
+                  onPageChange={(p) =>
+                    setCertListPage(
+                      Math.min(Math.max(1, p), certTotalPages),
+                    )
+                  }
                   className="pt-1"
                 />
               ) : null}
@@ -418,7 +417,10 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
               variant="ghost"
               size="sm"
               className="mt-2 h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => setShowArchivedCerts((v) => !v)}
+              onClick={() => {
+                setShowArchivedCerts((v) => !v);
+                setCertListPage(1);
+              }}
             >
               {showArchivedCerts
                 ? `Ẩn chứng chỉ đã hết hạn / vô hiệu (${archivedCertCount})`

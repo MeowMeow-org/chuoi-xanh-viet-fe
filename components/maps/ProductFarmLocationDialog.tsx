@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ExternalLink, Loader2, MapPin, Navigation } from "lucide-react";
 
 import {
@@ -88,13 +88,14 @@ export default function ProductFarmLocationDialog({
     Number.isFinite(farmLat) &&
     Number.isFinite(farmLng);
 
-  useEffect(() => {
-    if (!open) {
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
       setDirectionsMode(false);
       setUserOrigin(null);
       setGeoLoading(false);
     }
-  }, [open]);
+    onOpenChange(next);
+  };
 
   const gmapsHref = useMemo(() => {
     if (hasCoords) {
@@ -135,7 +136,7 @@ export default function ProductFarmLocationDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         showCloseButton
         className="flex max-h-[min(94vh,900px)] w-[min(94vw,1024px)] max-w-[min(94vw,1024px)] flex-col gap-3 overflow-hidden p-4 sm:max-w-[min(94vw,1024px)]"

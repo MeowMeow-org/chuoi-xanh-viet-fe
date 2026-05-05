@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConsumerLayout from '@/components/layout/ConsumerLayout';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Minus,
@@ -214,6 +213,7 @@ export default function ConsumerCartPage() {
 
                             <div className='relative h-16 w-16 md:h-20 md:w-20 rounded-xl md:rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 group'>
                               {item.imageUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element -- remote product URLs
                                 <img
                                   src={item.imageUrl}
                                   alt={item.productName}

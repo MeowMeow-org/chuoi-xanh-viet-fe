@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Inbox, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
@@ -37,13 +37,6 @@ export default function CooperativeRequestsPage() {
   const [approveNote, setApproveNote] = useState("");
   const [rejectRow, setRejectRow] = useState<CooperativeMembership | null>(null);
   const [rejectNote, setRejectNote] = useState("");
-
-  useEffect(() => {
-    if (!approveRow) setApproveNote("");
-  }, [approveRow]);
-  useEffect(() => {
-    if (!rejectRow) setRejectNote("");
-  }, [rejectRow]);
 
   const { mutateAsync: approveAsync, isPending: isApproving } =
     useApproveMembershipMutation();
@@ -126,7 +119,10 @@ export default function CooperativeRequestsPage() {
                         size="sm"
                         className="bg-[hsl(142,71%,45%)] text-white! hover:bg-[hsl(142,71%,40%)] hover:text-white!"
                         disabled={isBusy}
-                        onClick={() => setApproveRow(row)}
+                        onClick={() => {
+                          setApproveNote("");
+                          setApproveRow(row);
+                        }}
                       >
                         Duyệt
                       </Button>
@@ -135,7 +131,10 @@ export default function CooperativeRequestsPage() {
                         variant="outline"
                         className="border-[hsl(142,20%,75%)]"
                         disabled={isBusy}
-                        onClick={() => setRejectRow(row)}
+                        onClick={() => {
+                          setRejectNote("");
+                          setRejectRow(row);
+                        }}
                       >
                         Từ chối
                       </Button>
@@ -157,7 +156,15 @@ export default function CooperativeRequestsPage() {
         </>
       )}
 
-      <Dialog open={!!approveRow} onOpenChange={(o) => !o && setApproveRow(null)}>
+      <Dialog
+        open={!!approveRow}
+        onOpenChange={(o) => {
+          if (!o) {
+            setApproveRow(null);
+            setApproveNote("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Duyệt tham gia HTX</DialogTitle>
@@ -181,7 +188,10 @@ export default function CooperativeRequestsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setApproveRow(null)}
+                  onClick={() => {
+                    setApproveRow(null);
+                    setApproveNote("");
+                  }}
                   disabled={isApproving}
                 >
                   Hủy
@@ -198,6 +208,7 @@ export default function CooperativeRequestsPage() {
                       });
                       toast.success("Đã duyệt, nông hộ đã gia nhập HTX.");
                       setApproveRow(null);
+                      setApproveNote("");
                     } catch {
                       /* axios interceptor đã toast lỗi */
                     }
@@ -215,7 +226,15 @@ export default function CooperativeRequestsPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!rejectRow} onOpenChange={(o) => !o && setRejectRow(null)}>
+      <Dialog
+        open={!!rejectRow}
+        onOpenChange={(o) => {
+          if (!o) {
+            setRejectRow(null);
+            setRejectNote("");
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Từ chối yêu cầu</DialogTitle>
@@ -239,7 +258,10 @@ export default function CooperativeRequestsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setRejectRow(null)}
+                  onClick={() => {
+                    setRejectRow(null);
+                    setRejectNote("");
+                  }}
                   disabled={isRejecting}
                 >
                   Hủy
@@ -260,6 +282,7 @@ export default function CooperativeRequestsPage() {
                       });
                       toast.success("Đã từ chối hồ sơ.");
                       setRejectRow(null);
+                      setRejectNote("");
                     } catch {
                       /* axios interceptor đã toast lỗi */
                     }

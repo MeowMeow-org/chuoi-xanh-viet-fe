@@ -58,19 +58,15 @@ export default function PublicForumPage() {
   const createPost = useCreateForumPostMutation();
 
   useEffect(() => {
-    setPage(1);
-  }, [filterTag, searchTerm]);
-
-  useEffect(() => {
     const id = window.setTimeout(() => {
-      setSearchTerm(searchDraft.trim());
+      const next = searchDraft.trim();
+      setSearchTerm((prev) => {
+        if (prev !== next) queueMicrotask(() => setPage(1));
+        return next;
+      });
     }, 320);
     return () => window.clearTimeout(id);
   }, [searchDraft]);
-
-  useEffect(() => {
-    if (!showCreate) setImageFiles([]);
-  }, [showCreate]);
 
   const toggleTag = (tag: ForumLabelSlug) => {
     setSelectedTags((prev) => {
@@ -83,6 +79,8 @@ export default function PublicForumPage() {
   const handleToggleCreate = () => {
     if (!showCreate) {
       if (!requireAuth({ guestMessage: "Đăng nhập để tạo bài viết" })) return;
+    } else {
+      setImageFiles([]);
     }
     setShowCreate((v) => !v);
   };
@@ -195,7 +193,10 @@ export default function PublicForumPage() {
               <div className="p-4">
                 <ForumPostListFilters
                   labelFilter={filterTag}
-                  onLabelChange={setFilterTag}
+                  onLabelChange={(tag) => {
+                    setFilterTag(tag);
+                    setPage(1);
+                  }}
                   searchDraft={searchDraft}
                   onSearchDraftChange={setSearchDraft}
                   viewMode={viewMode}

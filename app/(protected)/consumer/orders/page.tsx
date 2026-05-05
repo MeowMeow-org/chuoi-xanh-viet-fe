@@ -9,7 +9,7 @@ import {
   OrderStarsDisplay,
   ProductReviewDialog,
 } from "@/components/consumer/shop-review-dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,13 +23,14 @@ import {
   Calendar,
   CreditCard,
   MapPin,
-  Store
+  Store,
+  type LucideIcon,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { orderService } from "@/services/order/orderService";
 import type { Order, OrderStatus } from "@/services/order";
 
-const statusMap: Record<OrderStatus, { label: string; color: string; icon: any }> = {
+const statusMap: Record<OrderStatus, { label: string; color: string; icon: LucideIcon }> = {
   pending: {
     label: "Chờ xác nhận",
     color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800",
@@ -234,6 +235,7 @@ export default function ConsumerOrdersPage() {
                             >
                               <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-lg md:rounded-xl bg-white dark:bg-muted overflow-hidden shrink-0 shadow-sm border border-border/50">
                                 {item.product.imageUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element -- remote product URLs
                                   <img
                                     src={item.product.imageUrl}
                                     alt={item.product.name}

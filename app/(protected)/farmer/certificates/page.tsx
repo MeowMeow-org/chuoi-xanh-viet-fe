@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FileText, Loader2, Plus, ShieldCheck } from "lucide-react";
 
 import { Pagination } from "@/components/shared/Pagination";
@@ -50,7 +50,10 @@ export default function FarmerCertificatesPage() {
   const { farms } = useMyFarmsQuery({ page: 1, limit: 100 });
   const myCertsQuery = useMyFarmCertsQuery({ page: 1, limit: 100 });
 
-  const allItems = myCertsQuery.data?.items ?? [];
+  const allItems = useMemo(
+    () => myCertsQuery.data?.items ?? [],
+    [myCertsQuery.data],
+  );
   const archivedCount = useMemo(
     () =>
       allItems.filter((c) => c.status === "expired" || c.status === "revoked")
@@ -71,14 +74,6 @@ export default function FarmerCertificatesPage() {
     1,
     Math.ceil(filteredItems.length / LIST_PAGE_SIZE),
   );
-
-  useEffect(() => {
-    setListPage(1);
-  }, [showArchived]);
-
-  useEffect(() => {
-    if (listPage > totalPages) setListPage(totalPages);
-  }, [listPage, totalPages]);
 
   const safePage = Math.min(listPage, totalPages);
   const pagedItems = useMemo(() => {
@@ -125,7 +120,10 @@ export default function FarmerCertificatesPage() {
           variant="ghost"
           size="sm"
           className="self-start text-xs text-muted-foreground hover:text-foreground"
-          onClick={() => setShowArchived((v) => !v)}
+          onClick={() => {
+            setShowArchived((v) => !v);
+            setListPage(1);
+          }}
         >
           {showArchived
             ? `Ẩn chứng chỉ đã hết hạn / vô hiệu (${archivedCount})`
@@ -222,7 +220,9 @@ export default function FarmerCertificatesPage() {
           {listMeta.totalPages > 1 ? (
             <Pagination
               meta={listMeta}
-              onPageChange={setListPage}
+              onPageChange={(p) =>
+                setListPage(Math.min(Math.max(1, p), totalPages))
+              }
               className="pt-2"
             />
           ) : null}

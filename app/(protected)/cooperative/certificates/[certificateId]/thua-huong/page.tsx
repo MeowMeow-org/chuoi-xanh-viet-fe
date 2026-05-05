@@ -43,6 +43,12 @@ export default function CoopCertThuaHuongPage() {
   const certificateId =
     typeof params.certificateId === "string" ? params.certificateId : "";
 
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const certsQuery = useMyCoopCertsQuery({ page: 1, limit: 100 });
   const cert = useMemo(
     () => certsQuery.data?.items.find((c) => c.id === certificateId),
@@ -73,7 +79,7 @@ export default function CoopCertThuaHuongPage() {
     const pastExpiry =
       exp !== null &&
       !Number.isNaN(exp.getTime()) &&
-      exp.getTime() < Date.now();
+      exp.getTime() < nowMs;
     if (cert.status === "active" && pastExpiry) {
       return {
         locked: true,
@@ -90,7 +96,7 @@ export default function CoopCertThuaHuongPage() {
       };
     }
     return { locked: false, banner: null, label: null };
-  }, [cert]);
+  }, [cert, nowMs]);
 
   const [appliedPage, setAppliedPage] = useState(1);
   const [appliedSearchRaw, setAppliedSearchRaw] = useState("");
@@ -101,10 +107,10 @@ export default function CoopCertThuaHuongPage() {
   const eligibleSearch = useDebouncedValue(eligibleSearchRaw, 350);
 
   useEffect(() => {
-    setAppliedPage(1);
+    queueMicrotask(() => setAppliedPage(1));
   }, [appliedSearch]);
   useEffect(() => {
-    setEligiblePage(1);
+    queueMicrotask(() => setEligiblePage(1));
   }, [eligibleSearch]);
 
   const scopeQuery = useCoopCertScopeQuery(certificateId, {

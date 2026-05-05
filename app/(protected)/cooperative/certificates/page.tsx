@@ -16,7 +16,6 @@ import {
   Upload,
   UserCheck,
   UserX,
-  X,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 
@@ -661,9 +660,8 @@ function PendingFarmCertsSection({
   const [approveTarget, setApproveTarget] = useState<FarmCertificate | null>(
     null,
   );
-  const approveMutation = useApproveFarmCertMutation();
 
-  const items = query.data?.items ?? [];
+  const items = useMemo(() => query.data?.items ?? [], [query.data]);
 
   useEffect(() => {
     if (!highlightFarmCertId || query.isLoading || items.length === 0) return;

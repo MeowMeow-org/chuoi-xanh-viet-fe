@@ -454,6 +454,7 @@ function SeasonInspections({
                     key={`${img.objectKey}-${idx}`}
                     className="group relative overflow-hidden rounded-md border"
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- user-uploaded inspection photo */}
                     <img
                       src={img.fileUrl}
                       alt={`inspection-${idx + 1}`}
@@ -537,6 +538,7 @@ function SeasonInspections({
                           rel="noreferrer"
                           className="overflow-hidden rounded-md border"
                         >
+                          {/* eslint-disable-next-line @next/next/no-img-element -- attachment URL */}
                           <img
                             src={att.fileUrl}
                             alt="inspection-attachment"
