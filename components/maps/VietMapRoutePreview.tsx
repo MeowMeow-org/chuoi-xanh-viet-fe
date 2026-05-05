@@ -22,6 +22,8 @@ export type VietMapRoutePreviewProps = {
   destLng: number;
   vehicle?: "car" | "motorcycle";
   className?: string;
+  /** Khung canvas bản đồ (mặc định MAP_DIALOG_VIEWPORT_CLASS). */
+  mapViewportClassName?: string;
 };
 
 type RoutePayload = {
@@ -44,6 +46,7 @@ export default function VietMapRoutePreview({
   destLng,
   vehicle = "motorcycle",
   className,
+  mapViewportClassName,
 }: VietMapRoutePreviewProps) {
   const enabled = isVietmapClientEnabled();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -301,7 +304,10 @@ export default function VietMapRoutePreview({
         </p>
       )}
       {!routeError && (
-        <div ref={containerRef} className={MAP_DIALOG_VIEWPORT_CLASS} />
+        <div
+          ref={containerRef}
+          className={cn(mapViewportClassName ?? MAP_DIALOG_VIEWPORT_CLASS)}
+        />
       )}
       {!routeLoading && route && route.instructions.length > 0 && (
         <div className="max-h-36 overflow-y-auto rounded-lg border border-[hsl(142,18%,88%)] bg-[hsl(120,22%,98%)] px-3 py-2">
