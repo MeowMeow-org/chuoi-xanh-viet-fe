@@ -39,8 +39,6 @@ export const certificateQueryKeys = {
   }) => ["certificate", "farm", "mine", q] as const,
   pendingForCoop: (q?: { page?: number; limit?: number }) =>
     ["certificate", "farm", "pending", "coop", q] as const,
-  pendingForAdmin: (q?: { page?: number; limit?: number }) =>
-    ["certificate", "farm", "pending", "admin", q] as const,
 };
 
 export const useFarmBadgesQuery = (farmId: string | undefined | null) => {
@@ -227,17 +225,6 @@ export const usePendingFarmCertsForCoopQuery = (q?: {
   return useQuery({
     queryKey: certificateQueryKeys.pendingForCoop(q),
     queryFn: () => certificateService.listPendingFarmCertsForCoop(q),
-    placeholderData: (prev) => prev,
-  });
-};
-
-export const usePendingFarmCertsForAdminQuery = (q?: {
-  page?: number;
-  limit?: number;
-}) => {
-  return useQuery({
-    queryKey: certificateQueryKeys.pendingForAdmin(q),
-    queryFn: () => certificateService.listPendingFarmCertsForAdmin(q),
     placeholderData: (prev) => prev,
   });
 };

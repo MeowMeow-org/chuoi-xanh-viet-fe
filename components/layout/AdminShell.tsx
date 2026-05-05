@@ -7,9 +7,9 @@ import {
   LayoutDashboard,
   Leaf,
   LogOut,
+  Logs,
   Menu,
   Megaphone,
-  ShieldCheck,
   User,
   Users,
   X,
@@ -27,7 +27,7 @@ const navItems = [
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/admin/users", label: "Người dùng", icon: Users },
   { href: "/admin/broadcast", label: "Gửi thông báo", icon: Megaphone },
-  { href: "/admin/certificates", label: "Duyệt chứng chỉ", icon: ShieldCheck },
+  { href: "/admin/audit-logs", label: "Audit Logs", icon: Logs },
   { href: "/admin/notifications", label: "Thông báo", icon: Bell },
 ];
 
@@ -35,7 +35,7 @@ const mobileNavItems = [
   { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
   { href: "/admin/users", label: "Người dùng", icon: Users },
   { href: "/admin/broadcast", label: "Gửi TB", icon: Megaphone },
-  { href: "/admin/certificates", label: "Chứng chỉ", icon: ShieldCheck },
+  { href: "/admin/audit-logs", label: "Audit", icon: Logs },
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
