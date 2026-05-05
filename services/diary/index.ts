@@ -58,3 +58,23 @@ export interface GetDiariesQuery {
   page?: number;
   limit?: number;
 }
+
+export type ScanSeverity = "info" | "warning" | "critical";
+export type OverallRisk = "safe" | "warning" | "critical";
+
+export interface ScanViolation {
+  severity: ScanSeverity;
+  code: string;
+  title: string;
+  detail: string;
+  relatedEntryIds: string[];
+  recommendation: string;
+}
+
+export interface DiaryScanResult {
+  seasonId: string;
+  scannedAt: string;
+  overallRisk: OverallRisk;
+  violations: ScanViolation[];
+  summary: string;
+}

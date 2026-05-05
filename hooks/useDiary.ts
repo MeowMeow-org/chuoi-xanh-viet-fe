@@ -2,7 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { CreateDiaryPayload, DiaryEntry, GetDiariesQuery } from "@/services/diary";
+import type {
+  CreateDiaryPayload,
+  DiaryScanResult,
+  DiaryEntry,
+  GetDiariesQuery,
+} from "@/services/diary";
 import { diaryService } from "@/services/diary/diaryService";
 import type { PaginationMeta } from "@/types";
 
@@ -33,6 +38,18 @@ export const useCreateDiaryMutation = () => {
 
   return useMutation<DiaryEntry, Error, CreateDiaryPayload>({
     mutationFn: (payload) => diaryService.createDiary(payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: diaryQueryKeys.all });
+    },
+    onError: () => {},
+  });
+};
+
+export const useScanDiaryMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<DiaryScanResult, Error, string>({
+    mutationFn: (seasonId) => diaryService.scanDiarySeason(seasonId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: diaryQueryKeys.all });
     },
