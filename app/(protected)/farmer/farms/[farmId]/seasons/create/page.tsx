@@ -114,6 +114,7 @@ export default function CreateSeasonPage() {
   /** Bắt buộc thu hoạch chỉ báo lỗi khi đã blur ô hoặc đã bấm gửi (deps đổi startDate không làm “required” sớm). */
   const harvestCommittedRef = useRef(false);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- react-hook-form watch; compiler skips this subtree
   const yieldUnitWatch = watch("yieldUnit");
 
   if (!farmId) return null;

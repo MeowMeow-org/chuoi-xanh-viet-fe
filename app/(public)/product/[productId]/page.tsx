@@ -16,15 +16,12 @@ import {
   Minus,
   Plus,
   ShoppingCart,
-  Loader2,
   MessageSquare,
   Zap,
   Store,
   Star,
   MapPin,
   Calendar,
-  Share2,
-  Heart,
   ChevronLeft,
   CheckCircle2,
   PackageCheck,
@@ -172,6 +169,7 @@ function ProductImageGallery({
                   : "border-border/40 opacity-70 hover:opacity-100 hover:border-primary/30",
               )}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- gallery URLs from API */}
               <img src={url} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
@@ -649,6 +647,7 @@ export default function PublicProductPage() {
                           <div className="flex items-start gap-4">
                             <div className="h-10 w-10 shrink-0 rounded-xl bg-primary/5 flex items-center justify-center border border-primary/10">
                               {r.reviewer.avatarUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element -- reviewer avatar URL
                                 <img src={r.reviewer.avatarUrl} alt="" className="h-full w-full object-cover" />
                               ) : (
                                 <span className="text-primary font-black uppercase text-[10px]">{(r.reviewer.fullName?.trim()?.[0] ?? "?")}</span>
@@ -672,7 +671,7 @@ export default function PublicProductPage() {
                               </div>
                               {r.comment && (
                                 <p className="text-xs leading-relaxed text-foreground/80 font-medium italic pt-1.5">
-                                  "{r.comment}"
+                                  <q className="font-[inherit] not-italic">{r.comment}</q>
                                 </p>
                               )}
                             </div>

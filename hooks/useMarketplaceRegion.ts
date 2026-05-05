@@ -43,11 +43,13 @@ export function useMarketplaceRegion() {
   const geoStartedRef = useRef(false);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem(MARKETPLACE_REGION_STORAGE_KEY);
-    if (saved && MARKETPLACE_REGIONS.includes(saved as MarketplaceRegion)) {
-      setRegionState(saved as MarketplaceRegion);
-    }
-    setHydrated(true);
+    queueMicrotask(() => {
+      const saved = sessionStorage.getItem(MARKETPLACE_REGION_STORAGE_KEY);
+      if (saved && MARKETPLACE_REGIONS.includes(saved as MarketplaceRegion)) {
+        setRegionState(saved as MarketplaceRegion);
+      }
+      setHydrated(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -64,12 +66,12 @@ export function useMarketplaceRegion() {
     if (!hydrated) return;
     if (geoStartedRef.current) return;
     if (sessionStorage.getItem(TOUCHED_KEY) === "1") {
-      setLocationStatus("idle");
+      queueMicrotask(() => setLocationStatus("idle"));
       return;
     }
     const saved = sessionStorage.getItem(MARKETPLACE_REGION_STORAGE_KEY);
     if (saved && saved !== "Tất cả") {
-      setLocationStatus("idle");
+      queueMicrotask(() => setLocationStatus("idle"));
       return;
     }
 

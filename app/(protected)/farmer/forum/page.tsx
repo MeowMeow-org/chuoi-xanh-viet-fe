@@ -60,19 +60,15 @@ export default function FarmerForumPage() {
   const createPost = useCreateForumPostMutation();
 
   useEffect(() => {
-    setPage(1);
-  }, [labelFilter, searchTerm]);
-
-  useEffect(() => {
     const id = window.setTimeout(() => {
-      setSearchTerm(searchDraft.trim());
+      const next = searchDraft.trim();
+      setSearchTerm((prev) => {
+        if (prev !== next) queueMicrotask(() => setPage(1));
+        return next;
+      });
     }, 320);
     return () => window.clearTimeout(id);
   }, [searchDraft]);
-
-  useEffect(() => {
-    if (!dialogOpen) setImageFiles([]);
-  }, [dialogOpen]);
 
   const toggleLabel = (slug: ForumLabelSlug) => {
     setSelectedLabels((prev) => {
@@ -143,7 +139,13 @@ export default function FarmerForumPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Diễn đàn kỹ thuật</h1>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            if (!open) setImageFiles([]);
+            setDialogOpen(open);
+          }}
+        >
           <DialogTrigger
             render={
               <Button className="gap-1.5">
@@ -269,7 +271,10 @@ export default function FarmerForumPage() {
             <div className="p-4">
               <ForumPostListFilters
                 labelFilter={labelFilter}
-                onLabelChange={setLabelFilter}
+                onLabelChange={(tag) => {
+                  setLabelFilter(tag);
+                  setPage(1);
+                }}
                 searchDraft={searchDraft}
                 onSearchDraftChange={setSearchDraft}
                 viewMode={viewMode}

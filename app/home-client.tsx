@@ -107,6 +107,7 @@ export default function HomeClient() {
       {/* ─── HERO ─────────────────────────────────────────────── */}
       <section className='relative overflow-hidden bg-gradient-to-b from-[hsl(142,22%,96%)] to-white'>
         {/* Watermark vegetables */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- static decorative asset */}
         <img
           src='/icons/carot.png'
           alt=''
@@ -116,6 +117,7 @@ export default function HomeClient() {
           className='pointer-events-none select-none absolute -left-10 -top-4 -rotate-12 opacity-[0.055] blur-[0.5px]'
         />
 
+        {/* eslint-disable-next-line @next/next/no-img-element -- static decorative asset */}
         <img
           src='/icons/bo.png'
           alt=''
@@ -125,6 +127,7 @@ export default function HomeClient() {
           className='pointer-events-none select-none absolute -left-6 bottom-8 rotate-6 opacity-[0.05] blur-[0.5px]'
         />
 
+        {/* eslint-disable-next-line @next/next/no-img-element -- static decorative asset */}
         <img
           src='/icons/cam.png'
           alt=''
@@ -134,6 +137,7 @@ export default function HomeClient() {
           className='pointer-events-none select-none absolute -right-8 -top-6 rotate-12 opacity-[0.055] blur-[0.5px]'
         />
 
+        {/* eslint-disable-next-line @next/next/no-img-element -- static decorative asset */}
         <img
           src='/icons/catim.png'
           alt=''

@@ -32,6 +32,7 @@ export default function RegisterForm() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- react-hook-form watch; compiler skips this subtree
   const selectedRole = watch('role');
 
   const onSubmit = (data: RegisterFormData) => registerUser(data);

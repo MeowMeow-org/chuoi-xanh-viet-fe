@@ -457,6 +457,7 @@ export default function ConsumerCheckoutPage() {
                                   >
                                     <div className="h-10 w-10 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-muted border border-border/30 overflow-hidden shrink-0">
                                       {item.imageUrl && (
+                                        // eslint-disable-next-line @next/next/no-img-element -- remote product URLs
                                         <img
                                           src={item.imageUrl}
                                           alt={item.productName}

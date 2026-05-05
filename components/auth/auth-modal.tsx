@@ -47,13 +47,11 @@ export default function AuthModal({ open, view, onClose, onChange, onLogin, onRe
     const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] = useState(false);
 
     useEffect(() => {
-        if (open && view === "login") {
-            setLoginError("");
-        }
-
-        if (open && view === "register") {
-            setRegisterError("");
-        }
+        if (!open) return;
+        queueMicrotask(() => {
+            if (view === "login") setLoginError("");
+            if (view === "register") setRegisterError("");
+        });
     }, [open, view]);
 
     const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {

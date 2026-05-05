@@ -51,18 +51,21 @@ export default function VietMapLocationPicker({
   const loadedRef = useRef(false);
   const latStrRef = useRef(latitude);
   const lngStrRef = useRef(longitude);
-  latStrRef.current = latitude;
-  lngStrRef.current = longitude;
 
   const suggestAbortRef = useRef<AbortController | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const onPickRef = useRef(onCoordinateChange);
-  onPickRef.current = onCoordinateChange;
+  useEffect(() => {
+    latStrRef.current = latitude;
+    lngStrRef.current = longitude;
+  }, [latitude, longitude]);
 
-  const emitPick = useCallback((lat: number, lng: number) => {
-    onPickRef.current(lat, lng);
-  }, []);
+  const emitPick = useCallback(
+    (lat: number, lng: number) => {
+      onCoordinateChange(lat, lng);
+    },
+    [onCoordinateChange],
+  );
 
   const moveMapTo = useCallback(
     (lat: number, lng: number, label?: string) => {
@@ -269,9 +272,11 @@ export default function VietMapLocationPicker({
     }
 
     if (q.length < 2) {
-      setSuggestions([]);
-      setSuggestOpen(false);
-      setHighlightIdx(-1);
+      queueMicrotask(() => {
+        setSuggestions([]);
+        setSuggestOpen(false);
+        setHighlightIdx(-1);
+      });
       return;
     }
 

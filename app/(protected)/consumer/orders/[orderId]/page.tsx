@@ -29,13 +29,14 @@ import {
   Phone,
   User,
   ExternalLink,
-  MessageSquare
+  MessageSquare,
+  type LucideIcon,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { orderService } from "@/services/order/orderService";
 import type { Order, OrderItem, OrderStatus } from "@/services/order";
 
-const statusMap: Record<OrderStatus, { label: string; color: string; icon: any }> = {
+const statusMap: Record<OrderStatus, { label: string; color: string; icon: LucideIcon }> = {
   pending: {
     label: "Chờ xác nhận",
     color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800",
@@ -294,7 +295,9 @@ export default function ConsumerOrderDetailPage() {
                       </div>
                       <div className="space-y-0.5 md:space-y-1">
                         <p className="text-[8px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest leading-none">Ghi chú</p>
-                        <p className="text-xs md:text-sm font-medium italic text-muted-foreground line-clamp-2">"{order.note}"</p>
+                        <p className="text-xs md:text-sm font-medium italic text-muted-foreground line-clamp-2">
+                          <q className="font-[inherit] not-italic">{order.note}</q>
+                        </p>
                       </div>
                     </div>
                   )}
@@ -326,6 +329,7 @@ export default function ConsumerOrderDetailPage() {
                       <div className="flex items-center gap-4 md:gap-6">
                         <div className="relative h-16 w-16 md:h-24 md:w-24 rounded-xl md:rounded-2xl bg-white dark:bg-muted overflow-hidden shrink-0 shadow-sm border border-border/50">
                           {item.product.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element -- remote product URLs
                             <img
                               src={item.product.imageUrl}
                               alt={item.product.name}

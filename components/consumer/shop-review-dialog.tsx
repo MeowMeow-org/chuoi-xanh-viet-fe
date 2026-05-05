@@ -168,6 +168,7 @@ function ProductReviewDialogBody({
         <div className="flex flex-col items-center gap-4 py-2 border-y border-border/50">
           <div className="h-20 w-20 rounded-2xl bg-muted overflow-hidden shadow-sm">
             {item.product.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- remote product URLs
               <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
             ) : <Star className="h-10 w-10 m-5 text-muted-foreground/30" />}
           </div>

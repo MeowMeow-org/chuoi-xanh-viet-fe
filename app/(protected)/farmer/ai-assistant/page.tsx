@@ -89,18 +89,6 @@ function inferTextIntent(text: string): TextIntent {
   return "farming";
 }
 
-function revokeMessageBlobs(messages: Message[]) {
-  for (const m of messages) {
-    if (m.imageSrc?.startsWith("blob:")) {
-      try {
-        URL.revokeObjectURL(m.imageSrc);
-      } catch {
-        /* ignore */
-      }
-    }
-  }
-}
-
 export default function FarmerAIAssistantPage() {
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -127,10 +115,11 @@ export default function FarmerAIAssistantPage() {
 
   useEffect(() => {
     if (!pendingImage) {
-      setPreviewUrl(null);
+      queueMicrotask(() => setPreviewUrl(null));
       return;
     }
     const url = URL.createObjectURL(pendingImage);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- object URL tied to effect cleanup revoke
     setPreviewUrl(url);
     return () => {
       URL.revokeObjectURL(url);

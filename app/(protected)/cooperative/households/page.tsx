@@ -17,13 +17,15 @@ export default function CooperativeHouseholdsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    const t = setTimeout(() => {
+      const next = search.trim();
+      setDebouncedSearch((prev) => {
+        if (prev !== next) queueMicrotask(() => setPage(1));
+        return next;
+      });
+    }, 350);
     return () => clearTimeout(t);
   }, [search]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
 
   const { items, pagination, isLoading, error } = useCooperativeMembershipsQuery(
     {
