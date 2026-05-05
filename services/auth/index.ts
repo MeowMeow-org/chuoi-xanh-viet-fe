@@ -49,8 +49,36 @@ export interface User {
   phone: string;
   role: string;
   status: string;
+  onBoarding?: boolean;
   avatarUrl?: string | null;
+  zaloUserId?: string | null;
+  /** Địa chỉ trụ sở / liên hệ (HTX — hiển thị cho nông dân khi xét chứng chỉ) */
+  contactAddress?: string | null;
+  /** Trụ sở HTX — đồng bộ với bảng users */
+  province?: string | null;
+  district?: string | null;
+  ward?: string | null;
+  provinceCode?: number | null;
+  districtCode?: number | null;
+  wardCode?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
+
+export type PatchMePayload = {
+  avatarUrl?: string | null;
+  fullName?: string;
+  phone?: string;
+  contactAddress?: string | null;
+  province?: string | null;
+  district?: string | null;
+  ward?: string | null;
+  provinceCode?: number | null;
+  districtCode?: number | null;
+  wardCode?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+};
 
 export interface RegisterPayload {
   email: string;

@@ -5,6 +5,7 @@ export interface CooperativeAccount {
   full_name?: string;
   email?: string;
   phone?: string;
+  contactAddress?: string | null;
 }
 
 export function cooperativeDisplayName(c: CooperativeAccount): string {

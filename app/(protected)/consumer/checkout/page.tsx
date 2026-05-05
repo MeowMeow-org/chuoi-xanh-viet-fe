@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
@@ -59,7 +59,7 @@ const paymentMethods: Array<{
     {
       id: "payos",
       label: "Cổng thanh toán PayOS",
-      hint: "Chuyển khoản QR siêu tốc 24/7",
+      hint: "Một đơn — một shop; sẽ mở trang thanh toán PayOS",
       icon: Wallet,
     },
   ];
@@ -116,8 +116,59 @@ export default function ConsumerCheckoutPage() {
     [phone, user?.phone],
   );
 
+  /** Tránh useEffect “giỏ rỗng” đẩy về /cart ngay trước khi redirect PayOS (full navigation). */
+  const payosRedirectingRef = useRef(false);
+
+  /** PayOS: một payment link = một đơn — chỉ cho 1 shop mỗi lần checkout. */
+  const payosBlocked = payment === "payos" && groups.length > 1;
+
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<
+      | { kind: "payos"; checkoutUrl: string; shopId: string }
+      | {
+          kind: "batch";
+          results: Array<
+            | { success: true; shopId: string; shopName: string }
+            | { success: false; shopId: string; shopName: string; error: string }
+          >;
+        }
+    > => {
+      if (payment === "payos") {
+        if (groups.length !== 1) {
+          throw new Error("PAYOS_REQUIRES_SINGLE_SHOP");
+        }
+        const group = groups[0]!;
+        const res = await orderService.createOrder({
+          shopId: group.shopId,
+          items: group.items.map((i) => ({
+            productId: i.productId,
+            qty: i.quantity,
+          })),
+          shippingName: displayName.trim(),
+          shippingPhone: displayPhone.trim(),
+          shippingAddress: composedShippingAddress,
+          shippingProvinceCode: addressPicker.provinceCode,
+          shippingDistrictCode: addressPicker.districtCode,
+          shippingWardCode: addressPicker.wardCode,
+          shippingProvinceName: addressPicker.provinceName || undefined,
+          shippingDistrictName: addressPicker.districtName || undefined,
+          shippingWardName: addressPicker.wardName || undefined,
+          shippingDetail: addressDetail.trim() || undefined,
+          paymentMethod: "payos",
+          note: note.trim() || undefined,
+        });
+        const checkoutUrl =
+          typeof res.checkoutUrl === "string" ? res.checkoutUrl.trim() : "";
+        if (!checkoutUrl) {
+          throw new Error("PAYOS_NO_CHECKOUT_URL");
+        }
+        return {
+          kind: "payos",
+          checkoutUrl,
+          shopId: group.shopId,
+        };
+      }
+
       const tasks = groups.map(async (group) => {
         try {
           await orderService.createOrder({
@@ -142,7 +193,7 @@ export default function ConsumerCheckoutPage() {
           return {
             shopId: group.shopId,
             shopName: group.shopName,
-            success: true,
+            success: true as const,
           };
         } catch (err: unknown) {
           const msg =
@@ -151,14 +202,29 @@ export default function ConsumerCheckoutPage() {
           return {
             shopId: group.shopId,
             shopName: group.shopName,
-            success: false,
+            success: false as const,
             error: msg,
           };
         }
       });
-      return Promise.all(tasks);
+      const results = await Promise.all(tasks);
+      return { kind: "batch", results };
     },
-    onSuccess: async (results) => {
+    onSuccess: async (data) => {
+      if (data.kind === "payos") {
+        payosRedirectingRef.current = true;
+        removeByShop(data.shopId);
+        if (items.length === allItems.length) {
+          clearCart();
+        }
+        toast.success("Đang chuyển đến PayOS để thanh toán…", {
+          description: "Nếu trình duyệt không mở, hãy cho phép pop-up hoặc chặn quảng cáo.",
+        });
+        window.location.replace(data.checkoutUrl);
+        return;
+      }
+
+      const results = data.results;
       const failed = results.filter((r) => !r.success);
       const successCount = results.length - failed.length;
       const successGroups = results.filter((r) => r.success);
@@ -193,15 +259,44 @@ export default function ConsumerCheckoutPage() {
         setOrdered(true);
       }
     },
+    onError: (err: unknown) => {
+      const code =
+        err instanceof Error ? err.message : String((err as Error)?.message ?? "");
+      if (code === "PAYOS_REQUIRES_SINGLE_SHOP") {
+        toast.error("PayOS chỉ thanh toán một shop mỗi lần", {
+          description:
+            "Vui lòng tách giỏ theo từng gian hàng, hoặc chọn COD / phương thức khác.",
+        });
+        return;
+      }
+      if (code === "PAYOS_NO_CHECKOUT_URL") {
+        toast.error("Không nhận được link thanh toán PayOS", {
+          description: "Vui lòng thử lại hoặc chọn phương thức khác.",
+        });
+      }
+    },
   });
 
   useEffect(() => {
-    if (hasHydrated && items.length === 0 && !ordered && !mutation.isPending) {
+    if (
+      hasHydrated &&
+      items.length === 0 &&
+      !ordered &&
+      !mutation.isPending &&
+      !payosRedirectingRef.current
+    ) {
       router.replace("/consumer/cart");
     }
   }, [hasHydrated, items.length, ordered, router, mutation.isPending]);
 
   const placeOrder = () => {
+    if (payosBlocked) {
+      toast.error("PayOS chỉ thanh toán một shop mỗi lần", {
+        description:
+          "Giỏ đang có nhiều gian hàng — hãy đặt từng shop một, hoặc chọn COD.",
+      });
+      return;
+    }
     if (!displayName.trim() || !displayPhone.trim()) {
       toast.error("Vui lòng hoàn thiện thông tin giao hàng còn thiếu");
       return;
@@ -418,6 +513,16 @@ export default function ConsumerCheckoutPage() {
                       </button>
                     ))}
                   </div>
+                  {payosBlocked && (
+                    <p
+                      className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                      role="note"
+                    >
+                      Giỏ có <strong>{groups.length}</strong> gian hàng — PayOS chỉ tạo được một
+                      link thanh toán cho <strong>một</strong> đơn. Hãy quay giỏ và đặt từng shop,
+                      hoặc chọn COD / VNPay.
+                    </p>
+                  )}
                 </section>
               </div>
 
@@ -518,7 +623,7 @@ export default function ConsumerCheckoutPage() {
                         <Button
                           className="w-full h-12 md:h-16 rounded-full text-xs md:text-base font-black active:scale-[0.97] transition-all uppercase tracking-[0.2em] group"
                           onClick={placeOrder}
-                          disabled={mutation.isPending}
+                          disabled={mutation.isPending || payosBlocked}
                         >
                           {mutation.isPending ? (
                             <div className="flex items-center gap-3">

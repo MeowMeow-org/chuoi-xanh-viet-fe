@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-import { LoginPayload, AuthResponse, RegisterPayload, User } from "./index";
+import { LoginPayload, AuthResponse, RegisterPayload, User, PatchMePayload } from "./index";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export const authService = {
@@ -32,11 +32,7 @@ export const authService = {
     return response;
   },
 
-  patchMe: async (payload: {
-    avatarUrl?: string | null;
-    fullName?: string;
-    phone?: string;
-  }): Promise<User> => {
+  patchMe: async (payload: PatchMePayload): Promise<User> => {
     return axiosInstance.patch<User, User>("/auth/me", payload);
   },
 

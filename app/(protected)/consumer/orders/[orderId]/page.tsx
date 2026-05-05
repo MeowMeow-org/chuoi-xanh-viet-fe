@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import ConsumerLayout from "@/components/layout/ConsumerLayout";
@@ -13,6 +13,12 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -30,6 +36,7 @@ import {
   User,
   ExternalLink,
   MessageSquare,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
@@ -84,6 +91,12 @@ const formatNumber = (v: number | string) => {
 
 const SHIPPING_FEE = 15000;
 
+function formatPayosCountdown(totalSec: number) {
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
 export default function ConsumerOrderDetailPage() {
   const params = useParams<{ orderId: string }>();
   const router = useRouter();
@@ -94,6 +107,8 @@ export default function ConsumerOrderDetailPage() {
     order: Order;
     item: OrderItem;
   } | null>(null);
+  const [payosQrSrc, setPayosQrSrc] = useState<string | null>(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   const { data: order, isLoading, isError } = useQuery({
     queryKey: ["order", orderId],
@@ -109,6 +124,60 @@ export default function ConsumerOrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["my-orders"] });
     },
   });
+
+  const resumePayosMutation = useMutation({
+    mutationFn: () => orderService.getPayosResume(orderId),
+    onSuccess: (payload) => {
+      const url = payload.checkoutUrl?.trim();
+      if (url) {
+        window.location.replace(url);
+        return;
+      }
+      const qr = payload.qrCode?.trim();
+      if (qr) {
+        const src =
+          qr.startsWith("http") || qr.startsWith("data:")
+            ? qr
+            : `data:image/png;base64,${qr}`;
+        setPayosQrSrc(src);
+        return;
+      }
+      toast.error("Không lấy được link hoặc mã QR thanh toán", {
+        description: "Vui lòng thử lại sau.",
+      });
+    },
+  });
+
+  const renewPayosMutation = useMutation({
+    mutationFn: () => orderService.renewPayosPayment(orderId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+      queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      const url = data.checkoutUrl?.trim();
+      if (url) {
+        window.location.replace(url);
+        return;
+      }
+      toast.error("Không nhận được link thanh toán mới", {
+        description: "Vui lòng thử lại sau.",
+      });
+    },
+  });
+
+  useEffect(() => {
+    const payosPending =
+      order?.paymentMethod === "payos" &&
+      order?.paymentStatus === "pending" &&
+      order?.status === "pending";
+    if (!payosPending || !order?.payosLinkExpiresAt) return;
+    const id = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [
+    order?.paymentMethod,
+    order?.paymentStatus,
+    order?.status,
+    order?.payosLinkExpiresAt,
+  ]);
 
   if (isLoading) {
     return (
@@ -148,6 +217,21 @@ export default function ConsumerOrderDetailPage() {
   const isPending = order.status === "pending";
   const isDelivered = order.status === "delivered";
   const StatusIcon = status.icon;
+
+  const canResumePayos =
+    order.paymentMethod === "payos" &&
+    order.paymentStatus === "pending" &&
+    isPending;
+
+  const payosExpiresMs = order.payosLinkExpiresAt
+    ? new Date(order.payosLinkExpiresAt).getTime()
+    : null;
+  const payosRemainingSec =
+    payosExpiresMs != null
+      ? Math.max(0, Math.floor((payosExpiresMs - nowTick) / 1000))
+      : null;
+  const payosLinkExpiredByClock =
+    payosExpiresMs != null && nowTick >= payosExpiresMs;
 
   return (
     <ConsumerLayout>
@@ -240,6 +324,80 @@ export default function ConsumerOrderDetailPage() {
                     </div>
                   </div>
                 </div>
+                {canResumePayos && (
+                  <div className="mt-5 pt-5 border-t border-border/60 space-y-3">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Nếu bạn đã thoát khỏi PayOS hoặc chưa thanh toán, dùng các nút bên dưới
+                      (cần đăng nhập đúng tài khoản đặt đơn). Link thanh toán có hiệu lực trong{" "}
+                      <strong>15 phút</strong> kể từ khi tạo.
+                    </p>
+                    {order.payosLinkExpiresAt && payosRemainingSec !== null && (
+                      <p
+                        className={cn(
+                          "text-xs font-medium",
+                          payosLinkExpiredByClock
+                            ? "text-amber-700 dark:text-amber-400"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {payosLinkExpiredByClock ? (
+                          <>Link thanh toán đã hết hạn — tạo link mới để tiếp tục.</>
+                        ) : (
+                          <>
+                            Còn lại:{" "}
+                            <span className="tabular-nums font-mono">
+                              {formatPayosCountdown(payosRemainingSec)}
+                            </span>
+                          </>
+                        )}
+                      </p>
+                    )}
+                    {!payosLinkExpiredByClock ? (
+                      <Button
+                        type="button"
+                        className="w-full sm:w-auto rounded-full font-bold gap-2"
+                        disabled={
+                          resumePayosMutation.isPending || renewPayosMutation.isPending
+                        }
+                        onClick={() => resumePayosMutation.mutate()}
+                      >
+                        {resumePayosMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Đang lấy link thanh toán…
+                          </>
+                        ) : (
+                          <>
+                            <Wallet className="h-4 w-4" />
+                            Thanh toán PayOS
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full sm:w-auto rounded-full font-bold gap-2"
+                        disabled={
+                          renewPayosMutation.isPending || resumePayosMutation.isPending
+                        }
+                        onClick={() => renewPayosMutation.mutate()}
+                      >
+                        {renewPayosMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Đang tạo link mới…
+                          </>
+                        ) : (
+                          <>
+                            <Wallet className="h-4 w-4" />
+                            Tạo link thanh toán mới
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -468,6 +626,27 @@ export default function ConsumerOrderDetailPage() {
         }}
         queryClient={queryClient}
       />
+
+      <Dialog
+        open={payosQrSrc !== null}
+        onOpenChange={(open) => {
+          if (!open) setPayosQrSrc(null);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Mã QR thanh toán</DialogTitle>
+          </DialogHeader>
+          {payosQrSrc && (
+            // eslint-disable-next-line @next/next/no-img-element -- data URL / PayOS payload
+            <img
+              src={payosQrSrc}
+              alt="Mã QR PayOS"
+              className="mx-auto max-h-[min(70vh,360px)] w-auto rounded-lg border"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </ConsumerLayout>
   );
 }

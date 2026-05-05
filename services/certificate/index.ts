@@ -85,7 +85,17 @@ export interface FarmCertificate {
     ward?: string | null;
     users?: { id: string; full_name: string } | null;
   };
-  reviewer_cooperative?: { id: string; full_name: string } | null;
+  reviewer_cooperative?: {
+    id: string;
+    full_name: string;
+    phone?: string;
+    email?: string | null;
+    province?: string | null;
+    district?: string | null;
+    ward?: string | null;
+    /** Địa chỉ / trụ sở do HTX khai báo trong Hồ sơ HTX */
+    contact_address?: string | null;
+  } | null;
   reviewer_user?: { id: string; full_name: string; role?: string } | null;
 }
 

@@ -60,12 +60,14 @@ export default function JoinCooperativeListPage() {
       page,
       PAGE_SIZE,
       debouncedSearch,
+      farmId,
     ],
     queryFn: () =>
       cooperativeService.getActiveCooperatives({
         page,
         limit: PAGE_SIZE,
         searchTerm: debouncedSearch || undefined,
+        farmId,
       }),
   });
 
@@ -172,13 +174,20 @@ export default function JoinCooperativeListPage() {
                     {cooperativeDisplayName(item)}
                   </p>
                   <div className="mt-0.5 space-y-0.5 text-xs text-muted-foreground">
+                    {item.contactAddress ? (
+                      <p className="line-clamp-2" title={item.contactAddress}>
+                        {item.contactAddress}
+                      </p>
+                    ) : null}
                     {item.email ? (
                       <p className="truncate" title={item.email}>
                         {item.email}
                       </p>
                     ) : null}
                     {item.phone ? <p>{item.phone}</p> : null}
-                    {!item.email && !item.phone ? <p>—</p> : null}
+                    {!item.email && !item.phone && !item.contactAddress ? (
+                      <p>—</p>
+                    ) : null}
                   </div>
                 </div>
               </div>
