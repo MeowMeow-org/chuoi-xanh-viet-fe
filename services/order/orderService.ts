@@ -10,15 +10,31 @@ import type {
 } from "./index";
 
 function toCreateOrderBody(payload: CreateOrderPayload): Record<string, unknown> {
-  return {
+  const body: Record<string, unknown> = {
     shop_id: payload.shopId,
     items: payload.items.map((i) => ({ product_id: i.productId, qty: i.qty })),
     shipping_name: payload.shippingName,
     shipping_phone: payload.shippingPhone,
-    shipping_address: payload.shippingAddress,
     payment_method: payload.paymentMethod,
     note: payload.note,
   };
+  if (payload.shippingAddress !== undefined)
+    body.shipping_address = payload.shippingAddress;
+  if (payload.shippingProvinceCode !== undefined)
+    body.shipping_province_code = payload.shippingProvinceCode;
+  if (payload.shippingDistrictCode !== undefined)
+    body.shipping_district_code = payload.shippingDistrictCode;
+  if (payload.shippingWardCode !== undefined)
+    body.shipping_ward_code = payload.shippingWardCode;
+  if (payload.shippingProvinceName !== undefined)
+    body.shipping_province_name = payload.shippingProvinceName;
+  if (payload.shippingDistrictName !== undefined)
+    body.shipping_district_name = payload.shippingDistrictName;
+  if (payload.shippingWardName !== undefined)
+    body.shipping_ward_name = payload.shippingWardName;
+  if (payload.shippingDetail !== undefined)
+    body.shipping_detail = payload.shippingDetail;
+  return body;
 }
 
 export const orderService = {

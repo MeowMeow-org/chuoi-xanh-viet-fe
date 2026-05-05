@@ -2,14 +2,23 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { ArrowLeft, Crosshair, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/toast";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   convertAreaDisplayValue,
   formatHaInputValue,
@@ -19,8 +28,12 @@ import {
 import { cn } from "@/lib/utils";
 import type { CreateFarmPayload, Farm } from "@/services/farm";
 import type { FarmFormValues } from "@/components/farmer/farm-form-types";
-import { VietnamAddressFields } from "@/components/farmer/VietnamAddressFields";
+import {
+  AddressPicker,
+  type AddressPickerValue,
+} from "@/components/address/AddressPicker";
 import { FancySelect, type FancyOption } from "@/components/ui/fancy-select";
+import { findCodesByNames } from "@/lib/vietnamAddressApi";
 import { buildGeocodeQuery, geocodeVietnamAddress } from "@/lib/googleGeocode";
 import type { VietMapLocationPickerProps } from "@/components/maps/VietMapLocationPicker";
 
@@ -49,10 +62,100 @@ const AREA_UNIT_OPTIONS: FancyOption[] = [
   { value: "ha", label: "ha" },
 ];
 
+type ReverseAdminFields = {
+  ward?: string | null;
+  district?: string | null;
+  province?: string | null;
+  detail?: string | null;
+};
+
+function extractAdminFromReversePayload(payload: unknown): ReverseAdminFields {
+  const data = (payload ?? {}) as {
+    name?: string;
+    ward?: string;
+    district?: string;
+    province?: string;
+    address?: {
+      amenity?: string;
+      road?: string;
+      house_number?: string;
+      pedestrian?: string;
+      footway?: string;
+      path?: string;
+      residential?: string;
+      suburb?: string;
+      quarter?: string;
+      neighbourhood?: string;
+      village?: string;
+      hamlet?: string;
+      city_district?: string;
+      county?: string;
+      district?: string;
+      city?: string;
+      town?: string;
+      state?: string;
+      province?: string;
+      "ISO3166-2-lvl4"?: string;
+    };
+  };
+
+  // Ưu tiên format cũ nếu có, fallback qua dữ liệu OSM address object.
+  const address = data.address ?? {};
+  const cityLike = address.city ?? address.town ?? null;
+  let district =
+    data.district ??
+    address.city_district ??
+    address.county ??
+    address.district ??
+    null;
+  // Nhiều điểm ở HCM trả city="Thành phố Thủ Đức" nhưng không có district/county.
+  if (!district && cityLike) district = cityLike;
+
+  let province = data.province ?? address.state ?? address.province ?? null;
+  if (!province) {
+    // OSM thường trả mã hành chính cấp tỉnh cho HCM ở đây.
+    if (address["ISO3166-2-lvl4"] === "VN-SG") {
+      province = "Thành phố Hồ Chí Minh";
+    } else if (district && cityLike) {
+      // Trường hợp đô thị trực thuộc tỉnh/thành: có district + city.
+      province = cityLike;
+    }
+  }
+
+  const roadLike =
+    address.road ??
+    address.pedestrian ??
+    address.footway ??
+    address.path ??
+    address.residential ??
+    null;
+  const detail = [address.house_number ?? null, roadLike]
+    .map((x) => (x ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    ward:
+      data.ward ??
+      address.suburb ??
+      address.quarter ??
+      address.neighbourhood ??
+      address.village ??
+      address.hamlet ??
+      null,
+    district,
+    province,
+    detail: detail || data.name || address.amenity || null,
+  };
+}
+
 export const emptyFarmFormValues = (): FarmFormValues => ({
   name: "",
   areaValue: "",
   areaUnit: "m2",
+  provinceCode: null,
+  districtCode: null,
+  wardCode: null,
   province: "",
   district: "",
   ward: "",
@@ -68,6 +171,9 @@ export function farmToFormValues(farm: Farm): FarmFormValues {
     name: farm.name,
     areaValue: Number.isFinite(haRaw) ? formatHaInputValue(haRaw) : "",
     areaUnit: "ha",
+    provinceCode: farm.provinceCode ?? null,
+    districtCode: farm.districtCode ?? null,
+    wardCode: farm.wardCode ?? null,
     province: farm.province ?? "",
     district: farm.district ?? "",
     ward: farm.ward ?? "",
@@ -99,7 +205,7 @@ function valuesToPayload(values: FarmFormValues): CreateFarmPayload | null {
 
   if (!latStr || !lngStr) {
     toast.error(
-      'Cần có đủ vĩ độ và kinh độ. Bấm "Lấy vị trí điện thoại" hoặc nhập hai số tay.',
+      'Cần có đủ vĩ độ và kinh độ. Hãy chọn địa chỉ bằng dropdown (tự lấy tọa độ) hoặc dùng "Chọn từ bản đồ".',
     );
     return null;
   }
@@ -114,6 +220,14 @@ function valuesToPayload(values: FarmFormValues): CreateFarmPayload | null {
     toast.error("Tọa độ không hợp lệ.");
     return null;
   }
+  if (!values.provinceCode || !values.districtCode || !values.wardCode) {
+    toast.error("Vui lòng chọn đủ tỉnh/quận/phường của nông trại.");
+    return null;
+  }
+  if (!values.address.trim()) {
+    toast.error("Vui lòng nhập số nhà / đường của nông trại.");
+    return null;
+  }
 
   return {
     name: values.name.trim(),
@@ -121,6 +235,9 @@ function valuesToPayload(values: FarmFormValues): CreateFarmPayload | null {
     province: values.province.trim() || undefined,
     district: values.district.trim() || undefined,
     ward: values.ward.trim() || undefined,
+    provinceCode: values.provinceCode ?? null,
+    districtCode: values.districtCode ?? null,
+    wardCode: values.wardCode ?? null,
     address: values.address.trim() || undefined,
     latitude: la,
     longitude: lo,
@@ -148,7 +265,12 @@ export default function FarmUpsertForm({
   isPending,
   onSubmitPayload,
 }: FarmUpsertFormProps) {
-  const [geoLoading, setGeoLoading] = useState(false);
+  const [addressMode, setAddressMode] = useState<"dropdown" | "map">("dropdown");
+  const [mapDialogOpen, setMapDialogOpen] = useState(false);
+  const [mapDraftLat, setMapDraftLat] = useState("");
+  const [mapDraftLng, setMapDraftLng] = useState("");
+  const [applyingMap, setApplyingMap] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -165,124 +287,228 @@ export default function FarmUpsertForm({
   const areaUnit = useWatch({ control, name: "areaUnit" }) ?? "m2";
   const watchedLat = useWatch({ control, name: "latitude" }) ?? "";
   const watchedLng = useWatch({ control, name: "longitude" }) ?? "";
+  const watchedProvinceCode =
+    useWatch({ control, name: "provinceCode" }) ?? null;
+  const watchedDistrictCode =
+    useWatch({ control, name: "districtCode" }) ?? null;
+  const watchedWardCode = useWatch({ control, name: "wardCode" }) ?? null;
+  const watchedProvince = useWatch({ control, name: "province" }) ?? "";
+  const watchedDistrict = useWatch({ control, name: "district" }) ?? "";
+  const watchedWard = useWatch({ control, name: "ward" }) ?? "";
+  const watchedAddressDetail = useWatch({ control, name: "address" }) ?? "";
 
-  const fillFromAddressSearch = async () => {
-    const values = getValues();
-    const q = buildGeocodeQuery({
-      address: values.address,
-      ward: values.ward,
-      district: values.district,
-      province: values.province,
-    });
-    if (!q.trim()) {
-      toast.error(
-        "Nhập ít nhất địa chỉ chi tiết hoặc xã/phường, quận/huyện, tỉnh.",
-      );
-      return;
-    }
-
-    setGeoLoading(true);
-    try {
-      const params = new URLSearchParams({ q });
-      const la = Number(String(values.latitude ?? "").trim());
-      const lo = Number(String(values.longitude ?? "").trim());
-      if (Number.isFinite(la) && Number.isFinite(lo)) {
-        params.set("focusLat", String(la));
-        params.set("focusLon", String(lo));
-      }
-
-      let res = await fetch(`/api/vietmap/geocode?${params.toString()}`);
-      if (res.status === 503) {
-        const alt = await geocodeVietnamAddress(q);
-        if (!alt) {
-          toast.error("Không tìm thấy địa chỉ (Google/OSM).");
-          return;
-        }
-        setValue("latitude", String(alt.lat), { shouldValidate: true });
-        setValue("longitude", String(alt.lng), { shouldValidate: true });
-        toast.success(
-          alt.formattedAddress
-            ? `Đã ghim: ${alt.formattedAddress}`
-            : "Đã cập nhật tọa độ.",
-        );
-        return;
-      }
-
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-          message?: string;
-        };
-        toast.error(body.message?.trim() || "Geocode lỗi");
-        return;
-      }
-
-      const data = (await res.json()) as {
-        lat: number;
-        lng: number;
-        formattedAddress?: string;
-      };
-      setValue("latitude", String(data.lat), { shouldValidate: true });
-      setValue("longitude", String(data.lng), { shouldValidate: true });
-      toast.success(
-        data.formattedAddress
-          ? `Đã ghim (VietMap): ${data.formattedAddress}`
-          : "Đã cập nhật tọa độ (VietMap).",
-      );
-    } catch {
-      toast.error("Không gọi được dịch vụ địa chỉ.");
-    } finally {
-      setGeoLoading(false);
-    }
+  const addressValue: AddressPickerValue = {
+    provinceCode: watchedProvinceCode,
+    districtCode: watchedDistrictCode,
+    wardCode: watchedWardCode,
+    provinceName: watchedProvince,
+    districtName: watchedDistrict,
+    wardName: watchedWard,
   };
 
-  const fillFromGeolocation = async () => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      toast.error(
-        "Thiết bị không hỗ trợ định vị. Hãy nhập vĩ độ và kinh độ vào hai ô bên dưới.",
-      );
+  const handleAddressChange = (next: AddressPickerValue) => {
+    setValue("provinceCode", next.provinceCode, { shouldValidate: true });
+    setValue("districtCode", next.districtCode, { shouldValidate: true });
+    setValue("wardCode", next.wardCode, { shouldValidate: true });
+    setValue("province", next.provinceName, { shouldValidate: true });
+    setValue("district", next.districtName, { shouldValidate: true });
+    setValue("ward", next.wardName, { shouldValidate: true });
+  };
+
+  /** Cảnh báo async khi tọa độ trên map có vẻ lệch xã/phường đã chọn.
+   *  Im lặng bỏ qua nếu reverse geocode không khả dụng (không có key, lỗi mạng). */
+  const lastWarnedKeyRef = useRef<string>("");
+  useEffect(() => {
+    const lat = Number(String(watchedLat).trim());
+    const lng = Number(String(watchedLng).trim());
+    const wardName = watchedWard.trim();
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !wardName) return;
+
+    /** Tránh spam toast: chỉ check lại khi tọa độ + ward đổi đáng kể. */
+    const key = `${wardName}|${lat.toFixed(4)}|${lng.toFixed(4)}`;
+    if (lastWarnedKeyRef.current === key) return;
+    lastWarnedKeyRef.current = key;
+
+    const ac = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/geocode/reverse?${new URLSearchParams({
+            lat: String(lat),
+            lon: String(lng),
+          })}`,
+          { signal: ac.signal },
+        );
+        if (!res.ok) return;
+        const body = extractAdminFromReversePayload(
+          await res.json().catch(() => null),
+        );
+        if (!body) return;
+
+        const stripPrefix = (s: string) =>
+          s
+            .replace(/^Tỉnh\s+/u, "")
+            .replace(/^Thành phố\s+/u, "")
+            .replace(/^Quận\s+/u, "")
+            .replace(/^Huyện\s+/u, "")
+            .replace(/^Thị xã\s+/u, "")
+            .replace(/^Phường\s+/u, "")
+            .replace(/^Xã\s+/u, "")
+            .trim()
+            .toLowerCase();
+
+        const apiWard = stripPrefix(body.ward ?? "");
+        const formWardClean = stripPrefix(wardName);
+        if (apiWard && formWardClean && apiWard !== formWardClean) {
+          toast.warning(
+            "Vị trí trên bản đồ có vẻ không khớp xã/phường đã chọn. Kiểm tra lại trước khi lưu.",
+          );
+        }
+      } catch {
+        /* Im lặng — endpoint reverse có thể chưa cấu hình. */
+      }
+    }, 600);
+
+    return () => {
+      ac.abort();
+      window.clearTimeout(timer);
+    };
+  }, [watchedLat, watchedLng, watchedWard]);
+
+  const lastAutoGeocodeKeyRef = useRef<string>("");
+  useEffect(() => {
+    if (addressMode !== "dropdown") return;
+
+    const province = watchedProvince.trim();
+    const district = watchedDistrict.trim();
+    const ward = watchedWard.trim();
+    const detail = watchedAddressDetail.trim();
+
+    // Chỉ auto-geocode khi user đã chọn đủ cấp hành chính.
+    if (!province || !district || !ward) return;
+
+    const q = buildGeocodeQuery({
+      address: detail,
+      ward,
+      district,
+      province,
+    }).trim();
+    if (!q) return;
+
+    // Tránh gọi lặp lại cùng một địa chỉ.
+    if (lastAutoGeocodeKeyRef.current === q) return;
+
+    const timer = window.setTimeout(async () => {
+      lastAutoGeocodeKeyRef.current = q;
+      try {
+        const params = new URLSearchParams({ q });
+        let lat: number | null = null;
+        let lng: number | null = null;
+
+        const res = await fetch(`/api/vietmap/geocode?${params.toString()}`);
+        if (res.ok) {
+          const data = (await res.json()) as { lat?: number; lng?: number };
+          const la = Number(data.lat);
+          const lo = Number(data.lng);
+          if (Number.isFinite(la) && Number.isFinite(lo)) {
+            lat = la;
+            lng = lo;
+          }
+        } else if (res.status === 503) {
+          const alt = await geocodeVietnamAddress(q);
+          if (alt) {
+            lat = alt.lat;
+            lng = alt.lng;
+          }
+        }
+
+        // fallback nhẹ cho các trường hợp non-200 khác
+        if ((lat == null || lng == null) && res.status !== 503) {
+          const alt = await geocodeVietnamAddress(q).catch(() => null);
+          if (alt) {
+            lat = alt.lat;
+            lng = alt.lng;
+          }
+        }
+
+        if (lat != null && lng != null) {
+          setValue("latitude", String(lat), { shouldValidate: true });
+          setValue("longitude", String(lng), { shouldValidate: true });
+        }
+      } catch {
+        // Auto-geocode chạy nền: lỗi thì im lặng, user vẫn có thể chọn bằng map/GPS.
+      }
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    addressMode,
+    watchedProvince,
+    watchedDistrict,
+    watchedWard,
+    watchedAddressDetail,
+    setValue,
+  ]);
+
+  const applyMapSelection = async () => {
+    const lat = Number(mapDraftLat.trim());
+    const lng = Number(mapDraftLng.trim());
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      toast.error("Vui lòng chọn vị trí trên bản đồ trước khi áp dụng.");
       return;
     }
 
+    setApplyingMap(true);
     try {
-      const perm = await navigator.permissions?.query({ name: "geolocation" });
-      if (perm?.state === "denied") {
+        const rv = await fetch(
+          `/api/geocode/reverse?${new URLSearchParams({
+          lat: String(lat),
+            lon: String(lng),
+        })}`,
+      );
+      if (!rv.ok) {
+        toast.error("Không đọc được tỉnh/quận/phường từ vị trí bản đồ.");
+        return;
+      }
+      const rev = extractAdminFromReversePayload(
+        await rv.json().catch(() => null),
+      );
+      if (!rev) {
+        toast.error("Không đọc được tỉnh/quận/phường từ vị trí bản đồ.");
+        return;
+      }
+
+      const matched = await findCodesByNames(queryClient, {
+        province: rev.province,
+        district: rev.district,
+        ward: rev.ward,
+      });
+      if (!matched.provinceCode || !matched.districtCode || !matched.wardCode) {
         toast.error(
-          "Trang đang bị tắt quyền vị trí. Bấm ổ khóa cạnh đường link → Vị trí → Cho phép, hoặc nhập tọa độ tay.",
-          { duration: 12_000 },
+          "Vị trí này chưa map được đầy đủ tỉnh/quận/phường chuẩn. Hãy kéo ghim lại hoặc chọn từ dropdown.",
         );
         return;
       }
-    } catch {
-      /* ignore */
-    }
 
-    setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setValue("latitude", String(pos.coords.latitude), {
-          shouldValidate: true,
-        });
-        setValue("longitude", String(pos.coords.longitude), {
-          shouldValidate: true,
-        });
-        setGeoLoading(false);
-        toast.success("Đã lấy vị trí hiện tại.");
-      },
-      (err) => {
-        setGeoLoading(false);
-        if (err.code === 1) {
-          toast.error(
-            "Chưa cho phép vị trí. Bấm ổ khóa cạnh đường link → Cho phép, hoặc nhập tọa độ tay.",
-            { duration: 12_000 },
-          );
-        } else {
-          toast.error(
-            "Không lấy được GPS. Hãy nhập vĩ độ và kinh độ tay.",
-          );
-        }
-      },
-      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 60_000 },
-    );
+      setValue("provinceCode", matched.provinceCode, { shouldValidate: true });
+      setValue("districtCode", matched.districtCode, { shouldValidate: true });
+      setValue("wardCode", matched.wardCode, { shouldValidate: true });
+      setValue("province", matched.provinceName ?? "", { shouldValidate: true });
+      setValue("district", matched.districtName ?? "", { shouldValidate: true });
+      setValue("ward", matched.wardName ?? "", { shouldValidate: true });
+      setValue("latitude", String(lat), { shouldValidate: true });
+      setValue("longitude", String(lng), { shouldValidate: true });
+      const currentAddressDetail = getValues("address")?.trim();
+      if (!currentAddressDetail && rev.detail?.trim()) {
+        setValue("address", rev.detail.trim(), { shouldValidate: true });
+      }
+      setMapDialogOpen(false);
+      toast.success("Đã áp dụng vị trí bản đồ và đồng bộ tỉnh/quận/phường.");
+    } catch {
+      toast.error("Không áp dụng được vị trí bản đồ.");
+    } finally {
+      setApplyingMap(false);
+    }
   };
 
   const onSubmit = (values: FarmFormValues) => {
@@ -377,131 +603,81 @@ export default function FarmUpsertForm({
               </p>
             </div>
 
-            <VietnamAddressFields
-              control={control}
-              setValue={setValue}
-              fieldClassName={farmFieldClass}
-            />
+            <div className="space-y-3">
+              <div className="inline-flex rounded-lg border border-[hsl(142,20%,88%)] bg-white p-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={addressMode === "dropdown" ? "default" : "ghost"}
+                  className="h-8 px-3"
+                  onClick={() => setAddressMode("dropdown")}
+                >
+                  Chọn từ danh mục
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={addressMode === "map" ? "default" : "ghost"}
+                  className="h-8 px-3"
+                  onClick={() => setAddressMode("map")}
+                >
+                  Chọn từ bản đồ
+                </Button>
+              </div>
+
+              {addressMode === "dropdown" ? (
+                <AddressPicker
+                  value={addressValue}
+                  onChange={handleAddressChange}
+                  triggerClassName={farmFieldClass}
+                  requiredLevel="ward"
+                />
+              ) : (
+                <div className="rounded-lg border border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] p-3">
+                  <p className="text-xs text-[hsl(150,8%,38%)]">
+                    Dùng bản đồ để chọn vị trí farm. Khi áp dụng, hệ thống sẽ tự map
+                    sang mã tỉnh/quận/phường để lưu DB và phục vụ filter/search.
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[hsl(150,14%,26%)]">
+                    <span className="rounded-full bg-white px-2 py-1">
+                      {addressValue.wardName || "Chưa có phường/xã"}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-1">
+                      {addressValue.districtName || "Chưa có quận/huyện"}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-1">
+                      {addressValue.provinceName || "Chưa có tỉnh/thành"}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    className="mt-3 gap-2"
+                    onClick={() => {
+                      setMapDraftLat(String(getValues("latitude") || ""));
+                      setMapDraftLng(String(getValues("longitude") || ""));
+                      setMapDialogOpen(true);
+                    }}
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Mở bản đồ chọn địa chỉ
+                  </Button>
+                </div>
+              )}
+            </div>
 
             <Input
               className={farmFieldClass}
-              placeholder="Địa chỉ chi tiết (số nhà, đường...)"
+              placeholder="Số nhà, đường (không cần ghi lại tỉnh/quận/xã)"
               {...register("address")}
             />
-
-            <div className="space-y-3 rounded-xl border border-[hsl(142,20%,88%)] bg-[hsl(120,25%,98%)] p-4">
-              <div>
-                <p className="text-sm font-semibold text-[hsl(150,16%,18%)]">
-                  Tọa độ (bắt buộc)
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  className={`${farmButtonClass} w-full gap-2 bg-[hsl(142,71%,45%)] text-white hover:bg-[hsl(142,71%,40%)]`}
-                  disabled={geoLoading}
-                  onClick={() => void fillFromAddressSearch()}
-                >
-                  <MapPin className="h-4 w-4" />
-                  Tìm từ địa chỉ
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={`${farmButtonClass} w-full gap-2 border-[hsl(142,35%,38%)] bg-white text-[hsl(142,58%,28%)]`}
-                  disabled={geoLoading}
-                  onClick={() => void fillFromGeolocation()}
-                >
-                  {geoLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Crosshair className="h-4 w-4" />
-                  )}
-                  Lấy vị trí từ thiết bị
-                </Button>
-              </div>
-
-              <div className="relative z-0 mt-1 min-w-0 w-full">
-                <VietMapLocationPicker
-                  latitude={
-                    typeof watchedLat === "string" ? watchedLat : ""
-                  }
-                  longitude={
-                    typeof watchedLng === "string" ? watchedLng : ""
-                  }
-                  onCoordinateChange={(la, lo) => {
-                    setValue("latitude", String(la), {
-                      shouldValidate: true,
-                    });
-                    setValue("longitude", String(lo), {
-                      shouldValidate: true,
-                    });
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="min-w-0 space-y-1">
-                  <label className="block text-xs font-medium text-[hsl(150,10%,35%)]">
-                    Vĩ độ *
-                  </label>
-                  <Input
-                    className={cn(farmFieldClass, "h-11 w-full")}
-                    placeholder="Ví dụ: 10.8231"
-                    inputMode="decimal"
-                    aria-invalid={errors.latitude ? true : undefined}
-                    {...register("latitude", {
-                      required:
-                        "Cần vĩ độ — bấm Lấy vị trí điện thoại hoặc nhập số",
-                      validate: (v) => {
-                        const t = String(v ?? "").trim();
-                        if (!t) return true;
-                        const n = Number(t);
-                        if (Number.isNaN(n)) return "Nhập số";
-                        if (n < -90 || n > 90) return "Từ -90 đến 90";
-                        return true;
-                      },
-                    })}
-                  />
-                  {errors.latitude && (
-                    <p className="text-sm text-red-600">
-                      {errors.latitude.message}
-                    </p>
-                  )}
-                </div>
-                <div className="min-w-0 space-y-1">
-                  <label className="block text-xs font-medium text-[hsl(150,10%,35%)]">
-                    Kinh độ *
-                  </label>
-                  <Input
-                    className={cn(farmFieldClass, "h-11 w-full")}
-                    placeholder="Ví dụ: 106.6297"
-                    inputMode="decimal"
-                    aria-invalid={errors.longitude ? true : undefined}
-                    {...register("longitude", {
-                      required:
-                        "Cần kinh độ — bấm Lấy vị trí điện thoại hoặc nhập số",
-                      validate: (v) => {
-                        const t = String(v ?? "").trim();
-                        if (!t) return true;
-                        const n = Number(t);
-                        if (Number.isNaN(n)) return "Nhập số";
-                        if (n < -180 || n > 180) return "Từ -180 đến 180";
-                        return true;
-                      },
-                    })}
-                  />
-                  {errors.longitude && (
-                    <p className="text-sm text-red-600">
-                      {errors.longitude.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
+            <input type="hidden" {...register("latitude")} />
+            <input type="hidden" {...register("longitude")} />
+            {(errors.latitude || errors.longitude) && (
+              <p className="text-sm text-red-600">
+                Cần tọa độ hợp lệ. Hãy chọn địa chỉ bằng dropdown (auto lấy tọa độ) hoặc
+                dùng nút &quot;Chọn từ bản đồ&quot;.
+              </p>
+            )}
 
             <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:justify-end">
               <Button
@@ -518,6 +694,65 @@ export default function FarmUpsertForm({
           </form>
         </CardContent>
       </Card>
+
+      <Dialog open={mapDialogOpen} onOpenChange={setMapDialogOpen}>
+        <DialogContent className="max-h-[90vh] w-[min(94vw,860px)] max-w-[min(94vw,860px)]! overflow-hidden rounded-3xl border border-[hsl(142,20%,88%)] bg-white p-0 shadow-2xl">
+          <DialogHeader className="border-b border-[hsl(142,20%,90%)] bg-[hsl(120,25%,98%)] px-6 py-5">
+            <DialogTitle className="text-lg font-bold text-[hsl(150,16%,18%)]">
+              Chọn địa chỉ farm từ bản đồ
+            </DialogTitle>
+            <DialogDescription className="mt-1.5 text-[13px] leading-relaxed">
+              Tìm địa điểm hoặc kéo ghim đến đúng vị trí farm rồi bấm Áp dụng.
+              Hệ thống sẽ tự map tỉnh/quận/phường chuẩn để lưu DB.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[68vh] overflow-auto px-6 py-5">
+            <VietMapLocationPicker
+              className="space-y-3 rounded-2xl border border-[hsl(142,20%,88%)] bg-[hsl(120,25%,99%)] p-3"
+              latitude={mapDraftLat}
+              longitude={mapDraftLng}
+              onCoordinateChange={(la, lo) => {
+                setMapDraftLat(String(la));
+                setMapDraftLng(String(lo));
+              }}
+            />
+            <p className="mt-3 text-xs text-[hsl(150,8%,42%)]">
+              Tọa độ đang chọn:{" "}
+              <span className="rounded-full bg-[hsl(120,24%,96%)] px-2.5 py-1 font-medium text-[hsl(150,16%,22%)]">
+                {mapDraftLat || "—"}, {mapDraftLng || "—"}
+              </span>
+            </p>
+          </div>
+
+          <DialogFooter className="mx-0 mb-0 border-t border-[hsl(142,20%,90%)] bg-[hsl(120,20%,97%)] px-6 py-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => setMapDialogOpen(false)}
+              disabled={applyingMap}
+            >
+              Huỷ
+            </Button>
+            <Button
+              type="button"
+              className="rounded-full"
+              onClick={() => void applyMapSelection()}
+              disabled={applyingMap}
+            >
+              {applyingMap ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang áp dụng...
+                </>
+              ) : (
+                "Áp dụng vị trí này"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

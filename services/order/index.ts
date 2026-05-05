@@ -54,6 +54,15 @@ export interface Order {
   shippingName: string | null;
   shippingPhone: string | null;
   shippingAddress: string | null;
+  /** Code hành chính giao hàng (null cho dữ liệu cũ chưa chuẩn hóa). */
+  shippingProvinceCode?: number | null;
+  shippingDistrictCode?: number | null;
+  shippingWardCode?: number | null;
+  shippingProvinceName?: string | null;
+  shippingDistrictName?: string | null;
+  shippingWardName?: string | null;
+  /** Số nhà / đường (không gồm tỉnh-quận-xã). */
+  shippingDetail?: string | null;
   note: string | null;
   createdAt: string;
   updatedAt: string;
@@ -77,7 +86,16 @@ export interface CreateOrderPayload {
   items: Array<{ productId: string; qty: number }>;
   shippingName: string;
   shippingPhone: string;
-  shippingAddress: string;
+  /** Tự build từ detail+ward+district+province nếu không truyền. */
+  shippingAddress?: string;
+  shippingProvinceCode?: number | null;
+  shippingDistrictCode?: number | null;
+  shippingWardCode?: number | null;
+  shippingProvinceName?: string;
+  shippingDistrictName?: string;
+  shippingWardName?: string;
+  /** Số nhà / đường (không lặp tỉnh-quận-xã). */
+  shippingDetail?: string;
   paymentMethod: PaymentMethod;
   note?: string;
 }

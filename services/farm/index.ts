@@ -13,6 +13,10 @@ export interface Farm {
   province: string | null;
   district: string | null;
   ward: string | null;
+  /** Code hành chính chuẩn theo provinces.open-api.vn (null = dữ liệu cũ chưa chuẩn hóa). */
+  provinceCode: number | null;
+  districtCode: number | null;
+  wardCode: number | null;
   address: string | null;
   latitude: number | string | null;
   longitude: number | string | null;
@@ -37,6 +41,10 @@ export interface CreateFarmPayload {
   province?: string;
   district?: string;
   ward?: string;
+  /** Code hành chính theo provinces.open-api.vn — gửi kèm với name để BE lưu cả hai. */
+  provinceCode?: number | null;
+  districtCode?: number | null;
+  wardCode?: number | null;
   address?: string;
   latitude?: number;
   longitude?: number;
