@@ -39,6 +39,7 @@ services:
       VIETMAP_TILE_API_KEY: ${VIETMAP_TILE_API_KEY:-}
       VIETMAP_GEOCODE_API_KEY: ${VIETMAP_GEOCODE_API_KEY:-}
       NEXT_PUBLIC_VIETMAP_API_KEY: ${NEXT_PUBLIC_VIETMAP_API_KEY:-}
+      NGINX_HTTP_PORT: ${NGINX_HTTP_PORT:-}
     # node:20-alpine không có wget — dùng Node (có fetch) để tránh unhealthy giả.
     healthcheck:
       test:

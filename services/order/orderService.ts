@@ -8,6 +8,10 @@ import type {
   CreateOrderResult,
   PayosResumePayload,
   PayosRenewResult,
+  ShopEarningsReport,
+  ShopEarningsBreakdownResponse,
+  ShopEarningsByFarmResponse,
+  ShopEarningsOrdersQuery,
 } from "./index";
 
 function toCreateOrderBody(payload: CreateOrderPayload): Record<string, unknown> {
@@ -102,6 +106,47 @@ export const orderService = {
       PaginatedResponse<Order>,
       PaginatedResponse<Order>
     >("/order/shop", { params: query });
+    return data;
+  },
+
+  getShopEarnings: async (): Promise<ShopEarningsReport> => {
+    const data = await axiosInstance.get<
+      ShopEarningsReport,
+      ShopEarningsReport
+    >("/order/shop/earnings");
+    return data;
+  },
+
+  getShopEarningsBreakdown: async (params: {
+    from: string;
+    to: string;
+    bucket: "month" | "week" | "day";
+  }): Promise<ShopEarningsBreakdownResponse> => {
+    const data = await axiosInstance.get<
+      ShopEarningsBreakdownResponse,
+      ShopEarningsBreakdownResponse
+    >("/order/shop/earnings/breakdown", { params });
+    return data;
+  },
+
+  getShopEarningsByFarm: async (params?: {
+    from: string;
+    to: string;
+  }): Promise<ShopEarningsByFarmResponse> => {
+    const data = await axiosInstance.get<
+      ShopEarningsByFarmResponse,
+      ShopEarningsByFarmResponse
+    >("/order/shop/earnings/by-farm", { params });
+    return data;
+  },
+
+  getShopEarningsOrders: async (
+    query: ShopEarningsOrdersQuery,
+  ): Promise<PaginatedResponse<Order>> => {
+    const data = await axiosInstance.get<
+      PaginatedResponse<Order>,
+      PaginatedResponse<Order>
+    >("/order/shop/earnings/orders", { params: query });
     return data;
   },
 };

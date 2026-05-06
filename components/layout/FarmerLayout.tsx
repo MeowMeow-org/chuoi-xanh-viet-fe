@@ -17,6 +17,7 @@ import {
   Users,
   X,
   Package,
+  TrendingUp,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/farmer", label: "Tổng quan", icon: Home },
   { href: "/farmer/farms", label: "Nông trại", icon: Sprout },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
+  { href: "/farmer/earnings", label: "Lợi nhuận", icon: TrendingUp },
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
 ];
@@ -40,6 +42,7 @@ const mobileNavItems = [
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
   { href: "/farmer", label: "Tổng quan", icon: Home },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
+  { href: "/farmer/earnings", label: "Lợi nhuận", icon: TrendingUp },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
 ];
 
