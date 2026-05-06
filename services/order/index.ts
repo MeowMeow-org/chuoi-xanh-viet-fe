@@ -68,8 +68,79 @@ export interface Order {
   updatedAt: string;
   /** ISO — thời điểm hết hiệu lực link PayOS (đếm ngược); null = dữ liệu cũ hoặc không áp dụng */
   payosLinkExpiresAt?: string | null;
+  /** MVP hoa hồng — snapshot khi xác nhận đơn */
+  commissionRate?: number | null;
+  estimatedCommissionAmount?: number | null;
+  estimatedSellerPayout?: number | null;
+  estimatedAt?: string | null;
+  commissionAmount?: number | null;
+  sellerPayout?: number | null;
+  settledAt?: string | null;
   shop: OrderShop | null;
   items: OrderItem[];
+}
+
+/** Báo cáo GET /order/shop/earnings */
+export interface ShopEarningsReport {
+  finalizedSellerPayout: number;
+  totalGmvFinalized: number;
+  totalPlatformCommissionFinalized: number;
+  pipelineEstimatedPayout: number;
+  pipelineEstimatedCommission: number;
+  finalizedOrderCount: number;
+  pipelineOrderCount: number;
+}
+
+export interface ShopEarningsBucketRow {
+  label: string;
+  start: string;
+  end: string;
+  finalizedSellerPayout: number;
+  totalGmvFinalized: number;
+  platformFeeFinalized: number;
+  finalizedOrderCount: number;
+}
+
+export interface ShopEarningsPeriodTotals {
+  finalizedSellerPayout: number;
+  totalGmvFinalized: number;
+  platformFeeFinalized: number;
+  finalizedOrderCount: number;
+}
+
+export interface ShopEarningsBreakdownResponse {
+  from: string;
+  to: string;
+  bucket: "month" | "week" | "day";
+  periodTotals: ShopEarningsPeriodTotals;
+  buckets: ShopEarningsBucketRow[];
+}
+
+export interface ShopEarningsOrdersQuery {
+  from: string;
+  to: string;
+  page?: number;
+  limit?: number;
+}
+
+/** Hàng GET /order/shop/earnings/by-farm */
+export interface ShopEarningsFarmRow {
+  farmId: string;
+  farmName: string;
+  shopId: string | null;
+  shopName: string | null;
+  finalizedSellerPayout: number;
+  totalGmvFinalized: number;
+  platformFeeFinalized: number;
+  finalizedOrderCount: number;
+  pipelineEstimatedPayout: number;
+  pipelineOrderCount: number;
+}
+
+export interface ShopEarningsByFarmResponse {
+  from: string | null;
+  to: string | null;
+  farms: ShopEarningsFarmRow[];
 }
 
 export interface CreateOrderResult extends Order {

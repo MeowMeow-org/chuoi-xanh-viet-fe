@@ -224,6 +224,38 @@ export default function FarmerOrdersPage() {
                     </span>
                   </div>
 
+                  {(order.settledAt != null && order.sellerPayout != null) ||
+                  (order.estimatedSellerPayout != null &&
+                    order.status !== "cancelled") ? (
+                    <div className="space-y-1 rounded-md bg-muted/40 px-3 py-2 text-xs">
+                      {order.settledAt != null &&
+                      order.sellerPayout != null ? (
+                        <>
+                          <p className="font-medium text-primary">
+                            Thực nhận (đã chốt):{" "}
+                            {formatNumber(order.sellerPayout)}đ
+                          </p>
+                          {order.commissionAmount != null ? (
+                            <p className="text-muted-foreground">
+                              Phí sàn: {formatNumber(order.commissionAmount)}đ
+                            </p>
+                          ) : null}
+                        </>
+                      ) : null}
+                      {order.estimatedSellerPayout != null &&
+                      order.status !== "delivered" &&
+                      order.status !== "cancelled" ? (
+                        <p className="text-muted-foreground">
+                          Dự kiến nhận:{" "}
+                          {formatNumber(order.estimatedSellerPayout)}đ
+                          {order.estimatedCommissionAmount != null
+                            ? ` · Phí sàn dự kiến: ${formatNumber(order.estimatedCommissionAmount)}đ`
+                            : ""}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   {actions.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {actions.map((a) => (
