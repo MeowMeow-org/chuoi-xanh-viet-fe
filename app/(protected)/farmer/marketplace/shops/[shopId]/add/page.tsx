@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import {
   ArrowLeft,
   ImagePlus,
@@ -66,7 +66,8 @@ export default function FarmerShopAddProductPage({
     register,
     setValue,
     handleSubmit,
-    watch,
+    getValues,
+    control,
     setError,
     clearErrors,
     formState: { errors },
@@ -97,9 +98,9 @@ export default function FarmerShopAddProductPage({
     return saleUnits.some((u) => u.id === fromUrl) ? fromUrl : "";
   }, [searchParams, saleUnits]);
 
-  const watchedSaleUnitId = watch("saleUnitId");
-  const watchedName = watch("name");
-  const watchedDesc = watch("description");
+  const watchedSaleUnitId = useWatch({ control, name: "saleUnitId" });
+  const watchedName = useWatch({ control, name: "name" });
+  const watchedDesc = useWatch({ control, name: "description" });
 
   useEffect(() => {
     if (!watchedSaleUnitId && saleUnitIdFromUrl) {
@@ -125,8 +126,8 @@ export default function FarmerShopAddProductPage({
     };
   }, [imagePreview]);
 
-  const nameCount = watchedName.length;
-  const descCount = watchedDesc.length;
+  const nameCount = watchedName?.length ?? 0;
+  const descCount = watchedDesc?.length ?? 0;
 
   const handleImageFileChange = (file: File | null) => {
     setProdImageFile(file);
@@ -150,7 +151,7 @@ export default function FarmerShopAddProductPage({
 
   const handleSuggestListing = async () => {
     if (!shop?.id) return;
-    const saleUnitId = watch("saleUnitId") || saleUnitIdFromUrl;
+    const saleUnitId = getValues("saleUnitId") || saleUnitIdFromUrl;
     if (!saleUnitId) {
       toast.error("Chọn lô đã phân (có QR) để gợi ý");
       return;
