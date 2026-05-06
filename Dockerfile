@@ -31,6 +31,8 @@ COPY . .
 RUN node scripts/copy-vietmap-worker.cjs
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Defensive cleanup: tránh stale lock làm fail next build khi môi trường deploy chạy chồng job.
+RUN node -e "const fs=require('fs'); try { fs.rmSync('.next/lock', { force: true }); } catch (_) {}"
 RUN npm run build
 
 ############################
