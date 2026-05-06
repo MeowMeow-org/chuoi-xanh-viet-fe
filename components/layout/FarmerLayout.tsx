@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   Sprout,
+  TrendingUp,
   User,
   Users,
   X,
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/farmer/farms", label: "Nông trại", icon: Sprout },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
+  { href: "/farmer/agri-trend", label: "Xu hướng", icon: TrendingUp },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
 ];
 
@@ -39,6 +41,7 @@ const mobileNavItems = [
   { href: "/farmer/farms", label: "Nông trại", icon: Sprout },
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
   { href: "/farmer", label: "Tổng quan", icon: Home },
+  { href: "/farmer/agri-trend", label: "Xu hướng", icon: TrendingUp },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
 ];
