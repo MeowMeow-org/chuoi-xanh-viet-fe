@@ -136,6 +136,32 @@ export const usePatchMeMutation = () => {
   });
 };
 
+export type TelegramLinkResponse = {
+  deepLink: string;
+  expiresInSeconds: number;
+};
+
+export const useRequestTelegramLinkMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<TelegramLinkResponse, Error, void>({
+    mutationFn: () => authService.requestTelegramLink(),
+    onSuccess: async (data) => {
+      /**
+       * Dùng `location.href` để trình duyệt/OS mở app Telegram ổn định hơn (nhất là mobile).
+       */
+      if (typeof window !== "undefined") {
+        window.location.href = data.deepLink;
+      }
+      toast.success(
+        `Đã mở Telegram. Trong Telegram bấm «Start». Link hiệu lực ~${Math.floor(data.expiresInSeconds / 60)} phút.`,
+      );
+      await queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
+    },
+    onError: () => {},
+  });
+};
+
 export const useChangePasswordMutation = () => {
   return useMutation<
     void,

@@ -51,7 +51,10 @@ export interface User {
   status: string;
   onBoarding?: boolean;
   avatarUrl?: string | null;
+  /** Zalo OA — khi có, BE có thể gửi thông báo Zalo */
   zaloUserId?: string | null;
+  /** Đã liên kết Telegram qua bot (deep link + Start); không có chat_id thô trên FE */
+  telegramLinked?: boolean;
   /** Địa chỉ trụ sở / liên hệ (HTX — hiển thị cho nông dân khi xét chứng chỉ) */
   contactAddress?: string | null;
   /** Trụ sở HTX — đồng bộ với bảng users */
@@ -69,6 +72,9 @@ export type PatchMePayload = {
   avatarUrl?: string | null;
   fullName?: string;
   phone?: string;
+  zaloUserId?: string | null;
+  /** Gửi true để hủy liên kết Telegram (BE xóa chat_id) */
+  unlinkTelegram?: boolean;
   contactAddress?: string | null;
   province?: string | null;
   district?: string | null;

@@ -36,6 +36,17 @@ export const authService = {
     return axiosInstance.patch<User, User>("/auth/me", payload);
   },
 
+  /** Nông dân: lấy link t.me/bot?start=… để mở Telegram và bấm Start (BE cần TELEGRAM_BOT_USERNAME + webhook). */
+  requestTelegramLink: async (): Promise<{
+    deepLink: string;
+    expiresInSeconds: number;
+  }> => {
+    return axiosInstance.post<
+      { deepLink: string; expiresInSeconds: number },
+      { deepLink: string; expiresInSeconds: number }
+    >("/auth/me/telegram-link", {});
+  },
+
   changePassword: async (payload: {
     currentPassword: string;
     newPassword: string;
