@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, User as UserIcon } from "lucide-react";
 
 import {
@@ -33,8 +33,23 @@ function userToPicker(u: User | null): AddressPickerValue {
   };
 }
 
-export default function CooperativeProfilePage() {
-  const user = useAuthStore((s) => s.user);
+/** Remount để hydrate form từ `user`, tránh đồng bộ props → state trong effect (eslint react-hooks/set-state-in-effect). */
+function cooperativeProfileHydrateKey(u: User | null): string {
+  return [
+    u?.id,
+    u?.provinceCode,
+    u?.districtCode,
+    u?.wardCode,
+    u?.province,
+    u?.district,
+    u?.ward,
+    u?.contactAddress ?? "",
+    u?.latitude ?? "",
+    u?.longitude ?? "",
+  ].join("|");
+}
+
+function CooperativeProfileAddressForm({ user }: { user: User | null }) {
   const patchMe = usePatchMeMutation();
   const [addr, setAddr] = useState<AddressPickerValue>(() =>
     userToPicker(user),
@@ -48,24 +63,6 @@ export default function CooperativeProfilePage() {
   const [draftLng, setDraftLng] = useState<number | null>(
     () => user?.longitude ?? null,
   );
-
-  useEffect(() => {
-    setAddr(userToPicker(user));
-    setContactAddress(user?.contactAddress ?? "");
-    setDraftLat(user?.latitude ?? null);
-    setDraftLng(user?.longitude ?? null);
-  }, [
-    user?.id,
-    user?.provinceCode,
-    user?.districtCode,
-    user?.wardCode,
-    user?.province,
-    user?.district,
-    user?.ward,
-    user?.contactAddress,
-    user?.latitude,
-    user?.longitude,
-  ]);
 
   const lastGeoKeyRef = useRef("");
   useEffect(() => {
@@ -169,12 +166,75 @@ export default function CooperativeProfilePage() {
   };
 
   return (
+    <Card>
+      <CardContent className="space-y-4 p-6">
+        <div className="space-y-3">
+          <AddressPicker
+            value={addr}
+            onChange={(next) => {
+              lastGeoKeyRef.current = "";
+              setDraftLat(null);
+              setDraftLng(null);
+              setAddr(next);
+            }}
+            triggerClassName={cn(fieldClass, "bg-background")}
+            requiredLevel="ward"
+          />
+          <p className="text-xs text-[hsl(150,8%,42%)]">
+            Chọn đủ tỉnh / quận-huyện / phường-xã, nhập số nhà/đường bên dưới — hệ
+            thống tự geocode tọa độ trụ sở (VietMap, có fallback).
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="coop-contact-address">
+            Số nhà, đường (không ghi lại tỉnh/quận/xã)
+          </Label>
+          <Textarea
+            id="coop-contact-address"
+            rows={4}
+            maxLength={500}
+            placeholder="Ví dụ: 12/3 Nguyễn Văn Linh — hiển thị cho nông dân; tối đa 500 ký tự"
+            value={contactAddress}
+            onChange={(e) => setContactAddress(e.target.value)}
+            className="resize-y min-h-[100px]"
+            autoComplete="street-address"
+          />
+          <p className="text-xs text-muted-foreground">
+            Nội dung này hiển thị trên trang chứng chỉ của nông dân khi HTX của bạn xét duyệt.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          disabled={patchMe.isPending}
+          onClick={save}
+          className="w-full sm:w-auto"
+        >
+          {patchMe.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Đang lưu…
+            </>
+          ) : (
+            "Lưu hồ sơ & địa chỉ"
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function CooperativeProfilePage() {
+  const user = useAuthStore((s) => s.user);
+  const hydrateKey = useMemo(() => cooperativeProfileHydrateKey(user), [user]);
+
+  return (
     <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
       <div>
         <h1 className="text-xl font-bold text-[hsl(150,16%,12%)]">Hồ sơ HTX</h1>
         <p className="mt-1 text-sm text-[hsl(150,8%,40%)]">
-          Địa chỉ trụ sở dùng để hiển thị cho nông dân và phân luồng xét duyệt chứng
-          chỉ nông trại (ưu tiên HTX gần địa bàn).
+          Địa chỉ trụ sở dùng để hiển thị cho nông dân và phân luồng xét duyệt chứng chỉ nông trại (ưu tiên HTX gần địa bàn).
         </p>
       </div>
 
@@ -196,62 +256,7 @@ export default function CooperativeProfilePage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="space-y-4 p-6">
-          <div className="space-y-3">
-            <AddressPicker
-              value={addr}
-              onChange={(next) => {
-                lastGeoKeyRef.current = "";
-                setDraftLat(null);
-                setDraftLng(null);
-                setAddr(next);
-              }}
-              triggerClassName={cn(fieldClass, "bg-background")}
-              requiredLevel="ward"
-            />
-            <p className="text-xs text-[hsl(150,8%,42%)]">
-              Chọn đủ tỉnh / quận-huyện / phường-xã, nhập số nhà/đường bên dưới — hệ
-              thống tự geocode tọa độ trụ sở (VietMap, có fallback).
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="coop-contact-address">
-              Số nhà, đường (không ghi lại tỉnh/quận/xã)
-            </Label>
-            <Textarea
-              id="coop-contact-address"
-              rows={4}
-              maxLength={500}
-              placeholder="Ví dụ: 12/3 Nguyễn Văn Linh — hiển thị cho nông dân; tối đa 500 ký tự"
-              value={contactAddress}
-              onChange={(e) => setContactAddress(e.target.value)}
-              className="resize-y min-h-[100px]"
-              autoComplete="street-address"
-            />
-            <p className="text-xs text-muted-foreground">
-              Nội dung này hiển thị trên trang chứng chỉ của nông dân khi HTX của bạn xét duyệt.
-            </p>
-          </div>
-
-          <Button
-            type="button"
-            disabled={patchMe.isPending}
-            onClick={save}
-            className="w-full sm:w-auto"
-          >
-            {patchMe.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang lưu…
-              </>
-            ) : (
-              "Lưu hồ sơ & địa chỉ"
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+      <CooperativeProfileAddressForm key={hydrateKey} user={user} />
     </div>
   );
 }

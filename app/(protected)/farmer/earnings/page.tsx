@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -142,12 +142,41 @@ export default function FarmerEarningsPage() {
     mondayToHtmlWeek(startOfIsoWeekContaining(new Date())),
   );
 
+  const currentCalendarYear = new Date().getFullYear();
+  const effectiveYear = Math.min(year, currentCalendarYear);
+
+  const yearChoices = useMemo(() => {
+    const maxY = currentCalendarYear;
+    const start = 2020;
+    if (maxY < start) return [maxY];
+    return Array.from({ length: maxY - start + 1 }, (_, i) => start + i);
+  }, [currentCalendarYear]);
+
+  const monthParts = useMemo(() => {
+    const [y, m] = monthInput.split("-").map(Number);
+    if (!y || !m)
+      return {
+        y: currentCalendarYear,
+        m: new Date().getMonth() + 1,
+      };
+    const cap = y === currentCalendarYear ? new Date().getMonth() + 1 : 12;
+    return { y, m: Math.min(m, cap) };
+  }, [monthInput, currentCalendarYear]);
+
+  const effectiveWeekInput = useMemo(() => {
+    const mon = parseHtmlWeekToMonday(weekInput);
+    if (!mon) return weekInput;
+    const thisMon = startOfIsoWeekContaining(new Date());
+    if (mon.getTime() > thisMon.getTime()) return mondayToHtmlWeek(thisMon);
+    return weekInput;
+  }, [weekInput]);
+
   const periodArgs = useMemo(() => {
     const capTo = startOfTomorrowLocal();
 
     if (periodTab === "year") {
-      const from = new Date(year, 0, 1);
-      const yearEnd = new Date(year + 1, 0, 1);
+      const from = new Date(effectiveYear, 0, 1);
+      const yearEnd = new Date(effectiveYear + 1, 0, 1);
       const to =
         yearEnd.getTime() < capTo.getTime() ? yearEnd : capTo;
       if (to.getTime() <= from.getTime()) return null;
@@ -155,11 +184,12 @@ export default function FarmerEarningsPage() {
         fromIso: from.toISOString(),
         toIso: to.toISOString(),
         bucket: "month" as const,
-        hint: `Trong năm ${year}, mỗi dòng là một tháng (tiền đã giao xong). Chỉ tính đến hôm nay.`,
+        hint: `Trong năm ${effectiveYear}, mỗi dòng là một tháng (tiền đã giao xong). Chỉ tính đến hôm nay.`,
       };
     }
     if (periodTab === "month") {
-      const [yy, mm] = monthInput.split("-").map(Number);
+      const yy = monthParts.y;
+      const mm = monthParts.m;
       if (!yy || !mm) return null;
       const from = new Date(yy, mm - 1, 1);
       const monthEnd = new Date(yy, mm, 1);
@@ -173,7 +203,7 @@ export default function FarmerEarningsPage() {
         hint: `Trong tháng đã chọn, mỗi dòng khoảng 7 ngày (tiền đã giao xong). Chỉ tính đến hôm nay.`,
       };
     }
-    const monday = parseHtmlWeekToMonday(weekInput);
+    const monday = parseHtmlWeekToMonday(effectiveWeekInput);
     if (!monday) return null;
     const weekEnd = new Date(monday);
     weekEnd.setDate(weekEnd.getDate() + 7);
@@ -186,7 +216,7 @@ export default function FarmerEarningsPage() {
       bucket: "day" as const,
       hint: `Trong tuần đã chọn, mỗi dòng một ngày (tiền đã giao xong). Ngày sau hôm nay không hiển thị.`,
     };
-  }, [periodTab, year, monthInput, weekInput]);
+  }, [periodTab, effectiveYear, monthParts, effectiveWeekInput]);
 
   const { data: breakdown, isLoading: bdLoading } = useQuery({
     queryKey: ["shop-earnings-breakdown", periodArgs?.fromIso, periodArgs?.toIso, periodArgs?.bucket],
@@ -221,26 +251,8 @@ export default function FarmerEarningsPage() {
     enabled: !!periodArgs,
   });
 
-  const currentCalendarYear = new Date().getFullYear();
-  const yearChoices = useMemo(() => {
-    const maxY = currentCalendarYear;
-    const start = 2020;
-    if (maxY < start) return [maxY];
-    return Array.from({ length: maxY - start + 1 }, (_, i) => start + i);
-  }, [currentCalendarYear]);
-
-  const monthParts = useMemo(() => {
-    const [y, m] = monthInput.split("-").map(Number);
-    if (!y || !m)
-      return {
-        y: currentCalendarYear,
-        m: new Date().getMonth() + 1,
-      };
-    return { y, m };
-  }, [monthInput, currentCalendarYear]);
-
   const weekRangeHint = useMemo(() => {
-    const mon = parseHtmlWeekToMonday(weekInput);
+    const mon = parseHtmlWeekToMonday(effectiveWeekInput);
     if (!mon) return "";
     const sun = new Date(mon);
     sun.setDate(sun.getDate() + 6);
@@ -252,7 +264,7 @@ export default function FarmerEarningsPage() {
       return `${short(mon)} → ${short(today0)} (tuần này, báo cáo đến hôm nay)`;
     }
     return `${short(mon)} → ${short(sun)}`;
-  }, [weekInput]);
+  }, [effectiveWeekInput]);
 
   const setMonthParts = (y: number, m: number) => {
     setMonthInput(`${y}-${String(m).padStart(2, "0")}`);
@@ -261,34 +273,12 @@ export default function FarmerEarningsPage() {
   const maxMonthForYear = (y: number) =>
     y === currentCalendarYear ? new Date().getMonth() + 1 : 12;
 
-  useEffect(() => {
-    if (year > currentCalendarYear) setYear(currentCalendarYear);
-  }, [year, currentCalendarYear]);
-
-  useEffect(() => {
-    const [y, m] = monthInput.split("-").map(Number);
-    if (!y || !m) return;
-    const cap = y === currentCalendarYear ? new Date().getMonth() + 1 : 12;
-    if (m > cap) {
-      setMonthInput(`${y}-${String(cap).padStart(2, "0")}`);
-    }
-  }, [monthInput, currentCalendarYear]);
-
-  useEffect(() => {
-    const mon = parseHtmlWeekToMonday(weekInput);
-    if (!mon) return;
-    const thisMon = startOfIsoWeekContaining(new Date());
-    if (mon.getTime() > thisMon.getTime()) {
-      setWeekInput(mondayToHtmlWeek(thisMon));
-    }
-  }, [weekInput]);
-
   const weekNextDisabled = useMemo(() => {
-    const mon = parseHtmlWeekToMonday(weekInput);
+    const mon = parseHtmlWeekToMonday(effectiveWeekInput);
     if (!mon) return true;
     const thisMon = startOfIsoWeekContaining(new Date());
     return mon.getTime() >= thisMon.getTime();
-  }, [weekInput]);
+  }, [effectiveWeekInput]);
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 px-4 py-4 pb-24 md:pb-8">
@@ -399,7 +389,7 @@ export default function FarmerEarningsPage() {
               <select
                 id="earn-year"
                 className={cn(selectFieldClass, "max-w-[220px]")}
-                value={year}
+                value={effectiveYear}
                 onChange={(e) => setYear(Number(e.target.value))}
               >
                 {yearChoices.map((y) => (
@@ -461,7 +451,7 @@ export default function FarmerEarningsPage() {
                     className="max-w-[220px]"
                     min="2020-01-01"
                     max={todayDateInputLocal()}
-                    value={weekInputToDateValue(weekInput)}
+                    value={weekInputToDateValue(effectiveWeekInput)}
                     onChange={(e) => {
                       const raw = e.target.value;
                       if (!raw) return;
@@ -481,10 +471,10 @@ export default function FarmerEarningsPage() {
                       );
                     }}
                   />
-                  {isoWeekShortLabel(weekInput) ? (
+                  {isoWeekShortLabel(effectiveWeekInput) ? (
                     <p className="text-[11px] text-muted-foreground">
                       <span className="font-medium text-foreground">
-                        {isoWeekShortLabel(weekInput)}
+                        {isoWeekShortLabel(effectiveWeekInput)}
                       </span>{" "}
                       — tham chiếu tuần ISO (có thể khác tuần từ Chủ nhật trên lịch treo tường)
                     </p>
