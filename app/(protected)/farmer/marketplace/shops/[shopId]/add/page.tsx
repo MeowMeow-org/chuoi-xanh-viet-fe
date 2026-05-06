@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useMemo, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   ArrowLeft,
   ImagePlus,
@@ -27,6 +28,18 @@ import {
 } from "@/hooks/useFarmerShop";
 import { uploadService } from "@/services/upload/uploadService";
 
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+type AddProductFormValues = {
+  saleUnitId: string;
+  name: string;
+  description: string;
+  price: string;
+  image: File | null;
+};
+
 export default function FarmerShopAddProductPage({
   params,
 }: {
@@ -47,12 +60,27 @@ export default function FarmerShopAddProductPage({
   const addProduct = useAddProductMutation();
   const suggestListing = useSuggestProductListingMutation();
 
-  const [prodSaleUnitId, setProdSaleUnitId] = useState("");
-  const [prodName, setProdName] = useState("");
-  const [prodDesc, setProdDesc] = useState("");
-  const [prodPrice, setProdPrice] = useState("");
   const [prodImageFile, setProdImageFile] = useState<File | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    watch,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm<AddProductFormValues>({
+    mode: "onBlur",
+    reValidateMode: "onBlur",
+    defaultValues: {
+      saleUnitId: "",
+      name: "",
+      description: "",
+      price: "",
+      image: null,
+    },
+  });
 
   const saleUnitOptions = useMemo(
     () =>
@@ -69,7 +97,17 @@ export default function FarmerShopAddProductPage({
     return saleUnits.some((u) => u.id === fromUrl) ? fromUrl : "";
   }, [searchParams, saleUnits]);
 
-  const effectiveSaleUnitId = prodSaleUnitId || saleUnitIdFromUrl;
+  const watchedSaleUnitId = watch("saleUnitId");
+  const watchedName = watch("name");
+  const watchedDesc = watch("description");
+
+  useEffect(() => {
+    if (!watchedSaleUnitId && saleUnitIdFromUrl) {
+      setValue("saleUnitId", saleUnitIdFromUrl, { shouldValidate: true });
+    }
+  }, [watchedSaleUnitId, saleUnitIdFromUrl, setValue]);
+
+  const effectiveSaleUnitId = watchedSaleUnitId || saleUnitIdFromUrl;
 
   const selectedSaleUnit = useMemo(
     () => saleUnits?.find((u) => u.id === effectiveSaleUnitId),
@@ -87,12 +125,32 @@ export default function FarmerShopAddProductPage({
     };
   }, [imagePreview]);
 
-  const nameCount = prodName.length;
-  const descCount = prodDesc.length;
+  const nameCount = watchedName.length;
+  const descCount = watchedDesc.length;
+
+  const handleImageFileChange = (file: File | null) => {
+    setProdImageFile(file);
+    setValue("image", file, { shouldValidate: true });
+    clearErrors("image");
+    if (!file) return;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError("image", {
+        type: "validate",
+        message: "Ảnh chỉ hỗ trợ JPG, PNG hoặc WEBP.",
+      });
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setError("image", {
+        type: "validate",
+        message: `Dung lượng ảnh tối đa ${MAX_IMAGE_SIZE_MB}MB.`,
+      });
+    }
+  };
 
   const handleSuggestListing = async () => {
     if (!shop?.id) return;
-    const saleUnitId = prodSaleUnitId || saleUnitIdFromUrl;
+    const saleUnitId = watch("saleUnitId") || saleUnitIdFromUrl;
     if (!saleUnitId) {
       toast.error("Chọn lô đã phân (có QR) để gợi ý");
       return;
@@ -102,9 +160,10 @@ export default function FarmerShopAddProductPage({
         shopId: shop.id,
         saleUnitId,
       });
-      setProdDesc((s.suggestedDescription ?? "").slice(0, 250));
+      setValue("description", (s.suggestedDescription ?? "").slice(0, 250));
       const p = s.suggestedPriceVnd;
-      setProdPrice(
+      setValue(
+        "price",
         typeof p === "number" && Number.isFinite(p)
           ? String(Number.isInteger(p) ? p : Math.round(p * 100) / 100)
           : "",
@@ -114,22 +173,17 @@ export default function FarmerShopAddProductPage({
     }
   };
 
-  const handleAddProduct = async () => {
+  const handleAddProduct = async (values: AddProductFormValues) => {
     if (!shop?.id) return;
-    const saleUnitId = prodSaleUnitId || saleUnitIdFromUrl;
+    const saleUnitId = values.saleUnitId || saleUnitIdFromUrl;
     if (!saleUnitId) {
-      toast.error("Chọn lô đã phân (có QR) để đăng bán");
+      setError("saleUnitId", {
+        type: "required",
+        message: "Vui lòng chọn lô đã phân (có QR).",
+      });
       return;
     }
-    if (!prodName.trim()) {
-      toast.error("Nhập tên sản phẩm hiển thị trên chợ");
-      return;
-    }
-    const price = Number(prodPrice.replace(",", "."));
-    if (!Number.isFinite(price) || price <= 0) {
-      toast.error("Giá phải là số dương");
-      return;
-    }
+    const price = Number(values.price.trim().replace(",", "."));
 
     let image_url: string | null | undefined;
     if (prodImageFile) {
@@ -152,8 +206,8 @@ export default function FarmerShopAddProductPage({
         shopId: shop.id,
         payload: {
           sale_unit_id: saleUnitId,
-          name: prodName.trim(),
-          description: prodDesc.trim() || undefined,
+          name: values.name.trim(),
+          description: values.description.trim() || undefined,
           price,
           image_url,
         },
@@ -222,20 +276,41 @@ export default function FarmerShopAddProductPage({
             </p>
           </div>
 
-          <CardContent className="space-y-5 p-6">
+          <CardContent className="p-6">
+            <form
+              className="space-y-5"
+              onSubmit={handleSubmit(handleAddProduct, () => {
+                toast.error("Vui lòng kiểm tra các trường đang báo lỗi");
+              })}
+            >
+              <input
+                type="hidden"
+                {...register("saleUnitId", {
+                  required: "Vui lòng chọn lô đã phân (có QR).",
+                })}
+              />
+              <input type="hidden" {...register("image")} />
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">
                 Lô đã phân (QR) <span className="text-destructive">*</span>
               </Label>
               <FancySelect
                 value={effectiveSaleUnitId}
-                onChange={setProdSaleUnitId}
+                onChange={(next) => {
+                  setValue("saleUnitId", next, { shouldValidate: true });
+                  clearErrors("saleUnitId");
+                }}
                 options={saleUnitOptions}
                 placeholder={
                   saleUnitsLoading ? "Đang tải…" : "Chọn lô bán"
                 }
                 disabled={saleUnitsLoading}
               />
+              {errors.saleUnitId?.message && (
+                <p className="text-xs text-destructive">
+                  {errors.saleUnitId.message}
+                </p>
+              )}
               {(saleUnits?.length ?? 0) === 0 && !saleUnitsLoading && (
                 <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
                   Chưa có lô nào sẵn sàng đăng bán cho{" "}
@@ -281,8 +356,12 @@ export default function FarmerShopAddProductPage({
               </Label>
               <Input
                 id="p-name"
-                value={prodName}
-                onChange={(e) => setProdName(e.target.value)}
+                {...register("name", {
+                  required: "Vui lòng nhập tên sản phẩm.",
+                  validate: (v) =>
+                    v.trim().length >= 2 ||
+                    "Tên sản phẩm cần ít nhất 2 ký tự.",
+                })}
                 maxLength={180}
                 className="h-10"
                 placeholder={
@@ -291,6 +370,9 @@ export default function FarmerShopAddProductPage({
                     : "Ví dụ: Cỏ 3 lá tươi"
                 }
               />
+              {errors.name?.message && (
+                <p className="text-xs text-destructive">{errors.name.message}</p>
+              )}
               <p className="text-right text-[11px] text-muted-foreground">
                 {nameCount}/180
               </p>
@@ -325,11 +407,22 @@ export default function FarmerShopAddProductPage({
               <Input
                 id="p-price"
                 inputMode="decimal"
-                value={prodPrice}
-                onChange={(e) => setProdPrice(e.target.value)}
+                {...register("price", {
+                  required: "Vui lòng nhập giá bán.",
+                  validate: (v) => {
+                    const n = Number(v.trim().replace(",", "."));
+                    if (!Number.isFinite(n) || n <= 0) {
+                      return "Giá phải là số dương hợp lệ.";
+                    }
+                    return true;
+                  },
+                })}
                 placeholder="Ví dụ: 25000"
                 className="h-10"
               />
+              {errors.price?.message && (
+                <p className="text-xs text-destructive">{errors.price.message}</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -340,8 +433,7 @@ export default function FarmerShopAddProductPage({
                 id="p-desc"
                 rows={4}
                 maxLength={250}
-                value={prodDesc}
-                onChange={(e) => setProdDesc(e.target.value)}
+                {...register("description")}
                 placeholder="Ghi chú cho người mua…"
                 className="resize-y min-h-[100px]"
               />
@@ -386,13 +478,16 @@ export default function FarmerShopAddProductPage({
                   accept="image/*"
                   className="hidden"
                   onChange={(e) =>
-                    setProdImageFile(e.target.files?.[0] ?? null)
+                    handleImageFileChange(e.target.files?.[0] ?? null)
                   }
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <p className="text-xs text-muted-foreground">
-                    Ảnh hiển thị trên chợ. Định dạng JPG, PNG…
+                    Ảnh hiển thị trên chợ. Hỗ trợ JPG/PNG/WEBP, tối đa 5MB.
                   </p>
+                  {errors.image?.message && (
+                    <p className="text-xs text-destructive">{errors.image.message}</p>
+                  )}
                   {prodImageFile && (
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="truncate text-xs text-foreground">
@@ -405,6 +500,8 @@ export default function FarmerShopAddProductPage({
                         className="h-8 gap-1 text-destructive hover:text-destructive"
                         onClick={() => {
                           setProdImageFile(null);
+                          clearErrors("image");
+                          setValue("image", null, { shouldValidate: true });
                           if (imageInputRef.current)
                             imageInputRef.current.value = "";
                         }}
@@ -426,14 +523,13 @@ export default function FarmerShopAddProductPage({
                 Huỷ
               </Link>
               <Button
-                type="button"
+                type="submit"
                 disabled={
                   addProduct.isPending ||
                   !effectiveSaleUnitId ||
-                  !prodName.trim() ||
+                  !watchedName.trim() ||
                   saleUnitsLoading
                 }
-                onClick={() => void handleAddProduct()}
                 className="h-10 min-w-36 gap-1.5"
               >
                 {addProduct.isPending ? (
@@ -444,6 +540,7 @@ export default function FarmerShopAddProductPage({
                 Thêm sản phẩm
               </Button>
             </div>
+            </form>
           </CardContent>
         </Card>
       )}

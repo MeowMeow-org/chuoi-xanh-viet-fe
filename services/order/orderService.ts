@@ -7,6 +7,7 @@ import type {
   OrderStatus,
   CreateOrderResult,
   PayosResumePayload,
+  PayosRenewResult,
 } from "./index";
 
 function toCreateOrderBody(payload: CreateOrderPayload): Record<string, unknown> {
@@ -66,6 +67,13 @@ export const orderService = {
       PayosResumePayload,
       PayosResumePayload
     >(`/order/${orderId}/payos/resume`);
+    return data;
+  },
+
+  renewPayosPayment: async (orderId: string): Promise<PayosRenewResult> => {
+    const data = await axiosInstance.post<PayosRenewResult, PayosRenewResult>(
+      `/order/${orderId}/payos/renew`,
+    );
     return data;
   },
 

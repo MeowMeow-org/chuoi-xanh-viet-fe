@@ -66,6 +66,33 @@ export default function VietMapRoutePreview({
       setRouteError(null);
       setRoute(null);
       try {
+        if (
+          !Number.isFinite(originLat) ||
+          !Number.isFinite(originLng) ||
+          !Number.isFinite(destLat) ||
+          !Number.isFinite(destLng)
+        ) {
+          throw new Error("Thiếu tọa độ điểm xuất phát hoặc đích.");
+        }
+        if (originLat === 0 && originLng === 0) {
+          throw new Error(
+            "Vị trí của bạn chưa hợp lệ (0,0). Hãy bật định vị chính xác hơn hoặc mở Google Maps.",
+          );
+        }
+        if (destLat === 0 && destLng === 0) {
+          throw new Error(
+            "Trại chưa có tọa độ GPS hợp lệ trên hệ thống (thường là 0,0). Vui lòng nông hộ cập nhật/ghim lại vị trí trại.",
+          );
+        }
+
+        const dLat = Math.abs(originLat - destLat);
+        const dLng = Math.abs(originLng - destLng);
+        if (dLat < 1e-5 && dLng < 1e-5) {
+          throw new Error(
+            "Hai điểm gần như trùng nhau — không cần chỉ đường.",
+          );
+        }
+
         const params = new URLSearchParams({
           originLat: String(originLat),
           originLng: String(originLng),

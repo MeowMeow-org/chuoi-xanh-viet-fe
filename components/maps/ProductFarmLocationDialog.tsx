@@ -82,11 +82,29 @@ export default function ProductFarmLocationDialog({
   const [geoLoading, setGeoLoading] = useState(false);
   const [vehicle, setVehicle] = useState<"motorcycle" | "car">("motorcycle");
 
-  const hasCoords =
+  const rawHasNumericCoords =
     farmLat != null &&
     farmLng != null &&
     Number.isFinite(farmLat) &&
     Number.isFinite(farmLng);
+
+  /** Trại đang lưu (0,0) hoặc ngoài bbox VN → coi như chưa có GPS hợp lệ cho routing. */
+  const hasCoords =
+    rawHasNumericCoords &&
+    !(farmLat === 0 && farmLng === 0) &&
+    farmLat >= 8 &&
+    farmLat <= 24 &&
+    farmLng >= 102 &&
+    farmLng <= 110;
+
+  const farmGpsLooksInvalid =
+    rawHasNumericCoords &&
+    !hasCoords &&
+    !(farmLat === 0 && farmLng === 0) &&
+    (farmLat < 8 || farmLat > 24 || farmLng < 102 || farmLng > 110);
+
+  const farmGpsIsZeroPlaceholder =
+    rawHasNumericCoords && farmLat === 0 && farmLng === 0;
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -155,6 +173,27 @@ export default function ProductFarmLocationDialog({
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+          {farmGpsIsZeroPlaceholder ? (
+            <p className="rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
+              Hệ thống đang lưu tọa độ trại là{" "}
+              <span className="font-mono text-foreground">0,0</span> — không
+              phải vị trí thật nên VietMap không chỉ đường được. Vui lòng nhờ
+              nông hộ cập nhật/ghim lại GPS trên hồ sơ nông trại (hoặc mở Google
+              Maps theo địa chỉ).
+            </p>
+          ) : null}
+
+          {farmGpsLooksInvalid ? (
+            <p className="rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
+              Tọa độ trại trên hệ thống có vẻ nằm ngoài phạm vi Việt Nam (
+              <span className="font-mono text-foreground">
+                {farmLat?.toFixed(5)}, {farmLng?.toFixed(5)}
+              </span>
+              ). Kiểm tra lại GPS đã ghim — VietMap Route có thể không tính được
+              lộ trình với tọa độ sai.
+            </p>
+          ) : null}
+
           {hasCoords && directionsMode && userOrigin ? (
             <div className="flex w-full items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -201,7 +240,7 @@ export default function ProductFarmLocationDialog({
             />
           ) : null}
 
-          {!hasCoords ? (
+          {!hasCoords && !farmGpsIsZeroPlaceholder && !farmGpsLooksInvalid ? (
             <p className="rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 px-3 py-2 text-xs text-muted-foreground">
               Nông trại chưa ghim tọa độ GPS trên hệ thống. Bạn vẫn có thể mở Google
               Maps để xem khu vực theo địa danh.

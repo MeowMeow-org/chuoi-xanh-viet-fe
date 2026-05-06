@@ -347,7 +347,21 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
                         className="text-[10px]"
                         title="Ai chịu trách nhiệm xét duyệt hồ sơ này (chưa phải trạng thái đã duyệt)"
                       >
-                        HTX xét duyệt
+                        {`HTX phụ trách: ${c.reviewer_cooperative?.full_name ?? "Chưa gán"}${
+                          c.reviewer_cooperative
+                            ? (() => {
+                                const parts = [
+                                  c.reviewer_cooperative.contact_address,
+                                  c.reviewer_cooperative.ward,
+                                  c.reviewer_cooperative.district,
+                                  c.reviewer_cooperative.province,
+                                ].filter(Boolean);
+                                return parts.length > 0
+                                  ? ` · ${parts.join(", ")}`
+                                  : "";
+                              })()
+                            : ""
+                        }`}
                       </Badge>
                     </div>
                     <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-xs text-muted-foreground">

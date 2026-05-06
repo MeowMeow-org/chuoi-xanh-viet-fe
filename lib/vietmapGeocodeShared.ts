@@ -51,7 +51,8 @@ function extractFromObject(item: unknown): {
     lat >= -90 &&
     lat <= 90 &&
     lng >= -180 &&
-    lng <= 180
+    lng <= 180 &&
+    !(lat === 0 && lng === 0)
   ) {
     const label =
       typeof o.display === "string"
@@ -77,7 +78,8 @@ function extractFromObject(item: unknown): {
       latG >= -90 &&
       latG <= 90 &&
       lngG >= -180 &&
-      lngG <= 180
+      lngG <= 180 &&
+      !(latG === 0 && lngG === 0)
     ) {
       return { lat: latG, lng: lngG };
     }

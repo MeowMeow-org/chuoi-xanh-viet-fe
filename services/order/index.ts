@@ -66,6 +66,8 @@ export interface Order {
   note: string | null;
   createdAt: string;
   updatedAt: string;
+  /** ISO — thời điểm hết hiệu lực link PayOS (đếm ngược); null = dữ liệu cũ hoặc không áp dụng */
+  payosLinkExpiresAt?: string | null;
   shop: OrderShop | null;
   items: OrderItem[];
 }
@@ -74,6 +76,9 @@ export interface CreateOrderResult extends Order {
   /** Chỉ có khi paymentMethod là payos và tạo link thành công */
   checkoutUrl?: string;
 }
+
+/** Trả về sau POST /payos/renew (giống cấu trúc create PayOS) */
+export type PayosRenewResult = CreateOrderResult;
 
 export interface PayosResumePayload {
   checkoutUrl?: string;

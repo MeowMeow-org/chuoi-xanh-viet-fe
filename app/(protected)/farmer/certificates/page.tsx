@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileText, Loader2, Plus, ShieldCheck } from "lucide-react";
+import { Building2, FileText, Loader2, Plus, ShieldCheck } from "lucide-react";
 
 import { Pagination } from "@/components/shared/Pagination";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useMyFarmCertsQuery } from "@/hooks/useCertificate";
 import {
   CERT_TYPE_LABEL,
   type FarmCertStatus,
+  type FarmCertificate,
 } from "@/services/certificate";
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,38 @@ function formatDate(value: string | null | undefined) {
   const d = new Date(value);
   if (isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("vi-VN");
+}
+
+/** Hiển thị tên + địa chỉ / liên hệ HTX được gán xét duyệt. */
+function reviewerCooperativeSummary(cert: FarmCertificate): {
+  title: string;
+  lines: string[];
+} | null {
+  if (cert.approver_scope !== "cooperative") return null;
+  const coop = cert.reviewer_cooperative;
+  const name = coop?.full_name?.trim();
+  if (!coop || !name) {
+    return {
+      title: "HTX xử lý hồ sơ",
+      lines: [
+        "Hệ thống đang gán hợp tác xã phù hợp. Thông tin liên hệ sẽ hiện sau khi có HTX.",
+      ],
+    };
+  }
+  const lines: string[] = [];
+  const addr = coop.contact_address?.trim();
+  if (addr) lines.push(addr);
+  const bits = [
+    coop.phone ? `Điện thoại: ${coop.phone}` : null,
+    coop.email?.trim() ? `Email: ${coop.email.trim()}` : null,
+  ].filter(Boolean) as string[];
+  if (bits.length) lines.push(bits.join(" · "));
+  if (!lines.length) {
+    lines.push(
+      "HTX chưa khai báo địa chỉ trên hệ thống — chỉ có thể liên hệ qua tài khoản HTX.",
+    );
+  }
+  return { title: name, lines };
 }
 
 const LIST_PAGE_SIZE = 5;
@@ -157,14 +190,39 @@ export default function FarmerCertificatesPage() {
                       <Badge variant={statusColor(c.status)}>
                         {statusLabel(c.status)}
                       </Badge>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px]"
-                        title="Ai chịu trách nhiệm xét duyệt hồ sơ (khác với trạng thái «Đã duyệt»)"
-                      >
-                        HTX xét duyệt
-                      </Badge>
+                      {c.approver_scope === "admin" ? (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px]"
+                          title="Hồ sơ do quản trị viên xét duyệt"
+                        >
+                          Admin xét duyệt
+                        </Badge>
+                      ) : null}
                     </div>
+                    {(() => {
+                      const coopInfo = reviewerCooperativeSummary(c);
+                      if (!coopInfo) return null;
+                      return (
+                        <div className="flex gap-2 rounded-lg border border-[hsl(142,25%,88%)] bg-[hsl(120,35%,98%)]/90 px-3 py-2 text-xs text-foreground">
+                          <Building2 className="h-4 w-4 shrink-0 text-[hsl(142,58%,32%)] mt-0.5" />
+                          <div className="min-w-0 space-y-0.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                              HTX xử lý chứng chỉ
+                            </p>
+                            <p className="font-medium leading-snug">{coopInfo.title}</p>
+                            {coopInfo.lines.map((line, i) => (
+                              <p
+                                key={i}
+                                className="text-muted-foreground leading-snug"
+                              >
+                                {line}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <p className="text-xs text-muted-foreground">
                       Nông trại: <b>{c.farm?.name ?? "—"}</b>
                     </p>

@@ -23,6 +23,7 @@ export const cooperativeService = {
     limit?: number;
     searchTerm?: string;
     id?: string;
+    farmId?: string;
   }): Promise<PaginatedResponse<CooperativeAccount>> => {
     type HtxListPayload = {
       items: (CooperativeAccount & { fullName?: string })[];
@@ -39,6 +40,7 @@ export const cooperativeService = {
             ? { searchTerm: params.searchTerm.trim() }
             : {}),
           ...(params?.id ? { id: params.id } : {}),
+          ...(params?.farmId ? { farmId: params.farmId } : {}),
         },
       },
     )) as unknown as HtxListPayload;

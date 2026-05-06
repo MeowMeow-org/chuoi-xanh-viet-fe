@@ -1,6 +1,7 @@
 import {
   AuthResponse,
   LoginPayload,
+  PatchMePayload,
   RegisterPayload,
   User,
 } from '@/services/auth';
@@ -119,17 +120,7 @@ export const usePatchMeMutation = () => {
   const queryClient = useQueryClient();
   const setAuth = useAuthStore((s) => s.setAuth);
 
-  return useMutation<
-    User,
-    Error,
-    {
-      avatarUrl?: string | null;
-      fullName?: string;
-      phone?: string;
-      zaloUserId?: string | null;
-      unlinkTelegram?: boolean;
-    }
-  >({
+  return useMutation<User, Error, PatchMePayload>({
     mutationFn: (payload) => authService.patchMe(payload),
     onSuccess: (user) => {
       const { accessToken, refreshToken } = useAuthStore.getState();
