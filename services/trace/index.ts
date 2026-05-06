@@ -34,6 +34,22 @@ export interface TraceCooperativeInfo {
   };
 }
 
+/** Payload lưu trong `diary_entries.extra_data` khi chạy scan AI (xem diary-scan.service BE). */
+export interface TraceAiScanExtraData {
+  type: "ai_scan_result";
+  scannedAt: string;
+  overallRisk: "safe" | "warning" | "critical";
+  violations: Array<{
+    severity: "info" | "warning" | "critical";
+    code: string;
+    title: string;
+    detail: string;
+    relatedEntryIds: string[];
+    recommendation: string;
+  }>;
+  summary: string;
+}
+
 export interface TraceDiaryEntry {
   id: string;
   seasonId: string;
