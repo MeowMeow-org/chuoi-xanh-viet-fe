@@ -18,6 +18,16 @@ function query(id: string): HTMLElement | null {
   return document.getElementById(id);
 }
 
+/** Tour `target` must be `() => HTMLElement`; fall back when node not mounted yet. */
+function tourTarget(id: string): () => HTMLElement {
+  return () => {
+    if (typeof document === "undefined") {
+      return null as unknown as HTMLElement;
+    }
+    return query(id) ?? document.body;
+  };
+}
+
 export default function FarmerShellOnboarding() {
   const [mdUp, setMdUp] = useState(true);
   const [open, setOpen] = useState(false);
@@ -43,11 +53,11 @@ export default function FarmerShellOnboarding() {
   }, []);
 
   const steps = useMemo((): TourProps["steps"] => {
-    const header = () => query("onboarding-farmer-header");
-    const navDesktop = () => query("onboarding-farmer-nav-desktop");
-    const actions = () => query("onboarding-farmer-actions");
-    const main = () => query("onboarding-farmer-main");
-    const bottomNav = () => query("onboarding-farmer-bottom-nav");
+    const header = tourTarget("onboarding-farmer-header");
+    const navDesktop = tourTarget("onboarding-farmer-nav-desktop");
+    const actions = tourTarget("onboarding-farmer-actions");
+    const main = tourTarget("onboarding-farmer-main");
+    const bottomNav = tourTarget("onboarding-farmer-bottom-nav");
 
     const core: TourProps["steps"] = [
       {

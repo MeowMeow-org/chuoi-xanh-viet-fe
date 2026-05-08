@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -52,6 +52,11 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     }
     return pathname === path || pathname.startsWith(`${path}/`);
   };
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setMobileMenuOpen(false), 0);
+    return () => window.clearTimeout(id);
+  }, [pathname]);
 
   return (
     <div className="flex min-h-screen flex-col bg-[hsl(120,20%,98%)] text-[hsl(150,10%,15%)]">
@@ -160,7 +165,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           "fixed inset-x-0 top-14 bottom-[57px] z-40 transition-opacity duration-200 md:hidden",
           mobileMenuOpen
             ? "pointer-events-auto bg-black/35 opacity-100"
-            : "pointer-events-none bg-black/0 opacity-0",
+            : "pointer-events-none hidden",
         )}
         onClick={() => setMobileMenuOpen(false)}
       >
