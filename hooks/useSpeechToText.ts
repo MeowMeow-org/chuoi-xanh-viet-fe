@@ -2,13 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-function getRecognitionCtor(): (new () => SpeechRecognition) | null {
+function getRecognitionCtor(): SpeechRecognitionConstructor | null {
   if (typeof window === "undefined") return null;
-  const win = window as Window & {
-    SpeechRecognition?: new () => SpeechRecognition;
-    webkitSpeechRecognition?: new () => SpeechRecognition;
-  };
-  return win.SpeechRecognition ?? win.webkitSpeechRecognition ?? null;
+  return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
 }
 
 /** Trình duyệt có Web Speech API (thường Chrome, Edge — HTTPS hoặc localhost). */
