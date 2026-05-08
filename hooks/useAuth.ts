@@ -1,6 +1,7 @@
 import {
   AuthResponse,
   LoginPayload,
+  normalizeAuthRole,
   PatchMePayload,
   RegisterPayload,
   User,
@@ -13,14 +14,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const resolveRoleRoute = (role: string | undefined): string | null => {
-  const normalizedRole = role?.trim().toLowerCase();
+  const normalizedRole = normalizeAuthRole(role);
 
   if (normalizedRole === 'admin') return '/admin';
   if (normalizedRole === 'farmer') return '/farmer';
   if (normalizedRole === 'consumer') return '/consumer';
-  if (normalizedRole === 'cooperative') {
-    return '/cooperative';
-  }
+  if (normalizedRole === 'cooperative') return '/cooperative';
 
   return null;
 };

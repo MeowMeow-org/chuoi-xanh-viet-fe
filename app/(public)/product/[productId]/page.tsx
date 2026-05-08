@@ -25,8 +25,12 @@ import {
   ChevronLeft,
   CheckCircle2,
   PackageCheck,
-  AlertCircle
+  AlertCircle,
+  Link2,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import { getSaleUnitTracePublicUrl } from "@/lib/tracePublicUrl";
+import { stripSaleUnitAppendedDescription } from "@/lib/stripSaleUnitAppendedDescription";
 import { toast } from "@/components/ui/toast";
 import { shopService } from "@/services/shop/shopService";
 import { reviewService } from "@/services/review/reviewService";
@@ -275,6 +279,13 @@ export default function PublicProductPage() {
     ? `${product.shop.farm.district ? `${product.shop.farm.district}, ` : ""}${product.shop.farm.province}`
     : "Đang cập nhật";
 
+  const tracePublicUrl = product.saleUnit
+    ? getSaleUnitTracePublicUrl(product.saleUnit)
+    : "";
+  const hasTraceInfoCard = Boolean(product.saleUnit && tracePublicUrl.length > 0);
+
+  const descriptionForDisplay = stripSaleUnitAppendedDescription(product.description);
+
   const addToCart = () => {
     if (
       !requireAuth({
@@ -473,9 +484,49 @@ export default function PublicProductPage() {
                     <div className="h-1 w-6 bg-primary rounded-full" />
                     <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Thông tin sản phẩm</h2>
                   </div>
+                  {(descriptionForDisplay || !hasTraceInfoCard) && (
                   <p className="text-sm leading-relaxed text-foreground/80 font-medium whitespace-pre-line pl-1">
-                    {product.description || "Nhà vườn chưa mô tả chi tiết."}
+                    {descriptionForDisplay || "Nhà vườn chưa mô tả chi tiết."}
                   </p>
+                  )}
+                  {hasTraceInfoCard && (
+                    <div className="space-y-3 border border-border/50 rounded-2xl bg-muted/[0.15] p-4 pl-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+                        <div
+                          className="shrink-0 rounded-xl border bg-white p-2 shadow-sm mx-auto sm:mx-0"
+                          role="img"
+                          aria-label="Mã QR mở trang truy xuất lô"
+                        >
+                          <QRCodeSVG
+                            value={tracePublicUrl}
+                            size={112}
+                            level="M"
+                            marginSize={2}
+                            className="h-[112px] w-[112px]"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            <Link2 className="h-3.5 w-3.5 text-primary" aria-hidden />
+                            Truy xuất lô
+                          </p>
+                          <a
+                            href={tracePublicUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-semibold text-primary underline-offset-4 hover:underline break-all"
+                          >
+                            {tracePublicUrl}
+                          </a>
+                          <p className="text-[11px] text-muted-foreground">
+                            Quét QR hoặc bấm link để xem nhật ký lô — mở{" "}
+                            <span className="font-medium text-foreground/70">truy-xuat</span> trên
+                            chuoixanhviet.site.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

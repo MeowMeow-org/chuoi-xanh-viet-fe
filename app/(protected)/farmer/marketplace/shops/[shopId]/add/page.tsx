@@ -8,8 +8,10 @@ import {
   ArrowLeft,
   ImagePlus,
   Loader2,
+  Mic,
   Plus,
   Sparkles,
+  Square,
   Trash2,
 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
@@ -26,7 +28,12 @@ import {
   useMyShopsQuery,
   useSuggestProductListingMutation,
 } from "@/hooks/useFarmerShop";
+import {
+  speechRecognitionSupported,
+  useSpeechToText,
+} from "@/hooks/useSpeechToText";
 import { uploadService } from "@/services/upload/uploadService";
+import { getSaleUnitTracePublicUrl } from "@/lib/tracePublicUrl";
 
 const MAX_IMAGE_SIZE_MB = 5;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
@@ -115,6 +122,18 @@ export default function FarmerShopAddProductPage({
     [saleUnits, effectiveSaleUnitId],
   );
 
+  const selectedTracePublicUrl = useMemo(
+    () =>
+      selectedSaleUnit
+        ? getSaleUnitTracePublicUrl({
+            shortCode: selectedSaleUnit.short_code,
+            code: selectedSaleUnit.code,
+            qrUrl: selectedSaleUnit.qr_url,
+          })
+        : "",
+    [selectedSaleUnit],
+  );
+
   const imagePreview = useMemo(
     () => (prodImageFile ? URL.createObjectURL(prodImageFile) : null),
     [prodImageFile],
@@ -125,6 +144,70 @@ export default function FarmerShopAddProductPage({
       if (imagePreview) URL.revokeObjectURL(imagePreview);
     };
   }, [imagePreview]);
+
+  const [srSupported, setSrSupported] = useState(false);
+
+  useEffect(() => {
+    const id = window.setTimeout(
+      () => setSrSupported(speechRecognitionSupported()),
+      0,
+    );
+    return () => window.clearTimeout(id);
+  }, []);
+
+  const nameSpeech = useSpeechToText();
+  const descSpeech = useSpeechToText();
+
+  const toggleNameSpeech = () => {
+    if (!srSupported) {
+      toast.error(
+        "Trình duyệt không hỗ trợ nhận giọng nói. Hãy dùng Chrome hoặc Edge (HTTPS hoặc localhost).",
+      );
+      return;
+    }
+    descSpeech.stop();
+    if (nameSpeech.listening) {
+      nameSpeech.stop();
+      return;
+    }
+    const ok = nameSpeech.start({
+      continuous: false,
+      onChunk: (t) =>
+        setValue("name", t, { shouldValidate: true, shouldDirty: true }),
+    });
+    if (!ok) {
+      toast.error(
+        "Không bật được mic. Kiểm tra quyền truy cập micro trên trình duyệt.",
+      );
+    }
+  };
+
+  const toggleDescSpeech = () => {
+    if (!srSupported) {
+      toast.error(
+        "Trình duyệt không hỗ trợ nhận giọng nói. Hãy dùng Chrome hoặc Edge (HTTPS hoặc localhost).",
+      );
+      return;
+    }
+    nameSpeech.stop();
+    if (descSpeech.listening) {
+      descSpeech.stop();
+      return;
+    }
+    const ok = descSpeech.start({
+      continuous: true,
+      onChunk: (t) => {
+        const prev = (getValues("description") ?? "").trim();
+        const next = `${prev}${prev ? " " : ""}${t}`.slice(0, 250);
+        setValue("description", next, { shouldDirty: true });
+      },
+    });
+    if (!ok) {
+      toast.error(
+        "Không bật được mic. Kiểm tra quyền truy cập micro trên trình duyệt.",
+      );
+    }
+  };
 
   const nameCount = watchedName?.length ?? 0;
   const descCount = watchedDesc?.length ?? 0;
@@ -345,102 +428,191 @@ export default function FarmerShopAddProductPage({
                   {selectedSaleUnit.seasons.code})
                 </p>
                 <p className="break-all text-xs text-muted-foreground">
-                  Truy xuất: {selectedSaleUnit.qr_url}
+                  Truy xuất: {selectedTracePublicUrl}
                 </p>
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <Label htmlFor="p-name" className="text-sm font-medium">
-                Tên sản phẩm (hiển thị trên chợ){" "}
-                <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="p-name"
-                {...register("name", {
-                  required: "Vui lòng nhập tên sản phẩm.",
-                  validate: (v) =>
-                    v.trim().length >= 2 ||
-                    "Tên sản phẩm cần ít nhất 2 ký tự.",
-                })}
-                maxLength={180}
-                className="h-10"
-                placeholder={
-                  selectedSaleUnit
-                    ? `Ví dụ: ${selectedSaleUnit.seasons.crop_name} — ghi rõ cách bán`
-                    : "Ví dụ: Cỏ 3 lá tươi"
-                }
-              />
-              {errors.name?.message && (
-                <p className="text-xs text-destructive">{errors.name.message}</p>
-              )}
-              <p className="text-right text-[11px] text-muted-foreground">
-                {nameCount}/180
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="p-price" className="text-sm font-medium">
-                  Giá (VNĐ) <span className="text-destructive">*</span>
-                </Label>
-                <button
-                  type="button"
-                  disabled={
-                    !effectiveSaleUnitId ||
-                    suggestListing.isPending ||
-                    saleUnitsLoading
-                  }
-                  onClick={() => void handleSuggestListing()}
-                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/10 disabled:opacity-50"
+            <div className="space-y-6 rounded-2xl border border-border/70 bg-card/80 p-5 shadow-sm sm:p-6">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="p-name"
+                  className="text-sm font-semibold leading-none text-foreground"
                 >
-                  {suggestListing.isPending ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-3 w-3" />
-                  )}
-                  Gợi ý AI
-                </button>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                Gợi ý điền mô tả cho người mua và giá theo đơn vị lô (vd. đ/kg).
-              </p>
-              <Input
-                id="p-price"
-                inputMode="decimal"
-                {...register("price", {
-                  required: "Vui lòng nhập giá bán.",
-                  validate: (v) => {
-                    const n = Number(v.trim().replace(",", "."));
-                    if (!Number.isFinite(n) || n <= 0) {
-                      return "Giá phải là số dương hợp lệ.";
+                  Tên sản phẩm (hiển thị trên chợ){" "}
+                  <span className="text-destructive">*</span>
+                </Label>
+                <div className="flex min-h-11 items-center gap-2 rounded-xl border border-input bg-background px-3 shadow-sm transition-[box-shadow,border-color] focus-within:border-primary/45 focus-within:ring-[3px] focus-within:ring-ring/35">
+                  <Input
+                    id="p-name"
+                    {...register("name", {
+                      required: "Vui lòng nhập tên sản phẩm.",
+                      validate: (v) =>
+                        v.trim().length >= 2 ||
+                        "Tên sản phẩm cần ít nhất 2 ký tự.",
+                    })}
+                    maxLength={180}
+                    className="my-0 h-10 min-h-10 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 aria-invalid:ring-0"
+                    placeholder={
+                      selectedSaleUnit
+                        ? `Ví dụ: ${selectedSaleUnit.seasons.crop_name} — ghi rõ cách bán`
+                        : "Ví dụ: Cỏ 3 lá tươi"
                     }
-                    return true;
-                  },
-                })}
-                placeholder="Ví dụ: 25000"
-                className="h-10"
-              />
-              {errors.price?.message && (
-                <p className="text-xs text-destructive">{errors.price.message}</p>
-              )}
-            </div>
+                  />
+                  <Button
+                    type="button"
+                    variant={nameSpeech.listening ? "destructive" : "secondary"}
+                    size="icon"
+                    className="h-9 w-9 shrink-0 rounded-lg"
+                    onClick={() => toggleNameSpeech()}
+                    disabled={!srSupported}
+                    title={
+                      !srSupported
+                        ? "Trình duyệt không hỗ trợ mic giọng nói"
+                        : nameSpeech.listening
+                          ? "Dừng ghi âm tên"
+                          : "Nói để điền tên sản phẩm"
+                    }
+                    aria-label={
+                      nameSpeech.listening
+                        ? "Dừng nhận giọng nói"
+                        : "Mic tên SP"
+                    }
+                  >
+                    {nameSpeech.listening ? (
+                      <Square
+                        className="h-3.5 w-3.5 fill-current"
+                        aria-hidden
+                      />
+                    ) : (
+                      <Mic className="h-4 w-4" aria-hidden />
+                    )}
+                  </Button>
+                </div>
+                <div className="flex min-h-[1rem] flex-wrap items-center justify-between gap-x-3 gap-y-1 px-0.5">
+                  {errors.name?.message ? (
+                    <p className="text-xs text-destructive">
+                      {errors.name.message}
+                    </p>
+                  ) : (
+                    <span className="min-w-0 flex-1" />
+                  )}
+                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                    {nameCount}/180
+                  </span>
+                </div>
+              </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="p-desc" className="text-sm font-medium">
-                Mô tả thêm (tuỳ chọn)
-              </Label>
-              <Textarea
-                id="p-desc"
-                rows={4}
-                maxLength={250}
-                {...register("description")}
-                placeholder="Ghi chú cho người mua…"
-                className="resize-y min-h-[100px]"
-              />
-              <p className="text-right text-[11px] text-muted-foreground">
-                {descCount}/250
-              </p>
+              <div className="h-px bg-border/60" aria-hidden />
+
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label
+                    htmlFor="p-price"
+                    className="text-sm font-semibold leading-none text-foreground"
+                  >
+                    Giá (VNĐ) <span className="text-destructive">*</span>
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 shrink-0 gap-1 rounded-full px-3 text-xs font-medium"
+                    disabled={
+                      !effectiveSaleUnitId ||
+                      suggestListing.isPending ||
+                      saleUnitsLoading
+                    }
+                    onClick={() => void handleSuggestListing()}
+                  >
+                    {suggestListing.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    )}
+                    Gợi ý AI
+                  </Button>
+                </div>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Gợi ý mô tả và giá theo đơn vị lô (vd. đ/kg) cho người mua.
+                </p>
+                <Input
+                  id="p-price"
+                  inputMode="decimal"
+                  {...register("price", {
+                    required: "Vui lòng nhập giá bán.",
+                    validate: (v) => {
+                      const n = Number(v.trim().replace(",", "."));
+                      if (!Number.isFinite(n) || n <= 0) {
+                        return "Giá phải là số dương hợp lệ.";
+                      }
+                      return true;
+                    },
+                  })}
+                  placeholder="Ví dụ: 25000"
+                  className="my-0 h-11 min-h-11 rounded-xl"
+                />
+                {errors.price?.message ? (
+                  <p className="text-xs text-destructive">
+                    {errors.price.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="h-px bg-border/60" aria-hidden />
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="p-desc"
+                  className="text-sm font-semibold leading-none text-foreground"
+                >
+                  Mô tả thêm <span className="font-normal text-muted-foreground">(tuỳ chọn)</span>
+                </Label>
+                <div className="flex items-start gap-2 rounded-xl border border-input bg-background p-2 pl-3 shadow-sm transition-[box-shadow,border-color] focus-within:border-primary/45 focus-within:ring-[3px] focus-within:ring-ring/35">
+                  <Textarea
+                    id="p-desc"
+                    rows={4}
+                    maxLength={250}
+                    {...register("description")}
+                    placeholder="Ghi chú cho người mua…"
+                    className="min-h-[108px] flex-1 resize-y border-0 bg-transparent px-0 py-1.5 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                  <Button
+                    type="button"
+                    variant={descSpeech.listening ? "destructive" : "secondary"}
+                    size="icon"
+                    className="mt-1 h-9 w-9 shrink-0 rounded-lg"
+                    onClick={() => toggleDescSpeech()}
+                    disabled={!srSupported}
+                    title={
+                      !srSupported
+                        ? "Trình duyệt không hỗ trợ mic giọng nói"
+                        : descSpeech.listening
+                          ? "Dừng ghi âm mô tả"
+                          : "Nói để điền mô tả (có thể nói nhiều câu)"
+                    }
+                    aria-label={
+                      descSpeech.listening
+                        ? "Dừng nhận giọng nói mô tả"
+                        : "Mic mô tả"
+                    }
+                  >
+                    {descSpeech.listening ? (
+                      <Square
+                        className="h-3.5 w-3.5 fill-current"
+                        aria-hidden
+                      />
+                    ) : (
+                      <Mic className="h-4 w-4" aria-hidden />
+                    )}
+                  </Button>
+                </div>
+                <div className="flex justify-end px-0.5">
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {descCount}/250
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">

@@ -207,6 +207,11 @@ export default function ConsumerLayout({
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    const id = window.setTimeout(() => setMenuOpen(false), 0);
+    return () => window.clearTimeout(id);
+  }, [pathname]);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Banner chế độ công khai khi user KHÁC role consumer đang xem. */}
@@ -448,10 +453,10 @@ export default function ConsumerLayout({
       <div
         className={cn(
           // z-60 > bottom nav (z-50) so drawer + backdrop cover full screen like farmer mobile reference
-          "fixed inset-x-0 top-14 bottom-0 z-60 md:hidden transition-opacity duration-200",
+          "fixed inset-x-0 top-14 bottom-0 z-60 transition-opacity duration-200 md:hidden",
           menuOpen
             ? "pointer-events-auto bg-black/50 opacity-100"
-            : "pointer-events-none bg-black/0 opacity-0",
+            : "pointer-events-none hidden",
         )}
         role="dialog"
         aria-modal={menuOpen}

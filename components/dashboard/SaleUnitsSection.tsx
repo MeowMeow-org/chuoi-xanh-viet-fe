@@ -34,6 +34,7 @@ import {
 } from "@/hooks/useSaleUnit";
 import { useMyShopsQuery } from "@/hooks/useFarmerShop";
 import type { SaleUnit } from "@/services/sale-unit";
+import { getSaleUnitTracePublicUrl } from "@/lib/tracePublicUrl";
 import { cn } from "@/lib/utils";
 
 function formatKg(n: number): string {
@@ -94,9 +95,15 @@ function SaleUnitCard({
 }) {
   const [copied, setCopied] = useState(false);
 
+  const tracePublicUrl = getSaleUnitTracePublicUrl({
+    shortCode: saleUnit.shortCode,
+    code: saleUnit.code,
+    qrUrl: saleUnit.qrUrl,
+  });
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(saleUnit.qrUrl);
+      await navigator.clipboard.writeText(tracePublicUrl);
       setCopied(true);
       toast.success("Đã copy link truy xuất");
       setTimeout(() => setCopied(false), 2000);
@@ -129,7 +136,7 @@ function SaleUnitCard({
   return (
     <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:gap-4">
       <QrWithDownload
-        value={saleUnit.qrUrl}
+        value={tracePublicUrl}
         label={saleUnit.shortCode ?? saleUnit.code}
       />
 
@@ -166,7 +173,7 @@ function SaleUnitCard({
         <div className="mt-1 space-y-1 text-xs">
           <div className="flex items-start gap-1.5 break-all rounded-md bg-muted/50 p-2 font-mono">
             <span className="text-muted-foreground">URL: </span>
-            <span className="min-w-0 flex-1">{saleUnit.qrUrl}</span>
+            <span className="min-w-0 flex-1">{tracePublicUrl}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
