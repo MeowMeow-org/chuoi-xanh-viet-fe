@@ -19,6 +19,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import FarmerWorkflowTour from "@/components/onboarding/FarmerWorkflowTour";
+import { FARMER_AGRI_TREND_ONBOARDING_KEY } from "@/lib/onboarding/farmerKeys";
 import { useAgriTrendQuery, useRefreshAgriTrendMutation } from "@/hooks/useAgriTrend";
 import type {
   AgriAlert,
@@ -417,7 +419,10 @@ export default function AgriTrendPage() {
     <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-4 pb-24 sm:px-6 md:pb-8">
 
       {/* ── Header ── */}
-      <header className="flex flex-col gap-4 rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-5 sm:flex-row sm:items-start sm:justify-between">
+      <header
+        id="onboarding-agri-trend-header"
+        className="flex flex-col gap-4 rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-5 sm:flex-row sm:items-start sm:justify-between"
+      >
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(142,71%,45%)]/12">
@@ -452,6 +457,7 @@ export default function AgriTrendPage() {
         </div>
 
         <Button
+          id="onboarding-agri-trend-refresh"
           onClick={() => void handleRefresh()}
           disabled={refreshDisabled}
           size="sm"
@@ -478,7 +484,10 @@ export default function AgriTrendPage() {
       </header>
 
       {/* ── AI Summary ── */}
-      <div className="overflow-hidden rounded-2xl border border-[hsl(142,15%,88%)] bg-white">
+      <div
+        id="onboarding-agri-trend-summary"
+        className="overflow-hidden rounded-2xl border border-[hsl(142,15%,88%)] bg-white"
+      >
         <div className="flex gap-4 p-5">
           <div className="w-1 shrink-0 rounded-full bg-[hsl(142,71%,45%)]" />
           <p className="text-sm leading-7 text-[hsl(150,10%,20%)]">
@@ -529,6 +538,7 @@ export default function AgriTrendPage() {
 
       {/* ── Market Signals + Tech Spotlight ── */}
       <div
+        id="onboarding-agri-trend-signals"
         className={cn(
           "grid gap-5",
           data.techSpotlight.length > 0 && "lg:grid-cols-2",
@@ -556,6 +566,36 @@ export default function AgriTrendPage() {
           </div>
         </section>
       )}
+
+      <FarmerWorkflowTour
+        storageKey={FARMER_AGRI_TREND_ONBOARDING_KEY}
+        steps={[
+          {
+            targetId: "onboarding-agri-trend-header",
+            title: "Trang Xu hướng nông nghiệp",
+            description:
+              "AI tổng hợp tin tức và dữ liệu thị trường để đưa ra cây trồng nổi bật, tín hiệu giá và cảnh báo. Số bài báo được phân tích hiển thị ngay dưới tiêu đề.",
+          },
+          {
+            targetId: "onboarding-agri-trend-refresh",
+            title: "Làm mới phân tích",
+            description:
+              "Bấm Làm mới để chạy lại phân tích AI ngay. Mỗi lần làm mới có khoảng chờ 5 phút để giảm tải hệ thống.",
+          },
+          {
+            targetId: "onboarding-agri-trend-summary",
+            title: "Tóm tắt AI",
+            description:
+              "Đoạn tóm tắt nhanh các điểm đáng chú ý trong ngày. Đọc ở đây để nắm bức tranh chung trước khi xem chi tiết.",
+          },
+          {
+            targetId: "onboarding-agri-trend-signals",
+            title: "Tín hiệu thị trường và công nghệ",
+            description:
+              "Khu vực này gồm áp lực nguồn cung, nhu cầu, cảnh báo giá và công nghệ canh tác mới. Mỗi mục đều có nguồn dẫn để bạn bấm xem bài báo gốc.",
+          },
+        ]}
+      />
     </div>
   );
 }

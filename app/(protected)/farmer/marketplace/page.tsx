@@ -171,7 +171,7 @@ export default function FarmerMarketplacePage() {
             targetId: "onboarding-mp-header",
             title: "Gian hàng theo nông trại",
             description:
-              "Mỗi trại chỉ một gian. Nút Mở gian hàng mới xuất hiện khi còn trại chưa gắn gian — bấm để đặt tên, mô tả và ảnh đại diện.",
+              "Mỗi trại chỉ một gian. Nút Mở gian hàng mới xuất hiện khi còn trại chưa gắn gian, bấm để đặt tên, mô tả và ảnh đại diện.",
           },
           {
             targetId: "onboarding-mp-body",

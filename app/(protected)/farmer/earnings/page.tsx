@@ -20,6 +20,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import FarmerWorkflowTour from "@/components/onboarding/FarmerWorkflowTour";
+import { FARMER_EARNINGS_ONBOARDING_KEY } from "@/lib/onboarding/farmerKeys";
 
 const fmt = (n: number) =>
   Number.isFinite(n) ? n.toLocaleString("vi-VN") : "0";
@@ -282,7 +284,10 @@ export default function FarmerEarningsPage() {
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 px-4 py-4 pb-24 md:pb-8">
-      <div className="flex items-start gap-2">
+      <div
+        id="onboarding-earnings-header"
+        className="flex items-start gap-2"
+      >
         <TrendingUp className="mt-0.5 h-6 w-6 shrink-0 text-primary" />
         <div>
           <h1 className="text-xl font-bold">Lợi nhuận</h1>
@@ -304,7 +309,10 @@ export default function FarmerEarningsPage() {
           Không tải được báo cáo. Thử lại sau.
         </p>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div
+          id="onboarding-earnings-summary"
+          className="grid gap-3 sm:grid-cols-2"
+        >
           <Card className="border-primary/20 bg-primary/3 shadow-sm">
             <CardContent className="space-y-1.5 p-4">
               <p className="text-xs font-medium text-muted-foreground">
@@ -361,7 +369,7 @@ export default function FarmerEarningsPage() {
         </div>
       )}
 
-      <Card className="shadow-sm">
+      <Card id="onboarding-earnings-period" className="shadow-sm">
         <CardContent className="space-y-4 p-4">
           <div className="flex items-start gap-2">
             <CalendarDays className="mt-0.5 size-5 shrink-0 text-primary" />
@@ -653,7 +661,7 @@ export default function FarmerEarningsPage() {
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm">
+      <Card id="onboarding-earnings-by-farm" className="shadow-sm">
         <CardContent className="space-y-3 p-4">
           <h2 className="text-base font-semibold">Theo từng nông trại</h2>
           <p className="text-xs text-muted-foreground">
@@ -780,6 +788,36 @@ export default function FarmerEarningsPage() {
           )}
         </CardContent>
       </Card>
+
+      <FarmerWorkflowTour
+        storageKey={FARMER_EARNINGS_ONBOARDING_KEY}
+        steps={[
+          {
+            targetId: "onboarding-earnings-header",
+            title: "Trang Lợi nhuận",
+            description:
+              "Xem tổng tiền bạn nhận được từ các đơn hàng. Hệ thống tự trừ phí ứng dụng và phân biệt số dự kiến (đơn đang xử lý) với số chính thức (đơn đã giao xong).",
+          },
+          {
+            targetId: "onboarding-earnings-summary",
+            title: "Thẻ tổng quan",
+            description:
+              "Bốn ô tóm tắt nhanh, gồm tiền đã về túi, dự kiến nhận, tổng khách trả và phí ứng dụng đã trừ. Dùng để biết tình hình chung trước khi xem chi tiết.",
+          },
+          {
+            targetId: "onboarding-earnings-period",
+            title: "Lọc theo Tuần / Tháng / Năm",
+            description:
+              "Chọn kỳ thời gian để xem chi tiết từng đoạn. Mặc định là tháng. Hệ thống chỉ tính đến hôm nay, không hiển thị ngày tương lai.",
+          },
+          {
+            targetId: "onboarding-earnings-by-farm",
+            title: "Chi tiết theo nông trại và đơn",
+            description:
+              "Phần dưới cho biết từng nông trại và từng đơn trong kỳ đã chọn. Cột Bạn nhận hiển thị số chính thức (đã giao) hoặc dự kiến (đang xử lý).",
+          },
+        ]}
+      />
     </div>
   );
 }

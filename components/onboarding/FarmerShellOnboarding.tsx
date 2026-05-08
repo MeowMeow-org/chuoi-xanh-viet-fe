@@ -53,7 +53,7 @@ export default function FarmerShellOnboarding() {
       {
         title: "Chào bạn, đây là không gian nông hộ",
         description:
-          "Chúng tôi sẽ chỉ nhanh các phần chính trên màn hình. Bạn có thể bỏ qua bất cứ lúc nào.",
+          "Chúng tôi sẽ chỉ nhanh các phần chính trên màn hình.",
         target: header,
         nextButtonProps: { children: "Tiếp" },
       },
@@ -77,7 +77,7 @@ export default function FarmerShellOnboarding() {
       core.splice(1, 0, {
         title: "Menu chức năng",
         description:
-          "Tổng quan, Nông trại, Gian hàng, Diễn đàn, Xu hướng, Trợ lý AI — mỗi mục là một nhóm việc riêng.",
+          "Tổng quan, Nông trại, Gian hàng, Diễn đàn, Xu hướng, Trợ lý AI, mỗi mục là một nhóm việc riêng.",
         target: navDesktop,
         nextButtonProps: { children: "Tiếp" },
       });

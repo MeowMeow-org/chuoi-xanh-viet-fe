@@ -193,7 +193,7 @@ export default function FarmerFarmsPage() {
             targetId: "onboarding-farms-add-card",
             title: "Thêm nông trại mới",
             description:
-              "Bấm vào ô nét đứt để mở màn hình khai báo tên, diện tích, địa chỉ và vị trí bản đồ.",
+              "Bấm vào Thêm nông trại mới để thêm nông trại với tên, diện tích, địa chỉ và vị trí bản đồ.",
           },
           {
             targetId: "onboarding-farms-list",

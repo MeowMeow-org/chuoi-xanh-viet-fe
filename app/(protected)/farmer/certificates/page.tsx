@@ -301,7 +301,7 @@ export default function FarmerCertificatesPage() {
             targetId: "onboarding-certs-intro",
             title: "Trang chứng chỉ",
             description:
-              "Theo dõi VietGAP và loại khác. Bấm Nộp chứng chỉ để chọn nông trại, điền thông tin và đính kèm file — HTX gần nhất thường là bên xét duyệt.",
+              "Theo dõi VietGAP và loại khác. Bấm Nộp chứng chỉ để chọn nông trại, điền thông tin và đính kèm file. HTX gần nhất thường là bên xét duyệt.",
           },
           {
             targetId: "onboarding-certs-body",

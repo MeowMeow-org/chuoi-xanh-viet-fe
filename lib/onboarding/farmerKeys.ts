@@ -7,6 +7,9 @@ export const FARMER_FARM_HUB_ONBOARDING_KEY = "cxv_onboarding_farmer_farm_hub_v1
 export const FARMER_CERTIFICATES_ONBOARDING_KEY = "cxv_onboarding_farmer_certificates_v1";
 export const FARMER_MARKETPLACE_ONBOARDING_KEY = "cxv_onboarding_farmer_marketplace_v1";
 export const FARMER_SEASON_CREATE_ONBOARDING_KEY = "cxv_onboarding_farmer_season_create_v1";
+export const FARMER_SEASON_DETAIL_ONBOARDING_KEY = "cxv_onboarding_farmer_season_detail_v1";
+export const FARMER_EARNINGS_ONBOARDING_KEY = "cxv_onboarding_farmer_earnings_v1";
+export const FARMER_AGRI_TREND_ONBOARDING_KEY = "cxv_onboarding_farmer_agri_trend_v1";
 
 export const FARMER_SHELL_ONBOARDING_DONE_EVENT = "cxv:farmer-shell-onboarding-complete";
 

@@ -40,6 +40,7 @@ export default function FarmerWorkflowTour({
     readOnboardingFlag(FARMER_SHELL_ONBOARDING_KEY),
   );
   const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState(0);
 
   useEffect(() => {
     const onShell = () => setShellDone(true);
@@ -56,15 +57,33 @@ export default function FarmerWorkflowTour({
 
   const finish = useCallback(() => {
     setOpen(false);
+    setCurrent(0);
     writeOnboardingFlag(storageKey);
   }, [storageKey]);
+
+  /**
+   * Tránh lỗi "trigger element and popup element should in same shadow root":
+   * khi user đổi tab/route lúc tour đang mở, target có id biến mất khỏi DOM
+   * (vd. nội dung tab unmount). Lúc đó đóng tour cho an toàn thay vì giữ popup mồ côi.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const step = steps[current];
+    if (!step) return;
+    const id = window.setInterval(() => {
+      if (!document.getElementById(step.targetId)) {
+        finish();
+      }
+    }, 200);
+    return () => window.clearInterval(id);
+  }, [open, current, steps, finish]);
 
   const tourSteps = useMemo((): TourProps["steps"] => {
     return steps.map((s, index) => ({
       title: s.title,
       description: s.description,
       target: () =>
-        document.getElementById(s.targetId) ?? document.body,
+        document.getElementById(s.targetId) ?? document.documentElement,
       nextButtonProps: {
         children: index === steps.length - 1 ? "Xong" : "Tiếp",
       },
@@ -77,15 +96,21 @@ export default function FarmerWorkflowTour({
     <ConfigProvider locale={viVN}>
       <Tour
         open={open}
+        current={current}
+        onChange={setCurrent}
         onClose={finish}
         onFinish={finish}
         steps={tourSteps}
         zIndex={zIndex}
         placement={placement}
-        closeIcon={false}
-        indicatorsRender={(current, total) => (
+        closeIcon={
+          <span className="rounded-md px-2 py-1 text-xs font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white">
+            Bỏ qua
+          </span>
+        }
+        indicatorsRender={(value, total) => (
           <span className="text-xs tabular-nums text-white/90">
-            {current + 1}/{total}
+            {value + 1}/{total}
           </span>
         )}
       />

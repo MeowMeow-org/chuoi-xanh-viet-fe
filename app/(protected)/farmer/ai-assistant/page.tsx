@@ -91,24 +91,36 @@ function inferTextIntent(text: string): TextIntent {
   return "farming";
 }
 
-function getSpeechRecognitionConstructor(): typeof SpeechRecognition | null {
+/** Web Speech API — tối thiểu; tránh `SpeechRecognition` / `window.SpeechRecognition` (không khai báo trên `Window` trong lib.dom). */
+type WebSpeechRecognition = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start: () => void;
+  stop: () => void;
+  onresult:
+    | ((event: {
+        results: ArrayLike<{ 0: { transcript?: string } }>;
+      }) => void)
+    | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+};
+
+function getSpeechRecognitionConstructor(): (new () => WebSpeechRecognition) | null {
   if (typeof window === "undefined") return null;
-  return (
-    window.SpeechRecognition ??
-    (
-      window as unknown as {
-        webkitSpeechRecognition?: typeof SpeechRecognition;
-      }
-    ).webkitSpeechRecognition ??
-    null
-  );
+  const w = window as unknown as {
+    SpeechRecognition?: new () => WebSpeechRecognition;
+    webkitSpeechRecognition?: new () => WebSpeechRecognition;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
 export default function FarmerAIAssistantPage() {
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
+  const speechRecognitionRef = useRef<WebSpeechRecognition | null>(null);
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
@@ -132,6 +144,7 @@ export default function FarmerAIAssistantPage() {
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- API chỉ khả dụng sau mount
     setVoiceSupported(getSpeechRecognitionConstructor() != null);
   }, []);
 
@@ -267,7 +280,7 @@ export default function FarmerAIAssistantPage() {
     rec.lang = "vi-VN";
     rec.continuous = false;
     rec.interimResults = false;
-    rec.onresult = (event: SpeechRecognitionEvent) => {
+    rec.onresult = (event) => {
       const piece = event.results[0]?.[0]?.transcript?.trim();
       if (piece) {
         setInput((prev) => {
@@ -276,7 +289,7 @@ export default function FarmerAIAssistantPage() {
         });
       }
     };
-    rec.onerror = (event: SpeechRecognitionErrorEvent) => {
+    rec.onerror = (event) => {
       if (event.error === "aborted") return;
       speechRecognitionRef.current = null;
       setIsListening(false);
