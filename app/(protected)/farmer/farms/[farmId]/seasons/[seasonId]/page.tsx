@@ -22,6 +22,7 @@ import DiaryEntryForm from "@/components/dashboard/DiaryEntryForm";
 import DiaryTimeline from "@/components/dashboard/DiaryTimeline";
 import SaleUnitsSection from "@/components/dashboard/SaleUnitsSection";
 import DiaryScanResultModal from "@/components/diary/DiaryScanResultModal";
+import FarmerWorkflowTour from "@/components/onboarding/FarmerWorkflowTour";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -46,6 +47,7 @@ import {
 } from "@/hooks/useSeason";
 import type { DiaryScanResult } from "@/services/diary";
 import type { SeasonStatus } from "@/services/season";
+import { FARMER_SEASON_DETAIL_ONBOARDING_KEY } from "@/lib/onboarding/farmerKeys";
 
 /** Decimal / JSON từ BE thường là string — không dùng Number.isFinite trực tiếp. */
 function parseSeasonActualYield(value: unknown): number | null {
@@ -210,7 +212,10 @@ export default function SeasonDetailPage() {
       </Link>
 
       {/* Season header card */}
-      <div className="gradient-green relative rounded-2xl p-5 text-primary-foreground">
+      <div
+        id="onboarding-season-detail-header"
+        className="gradient-green relative rounded-2xl p-5 text-primary-foreground"
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-xs uppercase tracking-wide opacity-85">
@@ -324,31 +329,33 @@ export default function SeasonDetailPage() {
 
       {/* Yield summary + quick editor */}
       {season && (
-        <YieldCard
-          actualYield={actualYield}
-          seasonYieldUnit={yieldUnitRaw}
-          yieldMissing={yieldMissing}
-          editable={canEditYield}
-          showWarning={needsYieldBeforeAnchor}
-          isSaving={updateSeason.isPending}
-          onSave={(value, unit) =>
-            updateSeason.mutate(
-              {
-                seasonId: seasonId!,
-                payload: { actualYield: value, yieldUnit: unit },
-              },
-              {
-                onSuccess: () => toast.success("Đã cập nhật sản lượng"),
-                onError: (
-                  err: Error & { response?: { data?: { message?: string } } },
-                ) =>
-                  toast.error(
-                    err.response?.data?.message ?? "Cập nhật không thành công",
-                  ),
-              },
-            )
-          }
-        />
+        <div id="onboarding-season-detail-yield">
+          <YieldCard
+            actualYield={actualYield}
+            seasonYieldUnit={yieldUnitRaw}
+            yieldMissing={yieldMissing}
+            editable={canEditYield}
+            showWarning={needsYieldBeforeAnchor}
+            isSaving={updateSeason.isPending}
+            onSave={(value, unit) =>
+              updateSeason.mutate(
+                {
+                  seasonId: seasonId!,
+                  payload: { actualYield: value, yieldUnit: unit },
+                },
+                {
+                  onSuccess: () => toast.success("Đã cập nhật sản lượng"),
+                  onError: (
+                    err: Error & { response?: { data?: { message?: string } } },
+                  ) =>
+                    toast.error(
+                      err.response?.data?.message ?? "Cập nhật không thành công",
+                    ),
+                },
+              )
+            }
+          />
+        </div>
       )}
 
       {/* Confirm delete dialog */}
@@ -428,7 +435,10 @@ export default function SeasonDetailPage() {
                 ? "grid-cols-2"
                 : "grid-cols-3";
           return (
-            <TabsList className={`grid h-12 w-full ${gridClass}`}>
+            <TabsList
+              id="onboarding-season-detail-tabs"
+              className={`grid h-12 w-full ${gridClass}`}
+            >
               <TabsTrigger value="timeline" className="text-sm font-semibold">
                 Nhật ký
               </TabsTrigger>
@@ -452,6 +462,7 @@ export default function SeasonDetailPage() {
         <TabsContent value="timeline">
           <div className="mb-3 flex items-center justify-end">
             <Button
+              id="onboarding-season-detail-ai-scan"
               type="button"
               size="sm"
               variant="outline"
@@ -502,6 +513,36 @@ export default function SeasonDetailPage() {
           </TabsContent>
         )}
       </Tabs>
+
+      <FarmerWorkflowTour
+        storageKey={FARMER_SEASON_DETAIL_ONBOARDING_KEY}
+        steps={[
+          {
+            targetId: "onboarding-season-detail-header",
+            title: "Trang chi tiết mùa vụ",
+            description:
+              "Đây là khu vực tổng quan mùa vụ: mã vụ, cây trồng, trạng thái và các thao tác như hoàn thành thu hoạch, đăng nhật ký hoặc xóa mùa vụ.",
+          },
+          {
+            targetId: "onboarding-season-detail-yield",
+            title: "Sản lượng thực tế",
+            description:
+              "Nhập và lưu sản lượng thực tế trước khi hoàn thành thu hoạch/đăng nhật ký. Dữ liệu này cũng là trần để tạo các lô bán sau khi công khai.",
+          },
+          {
+            targetId: "onboarding-season-detail-tabs",
+            title: "Nhật ký, thêm mới, lô bán",
+            description:
+              "Dùng các tab để xem lịch sử nhật ký, tạo nhật ký mới và quản lý lô bán (tab Lô bán sẽ hiện khi mùa vụ đã công khai).",
+          },
+          {
+            targetId: "onboarding-season-detail-ai-scan",
+            title: "Kiểm tra AI",
+            description:
+              "Bấm Kiểm tra AI để quét toàn bộ nhật ký mùa vụ, phát hiện thiếu sót và nhận gợi ý cải thiện chất lượng dữ liệu.",
+          },
+        ]}
+      />
 
       <DiaryScanResultModal
         result={scanResult}

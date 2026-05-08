@@ -16,6 +16,7 @@ import {
   TrendingUp,
   User,
   Users,
+  Wallet,
   X,
   Package,
 } from "lucide-react";
@@ -33,12 +34,13 @@ const navItems = [
   { href: "/farmer", label: "Tổng quan", icon: Home },
   { href: "/farmer/farms", label: "Nông trại", icon: Sprout },
   { href: "/farmer/marketplace", label: "Gian hàng", icon: ShoppingBag },
-  { href: "/farmer/earnings", label: "Lợi nhuận", icon: TrendingUp },
+  { href: "/farmer/earnings", label: "Lợi nhuận", icon: Wallet },
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },
   { href: "/farmer/agri-trend", label: "Xu hướng", icon: TrendingUp },
   { href: "/farmer/ai-assistant", label: "Trợ lý AI", icon: MessageCircle },
 ];
 
+/** Thanh dưới mobile: gọn hơn; Xu hướng + Lợi nhuận chỉ trong menu (drawer trái). */
 const mobileNavItems = [
   { href: "/farmer/farms", label: "Nông trại", icon: Sprout },
   { href: "/farmer/forum", label: "Diễn đàn", icon: Users },

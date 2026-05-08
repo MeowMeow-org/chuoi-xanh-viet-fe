@@ -1,5 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import type {
+  AiReviewSummary,
   CreateShopReviewPayload,
   ListShopReviewsQuery,
   ShopReview,
@@ -46,6 +47,32 @@ export const reviewService = {
     return axiosInstance.patch<ShopReview, ShopReview>(
       `/review/${reviewId}`,
       payload,
+    );
+  },
+
+  getProductSummary: async (productId: string): Promise<AiReviewSummary> => {
+    return axiosInstance.get<AiReviewSummary, AiReviewSummary>(
+      `/review/product/${productId}/summary`,
+    );
+  },
+
+  analyzeProductSummary: async (
+    productId: string,
+  ): Promise<AiReviewSummary> => {
+    return axiosInstance.post<AiReviewSummary, AiReviewSummary>(
+      `/review/product/${productId}/summary`,
+    );
+  },
+
+  getShopSummary: async (shopId: string): Promise<AiReviewSummary> => {
+    return axiosInstance.get<AiReviewSummary, AiReviewSummary>(
+      `/review/shop/${shopId}/summary`,
+    );
+  },
+
+  analyzeShopSummary: async (shopId: string): Promise<AiReviewSummary> => {
+    return axiosInstance.post<AiReviewSummary, AiReviewSummary>(
+      `/review/shop/${shopId}/summary`,
     );
   },
 };

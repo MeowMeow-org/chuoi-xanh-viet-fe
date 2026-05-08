@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMyFarmsQuery } from "@/hooks/useFarm";
 import { useCreateSeasonMutation } from "@/hooks/useSeason";
+import FarmerWorkflowTour from "@/components/onboarding/FarmerWorkflowTour";
+import { FARMER_SEASON_CREATE_ONBOARDING_KEY } from "@/lib/onboarding/farmerKeys";
 import { cn } from "@/lib/utils";
 
 /**
@@ -225,7 +227,7 @@ export default function CreateSeasonPage() {
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
         </Link>
-        <div className="min-w-0 flex-1 pt-0.5">
+        <div id="onboarding-season-create-intro" className="min-w-0 flex-1 pt-0.5">
           <h1 className="text-xl font-bold tracking-tight text-[hsl(150,16%,12%)]">
             Tạo mùa vụ mới
           </h1>
@@ -237,7 +239,7 @@ export default function CreateSeasonPage() {
         </div>
       </div>
 
-      <Card>
+      <Card id="onboarding-season-create-form">
         <CardHeader>
           <CardTitle className="text-base">Thông tin mùa vụ</CardTitle>
         </CardHeader>
@@ -442,6 +444,25 @@ export default function CreateSeasonPage() {
           </form>
         </CardContent>
       </Card>
+
+      <FarmerWorkflowTour
+        storageKey={FARMER_SEASON_CREATE_ONBOARDING_KEY}
+        placement="top"
+        steps={[
+          {
+            targetId: "onboarding-season-create-intro",
+            title: "Tạo mùa vụ",
+            description:
+              "Mỗi vụ gắn một loại cây và khoảng thời gian. Sau khi tạo, bạn sẽ vào trang chi tiết vụ để ghi nhật ký và các bước truy xuất.",
+          },
+          {
+            targetId: "onboarding-season-create-form",
+            title: "Biểu mẫu",
+            description:
+              "Điền cây trồng, ngày bắt đầu, ngày thu hoạch dự kiến và năng suất. Hệ thống kiểm tra ngày hợp lệ trước khi lưu.",
+          },
+        ]}
+      />
     </div>
   );
 }

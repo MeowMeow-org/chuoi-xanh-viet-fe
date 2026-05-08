@@ -252,7 +252,7 @@ export default function DiaryEntryForm({
     const activeSeason = seasons.find((season) => season.id === selectedSeason);
 
     return (
-        <Card className="border-primary/20 shadow-sm">
+        <Card id="onboarding-diary-form" className="border-primary/20 shadow-sm">
             <CardHeader className="pb-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <CardTitle className="text-lg">Ghi nhật ký sản xuất</CardTitle>

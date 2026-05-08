@@ -16,6 +16,8 @@ import {
   type FarmCertificate,
 } from "@/services/certificate";
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
+import FarmerWorkflowTour from "@/components/onboarding/FarmerWorkflowTour";
+import { FARMER_CERTIFICATES_ONBOARDING_KEY } from "@/lib/onboarding/farmerKeys";
 import { cn } from "@/lib/utils";
 import type { PaginationMeta } from "@/types";
 
@@ -128,7 +130,10 @@ export default function FarmerCertificatesPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-4 pb-20 sm:px-6 md:pb-8 lg:px-8">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div
+        id="onboarding-certs-intro"
+        className="flex items-center justify-between gap-2 flex-wrap"
+      >
         <div>
           <h1 className="text-xl font-bold">Chứng chỉ nông trại</h1>
           <p className="text-sm text-muted-foreground">
@@ -147,6 +152,7 @@ export default function FarmerCertificatesPage() {
         />
       </div>
 
+      <div id="onboarding-certs-body" className="space-y-4">
       {archivedCount > 0 && (
         <Button
           type="button"
@@ -286,6 +292,25 @@ export default function FarmerCertificatesPage() {
           ) : null}
         </div>
       )}
+      </div>
+
+      <FarmerWorkflowTour
+        storageKey={FARMER_CERTIFICATES_ONBOARDING_KEY}
+        steps={[
+          {
+            targetId: "onboarding-certs-intro",
+            title: "Trang chứng chỉ",
+            description:
+              "Theo dõi VietGAP và loại khác. Bấm Nộp chứng chỉ để chọn nông trại, điền thông tin và đính kèm file. HTX gần nhất thường là bên xét duyệt.",
+          },
+          {
+            targetId: "onboarding-certs-body",
+            title: "Danh sách & trạng thái",
+            description:
+              "Mỗi dòng cho biết chờ duyệt, đã duyệt hoặc từ chối. Có thể bật xem chứng chỉ hết hạn khi cần. File PDF xem tại liên kết Xem file.",
+          },
+        ]}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { AlertTriangle, BookOpen, ShieldCheck, Sprout } from "lucide-react";
 
 import DiaryEntryForm from "@/components/dashboard/DiaryEntryForm";
 import DiaryTimeline from "@/components/dashboard/DiaryTimeline";
+import FarmerDiaryOnboarding from "@/components/onboarding/FarmerDiaryOnboarding";
 import { currentFarmer, diaryEntries, seasons } from "@/data/mockData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -63,7 +64,10 @@ export default function FarmerDiaryDashboard() {
             </div>
 
             <Tabs defaultValue="diary" className="space-y-4">
-                <TabsList className="grid h-12 w-full grid-cols-2">
+                <TabsList
+                    id="onboarding-diary-tabs"
+                    className="grid h-12 w-full grid-cols-2"
+                >
                     <TabsTrigger value="diary" className="text-sm font-semibold">
                         Ghi nhật ký
                     </TabsTrigger>
@@ -80,6 +84,8 @@ export default function FarmerDiaryDashboard() {
                     <DiaryTimeline />
                 </TabsContent>
             </Tabs>
+
+            <FarmerDiaryOnboarding />
         </div>
     );
 }
