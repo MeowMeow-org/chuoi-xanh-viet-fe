@@ -441,7 +441,7 @@ export default function FarmUpsertForm({
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
         </Link>
-        <div className="min-w-0 flex-1 pt-0.5">
+        <div id="onboarding-farm-upsert-intro" className="min-w-0 flex-1 pt-0.5">
           <h1 className="text-xl font-bold tracking-tight text-[hsl(150,16%,12%)]">
             {title}
           </h1>
@@ -451,7 +451,7 @@ export default function FarmUpsertForm({
         </div>
       </div>
 
-      <Card>
+      <Card id="onboarding-farm-upsert-card">
         <CardHeader>
           <CardTitle className="text-base">Thông tin nông trại</CardTitle>
         </CardHeader>
