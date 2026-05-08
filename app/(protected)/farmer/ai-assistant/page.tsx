@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, ImagePlus, Loader2, Send, User, X } from "lucide-react";
+import { Bot, ImagePlus, Loader2, Mic, Send, User, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { chatbotService, type ConversationTurn } from "@/services/chatbot";
@@ -24,7 +24,9 @@ const WELCOME_TEXT = `Xin chào! Trong **một khung chat** này bạn có thể
 
 **Giá và thị trường** — hỏi giá nông sản, xu hướng, khu vực (vd: giá chuối hôm nay, cà rốt miền Tây). Hệ thống **tự nhận** từ câu bạn gõ.
 
-**Chẩn đoán qua ảnh** — chạm **biểu tượng ảnh** bên trái để đính ảnh lá / quả / cây, có thể ghi chú triệu chứng (gợi ý tham khảo).`;
+**Chẩn đoán qua ảnh** — chạm **biểu tượng ảnh** bên trái để đính ảnh lá / quả / cây, có thể ghi chú triệu chứng (gợi ý tham khảo).
+
+**Nói để nhập** — bấm **micro** cạnh nút gửi (Chrome / Edge, tiếng Việt); phần nhận diện do trình duyệt xử lý.`;
 
 /**
  * Chọn API: kỹ thuật vs giá thị trường.
@@ -89,10 +91,26 @@ function inferTextIntent(text: string): TextIntent {
   return "farming";
 }
 
+function getSpeechRecognitionConstructor(): typeof SpeechRecognition | null {
+  if (typeof window === "undefined") return null;
+  return (
+    window.SpeechRecognition ??
+    (
+      window as unknown as {
+        webkitSpeechRecognition?: typeof SpeechRecognition;
+      }
+    ).webkitSpeechRecognition ??
+    null
+  );
+}
+
 export default function FarmerAIAssistantPage() {
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
   const initialMessages = useMemo<Message[]>(
     () => [
@@ -112,6 +130,21 @@ export default function FarmerAIAssistantPage() {
     "farming" | "market" | "image" | null
   >(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setVoiceSupported(getSpeechRecognitionConstructor() != null);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      try {
+        speechRecognitionRef.current?.stop();
+      } catch {
+        /* ignore */
+      }
+      speechRecognitionRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!pendingImage) {
@@ -208,6 +241,68 @@ export default function FarmerAIAssistantPage() {
   };
 
   const pickFile = () => fileInputRef.current?.click();
+
+  const stopListening = () => {
+    try {
+      speechRecognitionRef.current?.stop();
+    } catch {
+      /* ignore */
+    }
+    speechRecognitionRef.current = null;
+    setIsListening(false);
+  };
+
+  const toggleVoiceInput = () => {
+    if (!voiceSupported || isThinking) return;
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    const SR = getSpeechRecognitionConstructor();
+    if (!SR) {
+      toast.error("Trình duyệt không hỗ trợ nhận diện giọng nói.");
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "vi-VN";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.onresult = (event: SpeechRecognitionEvent) => {
+      const piece = event.results[0]?.[0]?.transcript?.trim();
+      if (piece) {
+        setInput((prev) => {
+          const sep = prev && !/\s$/.test(prev) ? " " : "";
+          return (prev + sep + piece).trim();
+        });
+      }
+    };
+    rec.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error === "aborted") return;
+      speechRecognitionRef.current = null;
+      setIsListening(false);
+      if (event.error === "not-allowed") {
+        toast.error("Cần cho phép micro trong trình duyệt.");
+      } else if (
+        event.error !== "no-speech" &&
+        event.error !== "network"
+      ) {
+        toast.error("Không nhận diện được giọng nói. Thử lại.");
+      }
+    };
+    rec.onend = () => {
+      speechRecognitionRef.current = null;
+      setIsListening(false);
+    };
+    speechRecognitionRef.current = rec;
+    setIsListening(true);
+    try {
+      rec.start();
+    } catch {
+      speechRecognitionRef.current = null;
+      setIsListening(false);
+      toast.error("Không bật được micro.");
+    }
+  };
 
   const clearPendingImage = () => {
     setPendingImage(null);
@@ -457,6 +552,32 @@ export default function FarmerAIAssistantPage() {
                 <Send className="h-5 w-5" />
               )}
             </Button>
+            <button
+              type="button"
+              onClick={toggleVoiceInput}
+              disabled={isThinking || !voiceSupported}
+              title={
+                !voiceSupported
+                  ? "Trình duyệt không hỗ trợ (thử Chrome hoặc Edge)"
+                  : isListening
+                    ? "Dừng nghe"
+                    : "Nói để điền ô chat (tiếng Việt)"
+              }
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors",
+                !voiceSupported || isThinking
+                  ? "cursor-not-allowed text-zinc-400"
+                  : isListening
+                    ? "bg-red-500 text-white shadow-md hover:bg-red-600"
+                    : "text-zinc-700 hover:bg-zinc-100",
+              )}
+              aria-label={isListening ? "Dừng ghi âm" : "Nói để nhập"}
+              aria-pressed={isListening}
+            >
+              <Mic
+                className={cn("h-5 w-5", isListening && "animate-pulse")}
+              />
+            </button>
           </div>
         </div>
       </div>

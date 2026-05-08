@@ -8,6 +8,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyFarmsQuery } from "@/hooks/useFarm";
 import { useMyShopsQuery } from "@/hooks/useFarmerShop";
+import FarmerWorkflowTour from "@/components/onboarding/FarmerWorkflowTour";
+import { FARMER_MARKETPLACE_ONBOARDING_KEY } from "@/lib/onboarding/farmerKeys";
 import { cn } from "@/lib/utils";
 
 export default function FarmerMarketplacePage() {
@@ -29,7 +31,10 @@ export default function FarmerMarketplacePage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-4 pb-24 sm:px-6 md:pb-8 lg:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div
+        id="onboarding-mp-header"
+        className="flex flex-wrap items-center justify-between gap-3"
+      >
         <div className="min-w-0">
           <h1 className="text-xl font-bold tracking-tight">
             Gian hàng của tôi
@@ -52,6 +57,7 @@ export default function FarmerMarketplacePage() {
         )}
       </div>
 
+      <div id="onboarding-mp-body" className="space-y-6">
       {loading && (
         <div className="flex justify-center py-12 text-sm text-muted-foreground">
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -156,6 +162,25 @@ export default function FarmerMarketplacePage() {
           })}
         </div>
       )}
+      </div>
+
+      <FarmerWorkflowTour
+        storageKey={FARMER_MARKETPLACE_ONBOARDING_KEY}
+        steps={[
+          {
+            targetId: "onboarding-mp-header",
+            title: "Gian hàng theo nông trại",
+            description:
+              "Mỗi trại chỉ một gian. Nút Mở gian hàng mới xuất hiện khi còn trại chưa gắn gian — bấm để đặt tên, mô tả và ảnh đại diện.",
+          },
+          {
+            targetId: "onboarding-mp-body",
+            title: "Đăng sản phẩm sau khi mở gian",
+            description:
+              "Vào thẻ gian hàng để thêm sản phẩm, giá và tồn kho. Nếu chưa có trại, hãy tạo nông trại trước; nếu đã có gian, danh sách thẻ sẽ hiện ở đây.",
+          },
+        ]}
+      />
     </div>
   );
 }

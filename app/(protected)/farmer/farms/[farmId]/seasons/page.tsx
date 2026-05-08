@@ -33,6 +33,8 @@ import { useMyFarmCertsQuery } from "@/hooks/useCertificate";
 import type { SeasonStatus } from "@/services/season";
 import { CERT_TYPE_LABEL, type FarmCertStatus } from "@/services/certificate";
 import { FarmCertUploadDialog } from "@/components/farmer/FarmCertUploadDialog";
+import FarmerWorkflowTour from "@/components/onboarding/FarmerWorkflowTour";
+import { FARMER_FARM_HUB_ONBOARDING_KEY } from "@/lib/onboarding/farmerKeys";
 import { cn } from "@/lib/utils";
 import type { PaginationMeta } from "@/types";
 
@@ -190,7 +192,10 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
         Quay lại danh sách nông trại
       </Link>
 
-      <div className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-4">
+      <div
+        id="onboarding-farm-hub-summary"
+        className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-4"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold">{farm?.name ?? "Nông trại"}</h1>
@@ -280,7 +285,10 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           )}
       </div>
 
-      <div className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-4">
+      <div
+        id="onboarding-farm-hub-certs"
+        className="rounded-2xl border border-[hsl(142,15%,88%)] bg-white p-4"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h2 className="text-lg font-bold">Chứng chỉ nông trại</h2>
@@ -491,7 +499,7 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
         </DialogContent>
       </Dialog>
 
-      <div className="space-y-4">
+      <div id="onboarding-farm-hub-seasons" className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h2 className="text-lg font-bold">Mùa vụ của nông trại</h2>
@@ -601,6 +609,30 @@ function FarmSeasonsPageContent({ farmId }: { farmId: string }) {
           </>
         )}
       </div>
+
+      <FarmerWorkflowTour
+        storageKey={FARMER_FARM_HUB_ONBOARDING_KEY}
+        steps={[
+          {
+            targetId: "onboarding-farm-hub-summary",
+            title: "Thông tin nông trại",
+            description:
+              "Sửa hoặc xóa trại khi hệ thống cho phép. Nếu chưa gắn hợp tác xã, bạn có thể gửi đơn tham gia từ khối này.",
+          },
+          {
+            targetId: "onboarding-farm-hub-certs",
+            title: "Chứng chỉ tại trại",
+            description:
+              "Thêm hồ sơ VietGAP và theo dõi duyệt. File và ghi chú từ người duyệt hiển thị trong danh sách bên dưới.",
+          },
+          {
+            targetId: "onboarding-farm-hub-seasons",
+            title: "Mùa vụ & nhật ký",
+            description:
+              "Bấm Tạo mùa vụ để khai báo vụ mới; mở từng vụ để ghi nhật ký và quản lý trạng thái công khai dữ liệu.",
+          },
+        ]}
+      />
     </div>
   );
 }
