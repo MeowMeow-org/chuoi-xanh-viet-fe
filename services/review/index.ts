@@ -53,3 +53,23 @@ export interface ListShopReviewsQuery {
   page?: number;
   limit?: number;
 }
+
+export type AiSentiment = "positive" | "negative" | "mixed";
+
+export interface AiReviewSummary {
+  id: string;
+  targetType: "product" | "shop";
+  targetId: string;
+  overallSentiment: AiSentiment;
+  summary: string;
+  positivePoints: string[];
+  negativePoints: string[];
+  suggestions: string[];
+  actionItems: string[];
+  analyzedCount: number;
+  ignoredCount: number;
+  averageRating: number | null;
+  analyzedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
