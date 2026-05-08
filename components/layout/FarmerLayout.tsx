@@ -20,6 +20,7 @@ import {
   Package,
 } from "lucide-react";
 
+import FarmerShellOnboarding from "@/components/onboarding/FarmerShellOnboarding";
 import { Button } from "@/components/ui/button";
 import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
 import { useLogoutMutation } from "@/hooks/useAuth";
@@ -81,7 +82,10 @@ export default function FarmerLayout({
   return (
     <div className="min-h-screen flex flex-col bg-[hsl(120,20%,98%)] text-[hsl(150,10%,15%)]">
       <>
-        <header className="sticky top-0 z-50 border-b border-[hsl(142,14%,88%)] bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80">
+        <header
+          id="onboarding-farmer-header"
+          className="sticky top-0 z-50 border-b border-[hsl(142,14%,88%)] bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/80"
+        >
           <div className="relative mx-auto grid h-14 w-full max-w-screen-2xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6 lg:px-10">
             <Link
               href="/farmer"
@@ -95,7 +99,10 @@ export default function FarmerLayout({
               </span>
             </Link>
 
-            <nav className="hidden items-center gap-0.5 justify-self-center md:flex">
+            <nav
+              id="onboarding-farmer-nav-desktop"
+              className="hidden items-center gap-0.5 justify-self-center md:flex"
+            >
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
@@ -122,7 +129,10 @@ export default function FarmerLayout({
               })}
             </nav>
 
-            <div className="absolute right-1 flex items-center gap-1 md:static md:justify-self-end">
+            <div
+              id="onboarding-farmer-actions"
+              className="absolute right-1 flex items-center gap-1 md:static md:justify-self-end"
+            >
               <div className="flex items-center gap-1">
                 <NotificationsPopover
                   variant="farmer"
@@ -225,7 +235,9 @@ export default function FarmerLayout({
           </div>
         </header>
 
-        <main className="flex-1">{children}</main>
+        <main id="onboarding-farmer-main" className="flex-1">
+          {children}
+        </main>
 
         <div
           className={cn(
@@ -335,7 +347,10 @@ export default function FarmerLayout({
           </div>
         </div>
 
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur md:hidden">
+        <nav
+          id="onboarding-farmer-bottom-nav"
+          className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 backdrop-blur md:hidden"
+        >
           <div className="flex w-full justify-around overflow-x-auto py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {mobileNavItems.map((item) => {
               const Icon = item.icon;
@@ -381,6 +396,8 @@ export default function FarmerLayout({
             })}
           </div>
         </nav>
+
+        <FarmerShellOnboarding />
       </>
     </div>
   );
